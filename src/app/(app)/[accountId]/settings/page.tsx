@@ -1,0 +1,57 @@
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import SettingsClient from '@/components/layout/SettingsClient'
+
+export default async function SettingsPage(props: PageProps<'/[accountId]/settings'>) {
+  const { accountId } = await props.params
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: account } = await supabase
+    .from('accounts')
+    .select('*')
+    .eq('id', accountId)
+    .single()
+
+  if (!account) redirect('/')
+
+  const { data: membershipCheck } = await supabase
+    .from('account_members')
+    .select('display_name')
+    .eq('account_id', accountId)
+    .eq('user_id', user.id)
+    .single()
+
+  if (!membershipCheck) redirect('/')
+
+  const { data: members } = await supabase
+    .from('account_members')
+    .select('account_id, user_id, display_name')
+    .eq('account_id', accountId)
+
+  const now = new Date()
+
+  return (
+    <div className="max-w-xl mx-auto px-4 py-6">
+      <div className="mb-6">
+        <a
+          href={`/${accountId}/${now.getFullYear()}/${now.getMonth() + 1}`}
+          className="text-sm text-slate-400 hover:text-slate-600 mb-3 inline-block"
+        >
+          ← חזרה לחודש הנוכחי
+        </a>
+        <h1 className="text-xl font-bold text-slate-900">הגדרות חשבון</h1>
+        <p className="text-sm text-slate-500 mt-1">
+          ניהול החשבון והמשתתפים שלך.
+        </p>
+      </div>
+
+      <SettingsClient
+        account={account}
+        members={members ?? []}
+        isOwner={account.created_by === user.id}
+      />
+    </div>
+  )
+}
