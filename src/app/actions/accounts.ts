@@ -10,15 +10,6 @@ export async function createSharedAccount(formData: FormData) {
 
   const name = formData.get('name') as string
 
-  const { data: account, error } = await supabase
-    .from('accounts')
-    .insert({ name, type: 'shared', created_by: user.id })
-    .select()
-    .single()
-
-  if (error) return { error: error.message }
-
-  // Get user's display name
   const { data: member } = await supabase
     .from('account_members')
     .select('display_name')
@@ -26,14 +17,18 @@ export async function createSharedAccount(formData: FormData) {
     .limit(1)
     .single()
 
-  await supabase.from('account_members').insert({
-    account_id: account.id,
-    user_id: user.id,
-    display_name: member?.display_name || user.email,
+  const displayName = member?.display_name || user.email || 'משתמש'
+
+  const { data: accountId, error } = await supabase.rpc('create_shared_account', {
+    p_user_id: user.id,
+    p_display_name: displayName,
+    p_name: name,
   })
 
+  if (error) return { error: error.message }
+
   revalidatePath('/')
-  return { success: true, accountId: account.id }
+  return { success: true, accountId }
 }
 
 export async function inviteMember(formData: FormData) {
