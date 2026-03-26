@@ -30,6 +30,13 @@ export default async function SettingsPage(props: PageProps<'/[accountId]/settin
     .select('account_id, user_id, display_name')
     .eq('account_id', accountId)
 
+  const { data: apiKeys } = await supabase
+    .from('api_keys')
+    .select('id, name, key_value, created_at')
+    .eq('account_id', accountId)
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+
   const now = new Date()
 
   return (
@@ -51,6 +58,7 @@ export default async function SettingsPage(props: PageProps<'/[accountId]/settin
         account={account}
         members={members ?? []}
         isOwner={account.created_by === user.id}
+        apiKeys={apiKeys ?? []}
       />
     </div>
   )

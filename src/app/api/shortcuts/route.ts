@@ -26,12 +26,9 @@ export async function POST(request: NextRequest) {
       }
     )
 
-    // Look up the API key
-    const { data: keyRecord } = await supabase
-      .from('api_keys')
-      .select('user_id, account_id')
-      .eq('key_value', api_key)
-      .single()
+    // Look up the API key via SECURITY DEFINER function (bypasses RLS)
+    const { data: keyRows } = await supabase.rpc('lookup_api_key', { p_key_value: api_key })
+    const keyRecord = keyRows?.[0]
 
     if (!keyRecord) return NextResponse.json({ error: 'Invalid API key' }, { status: 401 })
 
@@ -91,11 +88,8 @@ export async function GET(request: NextRequest) {
     }
   )
 
-  const { data: keyRecord } = await supabase
-    .from('api_keys')
-    .select('account_id')
-    .eq('key_value', apiKey)
-    .single()
+  const { data: keyRows } = await supabase.rpc('lookup_api_key', { p_key_value: apiKey })
+  const keyRecord = keyRows?.[0]
 
   if (!keyRecord) return NextResponse.json({ error: 'Invalid API key' }, { status: 401 })
 

@@ -63,6 +63,35 @@ export async function inviteMember(formData: FormData) {
   return { success: true }
 }
 
+export async function generateApiKey(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const accountId = formData.get('accountId') as string
+
+  const { data: key, error } = await supabase.rpc('generate_api_key', {
+    p_user_id: user.id,
+    p_account_id: accountId,
+  })
+
+  if (error) return { error: error.message }
+
+  revalidatePath(`/${accountId}/settings`)
+  return { success: true, key }
+}
+
+export async function deleteApiKey(keyId: string, accountId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  await supabase.from('api_keys').delete().eq('id', keyId)
+
+  revalidatePath(`/${accountId}/settings`)
+  return { success: true }
+}
+
 export async function updateAccountName(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
