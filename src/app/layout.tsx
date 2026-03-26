@@ -1,19 +1,18 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Rubik } from 'next/font/google'
 import './globals.css'
 
-const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
-const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] })
+const rubik = Rubik({ subsets: ['latin', 'hebrew'], weight: '400' })
 
 export const metadata: Metadata = {
-  title: 'Kaspit — Budget Tracker',
-  description: 'Track your personal and shared budget effortlessly.',
+  title: 'כסף לי — מעקב תקציב',
+  description: 'עקוב אחרי התקציב האישי והמשותף שלך בקלות.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="he" dir="rtl" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-slate-50">{children}</body>
+    <html lang="he" dir="rtl" className={`${rubik.className} h-full antialiased`}>
+      <body className="min-h-full flex flex-col bg-slate-50" style={{ fontFamily: "'Rubik', sans-serif" }}>{children}</body>
     </html>
   )
 }

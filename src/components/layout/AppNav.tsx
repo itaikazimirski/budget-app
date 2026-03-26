@@ -58,7 +58,7 @@ export default function AppNav({ accounts, userEmail }: AppNavProps) {
           <div className="bg-indigo-100 rounded-lg p-1.5">
             <Wallet className="w-4 h-4 text-indigo-600" />
           </div>
-          <span className="font-bold text-slate-900 tracking-tight">כספית</span>
+          <span className="font-bold text-slate-900 tracking-tight">כסף לי</span>
         </Link>
 
         {/* Account switcher */}
