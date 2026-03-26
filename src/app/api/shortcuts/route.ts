@@ -34,33 +34,17 @@ export async function POST(request: NextRequest) {
 
     const { user_id, account_id } = keyRecord
 
-    // Find the category if provided
-    let category_id = null
-    if (category_name) {
-      const { data: cat } = await supabase
-        .from('categories')
-        .select('id')
-        .eq('account_id', account_id)
-        .ilike('name', category_name)
-        .eq('type', type)
-        .limit(1)
-        .single()
-      category_id = cat?.id ?? null
-    }
-
-    const txDate = date ?? new Date().toISOString().split('T')[0]
-
-    const { error } = await supabase.from('transactions').insert({
-      account_id,
-      category_id,
-      user_id,
-      amount: parseFloat(String(amount)),
-      type,
-      date: txDate,
-      notes: notes ?? null,
+    const { data: result } = await supabase.rpc('add_shortcut_transaction', {
+      p_account_id: account_id,
+      p_user_id: user_id,
+      p_amount: parseFloat(String(amount)),
+      p_type: type,
+      p_category_name: category_name ?? null,
+      p_date: date ?? null,
+      p_notes: notes ?? null,
     })
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (result?.error) return NextResponse.json({ error: result.error }, { status: 500 })
 
     return NextResponse.json({ success: true, message: `${type} of ₪${amount} logged successfully.` })
   } catch {
