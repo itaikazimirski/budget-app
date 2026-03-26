@@ -77,11 +77,23 @@ export async function GET(request: NextRequest) {
 
   if (!keyRecord) return NextResponse.json({ error: 'Invalid API key' }, { status: 401 })
 
-  const { data: categories } = await supabase
+  const typeFilter = request.nextUrl.searchParams.get('type')
+
+  const query = supabase
     .from('categories')
     .select('id, name, type')
     .eq('account_id', keyRecord.account_id)
     .order('name')
+
+  if (typeFilter) query.eq('type', typeFilter)
+
+  const { data: categories } = await query
+
+  // If ?names=true, return a plain array of names (easier for Apple Shortcuts)
+  const namesOnly = request.nextUrl.searchParams.get('names') === 'true'
+  if (namesOnly) {
+    return NextResponse.json((categories ?? []).map((c) => c.name))
+  }
 
   return NextResponse.json({ categories: categories ?? [] })
 }
