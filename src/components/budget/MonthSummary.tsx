@@ -6,8 +6,11 @@ function formatILS(amount: number) {
 }
 
 export default function MonthSummary({ stats }: { stats: MonthlyStats }) {
-  const { totalIncome, totalExpenses, balance } = stats
-  const savingsRate = totalIncome > 0 ? Math.round(((totalIncome - totalExpenses) / totalIncome) * 100) : 0
+  const { totalIncome, totalExpenses, balance, incomeCategories, expenseCategories } = stats
+
+  const plannedIncome = incomeCategories.reduce((s, c) => s + c.budget_amount, 0)
+  const plannedExpenses = expenseCategories.reduce((s, c) => s + c.budget_amount, 0)
+  const plannedBalance = plannedIncome - plannedExpenses
 
   return (
     <div className="grid grid-cols-3 gap-3">
@@ -19,6 +22,7 @@ export default function MonthSummary({ stats }: { stats: MonthlyStats }) {
           <span className="text-sm text-slate-500 font-medium">הכנסות</span>
         </div>
         <p className="text-xl font-bold text-slate-900">{formatILS(totalIncome)}</p>
+        <p className="text-xs text-slate-400 mt-1">תוכנן: {formatILS(plannedIncome)}</p>
       </div>
 
       <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
@@ -29,6 +33,7 @@ export default function MonthSummary({ stats }: { stats: MonthlyStats }) {
           <span className="text-sm text-slate-500 font-medium">הוצאות</span>
         </div>
         <p className="text-xl font-bold text-slate-900">{formatILS(totalExpenses)}</p>
+        <p className="text-xs text-slate-400 mt-1">תוכנן: {formatILS(plannedExpenses)}</p>
       </div>
 
       <div className={`rounded-2xl p-4 border shadow-sm ${balance >= 0 ? 'bg-indigo-50 border-indigo-200' : 'bg-rose-50 border-rose-200'}`}>
@@ -41,11 +46,7 @@ export default function MonthSummary({ stats }: { stats: MonthlyStats }) {
         <p className={`text-xl font-bold ${balance >= 0 ? 'text-indigo-700' : 'text-rose-700'}`}>
           {formatILS(balance)}
         </p>
-        {totalIncome > 0 && (
-          <p className={`text-xs mt-0.5 ${balance >= 0 ? 'text-indigo-500' : 'text-rose-500'}`}>
-            {savingsRate}% חסכת
-          </p>
-        )}
+        <p className="text-xs text-slate-400 mt-1">תוכנן: {formatILS(plannedBalance)}</p>
       </div>
     </div>
   )
