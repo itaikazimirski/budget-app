@@ -165,12 +165,12 @@ export default function TransactionTable({ transactions, categories, accountId, 
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50">
-                <th className="text-right px-4 py-2 text-xs text-slate-500 font-medium">תאריך</th>
-                <th className="text-right px-4 py-2 text-xs text-slate-500 font-medium">הערות</th>
-                <th className="text-right px-4 py-2 text-xs text-slate-500 font-medium">קטגוריה</th>
-                <th className="text-right px-4 py-2 text-xs text-slate-500 font-medium">סוג</th>
-                <th className="text-left px-4 py-2 text-xs text-slate-500 font-medium">סכום</th>
-                <th className="text-right px-4 py-2 text-xs text-slate-500 font-medium">הוזן על ידי</th>
+                <th className="text-center px-4 py-2 text-sm text-slate-900 font-semibold">תאריך</th>
+                <th className="text-center px-4 py-2 text-sm text-slate-900 font-semibold">הערות</th>
+                <th className="text-center px-4 py-2 text-sm text-slate-900 font-semibold">קטגוריה</th>
+                <th className="text-center px-4 py-2 text-sm text-slate-900 font-semibold">סוג</th>
+                <th className="text-center px-4 py-2 text-sm text-slate-900 font-semibold">סכום</th>
+                <th className="text-center px-4 py-2 text-sm text-slate-900 font-semibold">הוזן על ידי</th>
                 <th className="px-2 py-2" />
               </tr>
             </thead>
