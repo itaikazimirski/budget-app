@@ -36,7 +36,7 @@ export default function MonthSummary({ stats }: { stats: MonthlyStats }) {
           <div className={`rounded-lg p-1.5 ${balance >= 0 ? 'bg-indigo-100' : 'bg-rose-100'}`}>
             <Wallet className={`w-4 h-4 ${balance >= 0 ? 'text-indigo-600' : 'text-rose-600'}`} />
           </div>
-          <span className={`text-sm font-medium ${balance >= 0 ? 'text-indigo-600' : 'text-rose-600'}`}>יתרה</span>
+          <span className={`text-sm font-medium ${balance >= 0 ? 'text-indigo-600' : 'text-rose-600'}`}>תזרים</span>
         </div>
         <p className={`text-xl font-bold ${balance >= 0 ? 'text-indigo-700' : 'text-rose-700'}`}>
           {formatILS(balance)}
