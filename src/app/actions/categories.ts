@@ -110,6 +110,14 @@ export async function updateMonthBudget(formData: FormData) {
 
   if (error) return { error: error.message }
 
+  // Also update the base template so the amount carries to future months
+  await supabase
+    .from('budget_templates')
+    .upsert(
+      { account_id: accountId, category_id: categoryId, monthly_amount: monthlyAmount },
+      { onConflict: 'account_id,category_id' }
+    )
+
   revalidatePath(`/${accountId}/${year}/${month}`)
   return { success: true }
 }
