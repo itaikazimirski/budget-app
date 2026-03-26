@@ -138,7 +138,7 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
       <MonthNav accountId={accountId} year={year} month={month} />
 
-      <MonthSummary stats={stats} />
+      <MonthSummary stats={stats} accountId={accountId} year={year} month={month} />
 
       {hasMonthOverride && (
         <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
@@ -146,24 +146,14 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
         </p>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <CategorySection
-          title="הכנסות"
-          categories={incomeCategories}
-          type="income"
-          accountId={accountId}
-          year={year}
-          month={month}
-        />
-        <CategorySection
-          title="הוצאות"
-          categories={expenseCategories}
-          type="expense"
-          accountId={accountId}
-          year={year}
-          month={month}
-        />
-      </div>
+      <CategorySection
+        title="הוצאות"
+        categories={expenseCategories}
+        type="expense"
+        accountId={accountId}
+        year={year}
+        month={month}
+      />
 
       {expenseCategories.some((c) => c.actual_amount > 0) && (
         <ExpensePieChart categories={expenseCategories} />
