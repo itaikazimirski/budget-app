@@ -25,14 +25,14 @@ const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<
 
 export default function ExpensePieChart({ categories }: ExpensePieChartProps) {
   const data = categories
-    .filter((c) => c.actual_amount > 0)
-    .map((c) => ({ name: c.name, value: c.actual_amount, color: c.color }))
+    .filter((c) => c.budget_amount > 0)
+    .map((c) => ({ name: c.name, value: c.budget_amount, color: c.color }))
 
   if (data.length === 0) return null
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-      <h3 className="font-semibold text-slate-900 text-sm mb-4">פירוט הוצאות</h3>
+      <h3 className="font-semibold text-slate-900 text-sm mb-4">פילוח תקציב מתוכנן</h3>
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
