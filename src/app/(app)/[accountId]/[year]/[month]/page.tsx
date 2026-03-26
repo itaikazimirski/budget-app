@@ -55,7 +55,7 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
 
   const { data: transactions } = await supabase
     .from('transactions')
-    .select('*, categories(*)')
+    .select('*, category:categories(*)')
     .eq('account_id', accountId)
     .gte('date', startDate)
     .lte('date', endDate)
