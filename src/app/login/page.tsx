@@ -31,7 +31,7 @@ export default function LoginPage() {
           <div className="bg-white/20 rounded-xl p-2">
             <Wallet className="w-6 h-6" />
           </div>
-          <span className="text-2xl font-bold tracking-tight">כסף לי</span>
+          <span className="text-2xl font-bold tracking-tight">תקציב-לי</span>
         </div>
 
         <div>
@@ -59,7 +59,7 @@ export default function LoginPage() {
             <div className="bg-indigo-100 rounded-xl p-2">
               <Wallet className="w-5 h-5 text-indigo-600" />
             </div>
-            <span className="text-xl font-bold text-indigo-600 tracking-tight">כסף לי</span>
+            <span className="text-xl font-bold text-indigo-600 tracking-tight">תקציב-לי</span>
           </div>
 
           <h2 className="text-2xl font-bold text-slate-900 mb-1">

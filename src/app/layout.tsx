@@ -5,7 +5,7 @@ import './globals.css'
 const rubik = Rubik({ subsets: ['latin', 'hebrew'], weight: '400' })
 
 export const metadata: Metadata = {
-  title: 'כסף לי — מעקב תקציב',
+  title: 'תקציב-לי — מעקב תקציב',
   description: 'עקוב אחרי התקציב האישי והמשותף שלך בקלות.',
 }
 

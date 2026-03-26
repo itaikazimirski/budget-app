@@ -101,7 +101,7 @@ export default function SettingsClient({ account, members, isOwner }: SettingsCl
             </form>
             {inviteError && <p className="text-xs text-rose-600 mt-2">{inviteError}</p>}
             {inviteSuccess && <p className="text-xs text-emerald-600 mt-2">✓ המשתתף נוסף בהצלחה!</p>}
-            <p className="text-xs text-slate-400 mt-2">המשתתף צריך להיות רשום בכסף לי קודם.</p>
+            <p className="text-xs text-slate-400 mt-2">המשתתף צריך להיות רשום בתקציב-לי קודם.</p>
           </div>
         )}
       </div>
