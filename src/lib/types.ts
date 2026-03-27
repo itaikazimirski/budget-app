@@ -1,4 +1,6 @@
 export type CategoryType = 'income' | 'expense'
+export type CategoryBucket = 'מחיה' | 'מותרות' | 'חסכון'
+export const BUCKETS: CategoryBucket[] = ['מחיה', 'מותרות', 'חסכון']
 export type TransactionType = 'income' | 'expense'
 export type AccountType = 'personal' | 'shared'
 
@@ -22,6 +24,7 @@ export interface Category {
   name: string
   type: CategoryType
   color: string
+  bucket: CategoryBucket | null
   created_at: string
 }
 

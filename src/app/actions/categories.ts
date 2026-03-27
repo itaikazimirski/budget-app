@@ -13,11 +13,12 @@ export async function addCategory(formData: FormData) {
   const name = formData.get('name') as string
   const type = formData.get('type') as CategoryType
   const color = formData.get('color') as string
+  const bucket = formData.get('bucket') as string || null
   const monthlyAmount = parseFloat(formData.get('monthlyAmount') as string) || 0
 
   const { data: category, error } = await supabase
     .from('categories')
-    .insert({ account_id: accountId, name, type, color })
+    .insert({ account_id: accountId, name, type, color, bucket })
     .select()
     .single()
 
@@ -43,10 +44,11 @@ export async function updateCategory(formData: FormData) {
   const accountId = formData.get('accountId') as string
   const name = formData.get('name') as string
   const color = formData.get('color') as string
+  const bucket = formData.get('bucket') as string || null
 
   const { error } = await supabase
     .from('categories')
-    .update({ name, color })
+    .update({ name, color, bucket })
     .eq('id', categoryId)
 
   if (error) return { error: error.message }

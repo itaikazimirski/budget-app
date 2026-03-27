@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import type { CategoryWithStats } from '@/lib/types'
 import { updateMonthBudget, updateCategory } from '@/app/actions/categories'
-import { CATEGORY_COLORS } from '@/lib/types'
+import { CATEGORY_COLORS, BUCKETS } from '@/lib/types'
 import { Edit2, Check, X, Settings2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,6 +26,7 @@ export default function CategoryCard({ category, accountId, year, month }: Categ
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [nameInput, setNameInput] = useState(category.name)
   const [selectedColor, setSelectedColor] = useState(category.color)
+  const [selectedBucket, setSelectedBucket] = useState(category.bucket ?? 'מחיה')
   const [isPending, startTransition] = useTransition()
 
   const { actual_amount, budget_amount, percentage, type } = category
@@ -57,6 +58,7 @@ export default function CategoryCard({ category, accountId, year, month }: Categ
       fd.set('accountId', accountId)
       fd.set('name', nameInput)
       fd.set('color', selectedColor)
+      fd.set('bucket', selectedBucket)
       await updateCategory(fd)
       setShowEditDialog(false)
     })
@@ -156,6 +158,25 @@ export default function CategoryCard({ category, accountId, year, month }: Categ
                   required
                   autoFocus
                 />
+              </div>
+              <div className="space-y-1.5">
+                <Label>סיווג</Label>
+                <div className="flex gap-2">
+                  {BUCKETS.map((b) => (
+                    <button
+                      key={b}
+                      type="button"
+                      onClick={() => setSelectedBucket(b)}
+                      className={`flex-1 py-1.5 text-sm rounded-lg font-medium transition-colors ${
+                        selectedBucket === b
+                          ? 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-300'
+                          : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                      }`}
+                    >
+                      {b}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label>צבע</Label>
