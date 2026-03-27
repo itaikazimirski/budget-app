@@ -4,7 +4,6 @@ import type { CategoryWithStats, MonthlyStats } from '@/lib/types'
 import MonthNav from '@/components/budget/MonthNav'
 import MonthSummary from '@/components/budget/MonthSummary'
 import CategorySection from '@/components/budget/CategorySection'
-import ExpensePieChart from '@/components/budget/ExpensePieChart'
 import TransactionTable from '@/components/budget/TransactionTable'
 import BucketSummary from '@/components/budget/BucketSummary'
 
@@ -162,10 +161,6 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
         year={year}
         month={month}
       />
-
-      {expenseCategories.some((c) => c.actual_amount > 0) && (
-        <ExpensePieChart categories={expenseCategories} />
-      )}
 
       <TransactionTable
         transactions={txWithNames}

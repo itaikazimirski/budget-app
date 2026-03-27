@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { addCategory } from '@/app/actions/categories'
-import { CATEGORY_COLORS, BUCKETS } from '@/lib/types'
+import { CATEGORY_ICONS, BUCKETS } from '@/lib/types'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,7 +15,7 @@ interface AddCategoryDialogProps {
 }
 
 export default function AddCategoryDialog({ type, accountId, onClose }: AddCategoryDialogProps) {
-  const [selectedColor, setSelectedColor] = useState(CATEGORY_COLORS[type === 'income' ? 4 : 0])
+  const [selectedIcon, setSelectedIcon] = useState(type === 'income' ? '💰' : '📦')
   const [selectedBucket, setSelectedBucket] = useState<string>('מחיה')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -26,7 +26,7 @@ export default function AddCategoryDialog({ type, accountId, onClose }: AddCateg
     const fd = new FormData(e.currentTarget)
     fd.set('accountId', accountId)
     fd.set('type', type)
-    fd.set('color', selectedColor)
+    fd.set('icon', selectedIcon)
     fd.set('bucket', selectedBucket)
     startTransition(async () => {
       const result = await addCategory(fd)
@@ -88,18 +88,21 @@ export default function AddCategoryDialog({ type, accountId, onClose }: AddCateg
           )}
 
           <div className="space-y-1.5">
-            <Label>צבע</Label>
-            <div className="flex flex-wrap gap-2">
-              {CATEGORY_COLORS.map((color) => (
+            <Label>אייקון</Label>
+            <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
+              {CATEGORY_ICONS.map((icon) => (
                 <button
-                  key={color}
+                  key={icon}
                   type="button"
-                  onClick={() => setSelectedColor(color)}
-                  className={`w-7 h-7 rounded-full transition-transform ${
-                    selectedColor === color ? 'scale-125 ring-2 ring-offset-2 ring-slate-400' : 'hover:scale-110'
+                  onClick={() => setSelectedIcon(icon)}
+                  className={`w-9 h-9 text-xl rounded-lg transition-all flex items-center justify-center ${
+                    selectedIcon === icon
+                      ? 'bg-indigo-100 ring-2 ring-indigo-400 scale-110'
+                      : 'bg-slate-50 hover:bg-slate-100'
                   }`}
-                  style={{ backgroundColor: color }}
-                />
+                >
+                  {icon}
+                </button>
               ))}
             </div>
           </div>

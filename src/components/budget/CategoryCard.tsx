@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import type { CategoryWithStats } from '@/lib/types'
 import { updateMonthBudget, updateCategory } from '@/app/actions/categories'
-import { CATEGORY_COLORS, BUCKETS } from '@/lib/types'
+import { CATEGORY_ICONS, BUCKETS } from '@/lib/types'
 import { Edit2, Check, X, Settings2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,7 +25,7 @@ export default function CategoryCard({ category, accountId, year, month }: Categ
   const [budgetInput, setBudgetInput] = useState(String(category.budget_amount))
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [nameInput, setNameInput] = useState(category.name)
-  const [selectedColor, setSelectedColor] = useState(category.color)
+  const [selectedIcon, setSelectedIcon] = useState(category.icon ?? '📦')
   const [selectedBucket, setSelectedBucket] = useState(category.bucket ?? 'מחיה')
   const [isPending, startTransition] = useTransition()
 
@@ -57,7 +57,7 @@ export default function CategoryCard({ category, accountId, year, month }: Categ
       fd.set('categoryId', category.id)
       fd.set('accountId', accountId)
       fd.set('name', nameInput)
-      fd.set('color', selectedColor)
+      fd.set('icon', selectedIcon)
       fd.set('bucket', selectedBucket)
       await updateCategory(fd)
       setShowEditDialog(false)
@@ -69,7 +69,7 @@ export default function CategoryCard({ category, accountId, year, month }: Categ
       <div className="px-4 py-3 hover:bg-slate-50 transition-colors group">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: category.color }} />
+            <span className="text-base shrink-0">{category.icon ?? '📦'}</span>
             <span className="text-sm font-medium text-slate-800 truncate">{category.name}</span>
             {isOver && (
               <span className="text-xs bg-rose-100 text-rose-600 rounded px-1.5 py-0.5 shrink-0">חריגה!</span>
@@ -179,18 +179,21 @@ export default function CategoryCard({ category, accountId, year, month }: Categ
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label>צבע</Label>
-                <div className="flex flex-wrap gap-2">
-                  {CATEGORY_COLORS.map((color) => (
+                <Label>אייקון</Label>
+                <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
+                  {CATEGORY_ICONS.map((icon) => (
                     <button
-                      key={color}
+                      key={icon}
                       type="button"
-                      onClick={() => setSelectedColor(color)}
-                      className={`w-7 h-7 rounded-full transition-transform ${
-                        selectedColor === color ? 'scale-125 ring-2 ring-offset-2 ring-slate-400' : 'hover:scale-110'
+                      onClick={() => setSelectedIcon(icon)}
+                      className={`w-9 h-9 text-xl rounded-lg transition-all flex items-center justify-center ${
+                        selectedIcon === icon
+                          ? 'bg-indigo-100 ring-2 ring-indigo-400 scale-110'
+                          : 'bg-slate-50 hover:bg-slate-100'
                       }`}
-                      style={{ backgroundColor: color }}
-                    />
+                    >
+                      {icon}
+                    </button>
                   ))}
                 </div>
               </div>
