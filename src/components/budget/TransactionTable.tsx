@@ -234,7 +234,7 @@ export default function TransactionTable({ transactions, categories, accountId, 
                     <td className="px-4 py-2.5">
                       {tx.category ? (
                         <div className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: tx.category.color }} />
+                          <span className="text-base shrink-0">{tx.category.icon ?? '📦'}</span>
                           <span className="text-slate-700 text-xs truncate max-w-[100px]">{tx.category.name}</span>
                         </div>
                       ) : (
