@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { CategoryWithStats, Transaction } from '@/lib/types'
 import CategoryCard from './CategoryCard'
+import GroupRow from './GroupRow'
 import AddCategoryDialog from './AddCategoryDialog'
 import { Plus } from 'lucide-react'
 
@@ -25,6 +26,10 @@ export default function CategorySection({ title, categories, type, accountId, ye
 
   const total = categories.reduce((s, c) => s + c.actual_amount, 0)
   const budgetTotal = categories.reduce((s, c) => s + c.budget_amount, 0)
+
+  const regularCats = categories.filter((c) => !c.category_group)
+  const subscriptionCats = categories.filter((c) => c.category_group === 'מנוי')
+  const insuranceCats = categories.filter((c) => c.category_group === 'ביטוח')
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -50,24 +55,22 @@ export default function CategorySection({ title, categories, type, accountId, ye
         {categories.length === 0 ? (
           <div className="px-4 py-8 text-center text-slate-400 text-sm">
             <p>אין קטגוריות {type === 'income' ? 'הכנסה' : 'הוצאה'} עדיין.</p>
-            <button
-              onClick={() => setShowAdd(true)}
-              className="mt-2 text-indigo-500 hover:underline text-xs"
-            >
+            <button onClick={() => setShowAdd(true)} className="mt-2 text-indigo-500 hover:underline text-xs">
               הוסף אחת ←
             </button>
           </div>
         ) : (
-          categories.map((cat) => (
-            <CategoryCard
-              key={cat.id}
-              category={cat}
-              accountId={accountId}
-              year={year}
-              month={month}
-              transactions={transactions}
-            />
-          ))
+          <>
+            {regularCats.map((cat) => (
+              <CategoryCard key={cat.id} category={cat} accountId={accountId} year={year} month={month} transactions={transactions} />
+            ))}
+            {subscriptionCats.length > 0 && (
+              <GroupRow groupName="מנוי" categories={subscriptionCats} accountId={accountId} year={year} month={month} transactions={transactions} />
+            )}
+            {insuranceCats.length > 0 && (
+              <GroupRow groupName="ביטוח" categories={insuranceCats} accountId={accountId} year={year} month={month} transactions={transactions} />
+            )}
+          </>
         )}
       </div>
 

@@ -14,11 +14,12 @@ export async function addCategory(formData: FormData) {
   const type = formData.get('type') as CategoryType
   const icon = formData.get('icon') as string || '📦'
   const bucket = formData.get('bucket') as string || null
+  const category_group = formData.get('category_group') as string || null
   const monthlyAmount = parseFloat(formData.get('monthlyAmount') as string) || 0
 
   const { data: category, error } = await supabase
     .from('categories')
-    .insert({ account_id: accountId, name, type, icon, bucket })
+    .insert({ account_id: accountId, name, type, icon, bucket, category_group })
     .select()
     .single()
 
@@ -45,10 +46,11 @@ export async function updateCategory(formData: FormData) {
   const name = formData.get('name') as string
   const icon = formData.get('icon') as string || '📦'
   const bucket = formData.get('bucket') as string || null
+  const category_group = formData.get('category_group') as string || null
 
   const { error } = await supabase
     .from('categories')
-    .update({ name, icon, bucket })
+    .update({ name, icon, bucket, category_group })
     .eq('id', categoryId)
 
   if (error) return { error: error.message }

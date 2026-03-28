@@ -34,6 +34,7 @@ export default function CategoryCard({ category, accountId, year, month, transac
   const [nameInput, setNameInput] = useState(category.name)
   const [selectedIcon, setSelectedIcon] = useState(category.icon ?? '📦')
   const [selectedBucket, setSelectedBucket] = useState(category.bucket ?? 'מחיה')
+  const [selectedGroup, setSelectedGroup] = useState<'מנוי' | 'ביטוח' | null>(category.category_group ?? null)
   const [isPending, startTransition] = useTransition()
 
   const catTransactions = (transactions ?? []).filter((tx) => tx.category_id === category.id)
@@ -67,6 +68,7 @@ export default function CategoryCard({ category, accountId, year, month, transac
       fd.set('name', nameInput)
       fd.set('icon', selectedIcon)
       fd.set('bucket', selectedBucket)
+      if (selectedGroup) fd.set('category_group', selectedGroup)
       await updateCategory(fd)
       setShowEditDialog(false)
     })
@@ -220,6 +222,28 @@ export default function CategoryCard({ category, accountId, year, month, transac
                   ))}
                 </div>
               </div>
+              {category.type === 'expense' && (
+                <div className="space-y-1.5">
+                  <Label>סוג מיוחד (אופציונלי)</Label>
+                  <div className="flex gap-2">
+                    {(['מנוי', 'ביטוח'] as const).map((g) => (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => setSelectedGroup(selectedGroup === g ? null : g)}
+                        className={`flex-1 py-1.5 text-sm rounded-lg font-medium transition-colors flex items-center justify-center gap-1.5 ${
+                          selectedGroup === g
+                            ? 'bg-violet-100 text-violet-700 ring-1 ring-violet-300'
+                            : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                        }`}
+                      >
+                        {g === 'מנוי' ? '📺' : '🛡️'} {g}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-1.5">
                 <Label>אייקון</Label>
                 <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
