@@ -33,7 +33,7 @@ export default function CategorySection({ title, categories, type, accountId, ye
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-white/8">
         <div>
           <h3 className="font-semibold text-slate-900 text-sm">{title}</h3>
           {budgetTotal > 0 && (
@@ -51,7 +51,7 @@ export default function CategorySection({ title, categories, type, accountId, ye
         </button>
       </div>
 
-      <div className="divide-y divide-slate-50">
+      <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
         {categories.length === 0 ? (
           <div className="px-4 py-8 text-center text-slate-400 text-sm">
             <p>אין קטגוריות {type === 'income' ? 'הכנסה' : 'הוצאה'} עדיין.</p>
