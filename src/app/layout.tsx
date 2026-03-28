@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="he" dir="rtl" className={`${rubik.className} h-full antialiased`}>
+    <html lang="he" dir="rtl" className={`${rubik.className} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col bg-slate-50" style={{ fontFamily: "'Rubik', sans-serif" }}>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
