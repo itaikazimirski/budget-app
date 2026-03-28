@@ -3,9 +3,10 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { Wallet, ChevronDown, LogOut, Settings, Plus, User } from 'lucide-react'
+import { Wallet, ChevronDown, LogOut, Settings, Plus, User, Sun, Moon } from 'lucide-react'
 import { logout } from '@/app/actions/auth'
 import { createSharedAccount } from '@/app/actions/accounts'
+import { useTheme } from 'next-themes'
 
 interface Account {
   id: string
@@ -24,6 +25,7 @@ export default function AppNav({ accounts, userEmail }: AppNavProps) {
   const [showAccountMenu, setShowAccountMenu] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [creatingAccount, setCreatingAccount] = useState(false)
+  const { theme, setTheme } = useTheme()
 
   const pathParts = pathname.split('/')
   const currentAccountId = pathParts[1] ?? accounts[0]?.id
@@ -104,6 +106,13 @@ export default function AppNav({ accounts, userEmail }: AppNavProps) {
 
         {/* Right side: settings + user */}
         <div className="flex items-center gap-1">
+          <button
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 dark:hover:text-white rounded-lg transition-colors"
+            title="החלף מצב תצוגה"
+          >
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
           {currentAccount && (
             <Link
               href={`/${currentAccount.id}/settings`}
