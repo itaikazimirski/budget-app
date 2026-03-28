@@ -84,7 +84,7 @@
 }
 
 .dark {
-  --background: oklch(0.12 0.06 285);
+  --background: oklch(0.16 0.06 285);
   --foreground: oklch(0.96 0.01 280);
   --card: oklch(0.17 0.07 285);
   --card-foreground: oklch(0.96 0.01 280);
@@ -118,10 +118,10 @@
 }
 
 /* Dark mode overrides for hardcoded Tailwind color classes */
-.dark body { background-color: oklch(0.12 0.06 285) !important; }
-.dark .bg-white { background-color: oklch(0.17 0.07 285) !important; }
-.dark .bg-slate-50 { background-color: oklch(0.14 0.06 285) !important; }
-.dark .bg-slate-100 { background-color: oklch(0.22 0.08 285) !important; }
+.dark body { background-color: oklch(0.16 0.06 285) !important; }
+.dark .bg-white { background-color: oklch(0.21 0.07 285) !important; }
+.dark .bg-slate-50 { background-color: oklch(0.18 0.06 285) !important; }
+.dark .bg-slate-100 { background-color: oklch(0.26 0.08 285) !important; }
 .dark .bg-slate-200 { background-color: oklch(0.26 0.08 285) !important; }
 .dark .hover\:bg-slate-50:hover { background-color: oklch(0.20 0.07 285) !important; }
 .dark .hover\:bg-slate-100:hover { background-color: oklch(0.24 0.08 285) !important; }

@@ -32,39 +32,39 @@ export default function MonthSummary({ stats, accountId, year, month }: MonthSum
         {/* Income card — clickable */}
         <button
           onClick={() => setIncomeOpen(true)}
-          className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm text-right hover:border-emerald-300 hover:shadow-md transition-all"
+          className="bg-emerald-50 dark:bg-emerald-950/40 rounded-2xl p-4 border border-emerald-200 dark:border-emerald-800/50 shadow-sm text-right hover:shadow-md transition-all"
         >
           <div className="flex items-center gap-2 mb-3">
-            <div className="bg-emerald-100 rounded-lg p-1.5">
-              <TrendingUp className="w-4 h-4 text-emerald-600" />
+            <div className="bg-emerald-100 dark:bg-emerald-900/60 rounded-lg p-1.5">
+              <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             </div>
-            <span className="text-sm text-slate-500 font-medium">הכנסות</span>
+            <span className="text-sm text-emerald-700 dark:text-emerald-400 font-medium">הכנסות</span>
           </div>
           <p className="text-xl font-bold text-slate-900">{formatILS(totalIncome)}</p>
           <p className="text-xs text-slate-400 mt-1">תוכנן: {formatILS(plannedIncome)}</p>
         </button>
 
         {/* Expenses card */}
-        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+        <div className="bg-violet-50 dark:bg-violet-950/40 rounded-2xl p-4 border border-violet-200 dark:border-violet-800/50 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
-            <div className="bg-rose-100 rounded-lg p-1.5">
-              <TrendingDown className="w-4 h-4 text-rose-600" />
+            <div className="bg-violet-100 dark:bg-violet-900/60 rounded-lg p-1.5">
+              <TrendingDown className="w-4 h-4 text-violet-600 dark:text-violet-400" />
             </div>
-            <span className="text-sm text-slate-500 font-medium">הוצאות</span>
+            <span className="text-sm text-violet-700 dark:text-violet-400 font-medium">הוצאות</span>
           </div>
           <p className="text-xl font-bold text-slate-900">{formatILS(totalExpenses)}</p>
           <p className="text-xs text-slate-400 mt-1">תוכנן: {formatILS(plannedExpenses)}</p>
         </div>
 
         {/* Balance card */}
-        <div className={`rounded-2xl p-4 border shadow-sm ${balance >= 0 ? 'bg-indigo-50 border-indigo-200' : 'bg-rose-50 border-rose-200'}`}>
+        <div className="bg-indigo-50 dark:bg-indigo-950/40 rounded-2xl p-4 border border-indigo-200 dark:border-indigo-800/50 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
-            <div className={`rounded-lg p-1.5 ${balance >= 0 ? 'bg-indigo-100' : 'bg-rose-100'}`}>
-              <Wallet className={`w-4 h-4 ${balance >= 0 ? 'text-indigo-600' : 'text-rose-600'}`} />
+            <div className="bg-indigo-100 dark:bg-indigo-900/60 rounded-lg p-1.5">
+              <Wallet className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
             </div>
-            <span className={`text-sm font-medium ${balance >= 0 ? 'text-indigo-600' : 'text-rose-600'}`}>תזרים</span>
+            <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400">תזרים</span>
           </div>
-          <p className={`text-xl font-bold ${balance >= 0 ? 'text-indigo-700' : 'text-rose-700'}`}>
+          <p className={`text-xl font-bold ${balance >= 0 ? 'text-indigo-700 dark:text-indigo-300' : 'text-rose-600 dark:text-rose-400'}`}>
             {formatILS(balance)}
           </p>
           <p className="text-xs text-slate-400 mt-1">תוכנן: {formatILS(plannedBalance)}</p>

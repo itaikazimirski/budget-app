@@ -138,40 +138,24 @@ function EditRow({ tx, categories, accountId, year, month, onClose }: EditRowPro
   }
 
   return (
-    <tr className="bg-indigo-50 border-b border-indigo-100">
-      <td className="px-4 py-2">
-        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-7 text-xs w-32" />
-      </td>
-      <td className="px-4 py-2">
-        <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="הערות" className="h-7 text-xs" />
-      </td>
-      <td className="px-4 py-2">
-        <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}
-          className="h-7 text-xs border border-slate-200 rounded-md px-2 bg-white focus:outline-none focus:border-indigo-400 w-full">
-          <option value="">ללא קטגוריה</option>
-          {filteredCats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-      </td>
-      <td className="px-4 py-2">
-        <Badge variant="secondary" className={`text-xs ${tx.type === 'income' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-          {tx.type === 'income' ? 'הכנסה' : 'הוצאה'}
-        </Badge>
-      </td>
-      <td className="px-4 py-2">
-        <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-7 text-xs w-24" />
-      </td>
-      <td className="px-4 py-2 text-xs text-slate-400">{tx.entered_by}</td>
-      <td className="px-2 py-2">
-        <div className="flex gap-1">
-          <button onClick={handleSave} disabled={isPending} className="p-1 text-emerald-500 hover:text-emerald-600">
-            <Check className="w-3.5 h-3.5" />
-          </button>
-          <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-500">
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </td>
-    </tr>
+    <div className="bg-indigo-50 dark:bg-indigo-950/40 rounded-xl border border-indigo-200 dark:border-indigo-800/50 px-4 py-3 flex flex-wrap items-center gap-2">
+      <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-7 text-xs w-32" />
+      <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="הערות" className="h-7 text-xs flex-1 min-w-[100px]" />
+      <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}
+        className="h-7 text-xs border border-slate-200 rounded-md px-2 bg-white focus:outline-none focus:border-indigo-400">
+        <option value="">ללא קטגוריה</option>
+        {filteredCats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+      </select>
+      <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-7 text-xs w-24" />
+      <div className="flex gap-1">
+        <button onClick={handleSave} disabled={isPending} className="p-1 text-emerald-500 hover:text-emerald-600">
+          <Check className="w-3.5 h-3.5" />
+        </button>
+        <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-500">
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -210,61 +194,35 @@ export default function TransactionTable({ transactions, categories, accountId, 
       {transactions.length === 0 ? (
         <div className="px-4 py-10 text-center text-slate-400 text-sm">אין פעולות החודש עדיין.</div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-100 bg-slate-50">
-                <th className="text-center px-4 py-2 text-sm text-slate-900 font-semibold">תאריך</th>
-                <th className="text-center px-4 py-2 text-sm text-slate-900 font-semibold">הערות</th>
-                <th className="text-center px-4 py-2 text-sm text-slate-900 font-semibold">קטגוריה</th>
-                <th className="text-center px-4 py-2 text-sm text-slate-900 font-semibold">סוג</th>
-                <th className="text-center px-4 py-2 text-sm text-slate-900 font-semibold">סכום</th>
-                <th className="text-center px-4 py-2 text-sm text-slate-900 font-semibold">הוזן על ידי</th>
-                <th className="px-2 py-2" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {transactions.map((tx) =>
-                editingId === tx.id ? (
-                  <EditRow key={tx.id} tx={tx} categories={categories} accountId={accountId} year={year} month={month} onClose={() => setEditingId(null)} />
-                ) : (
-                  <tr key={tx.id} className="hover:bg-slate-50 transition-colors group">
-                    <td className="px-4 py-2.5 text-slate-600 whitespace-nowrap">{formatDate(tx.date)}</td>
-                    <td className="px-4 py-2.5 text-slate-700 max-w-[140px] truncate">{tx.notes ?? '—'}</td>
-                    <td className="px-4 py-2.5">
-                      {tx.category ? (
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-base shrink-0">{tx.category.icon ?? '📦'}</span>
-                          <span className="text-slate-700 text-xs truncate max-w-[100px]">{tx.category.name}</span>
-                        </div>
-                      ) : (
-                        <span className="text-slate-300 text-xs">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <Badge variant="secondary" className={`text-xs ${tx.type === 'income' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                        {tx.type === 'income' ? 'הכנסה' : 'הוצאה'}
-                      </Badge>
-                    </td>
-                    <td className={`px-4 py-2.5 text-left font-semibold whitespace-nowrap ${tx.type === 'income' ? 'text-emerald-600' : 'text-slate-800'}`}>
-                      {tx.type === 'income' ? '+' : ''}{formatILS(tx.amount)}
-                    </td>
-                    <td className="px-4 py-2.5 text-xs text-slate-400">{tx.entered_by}</td>
-                    <td className="px-2 py-2">
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                        <button onClick={() => setEditingId(tx.id)} className="p-1 text-slate-300 hover:text-indigo-500" title="ערוך">
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => handleDelete(tx.id)} disabled={isPending} className="p-1 text-slate-300 hover:text-rose-500" title="מחק">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              )}
-            </tbody>
-          </table>
+        <div className="p-3 space-y-2">
+          {transactions.map((tx) =>
+            editingId === tx.id ? (
+              <EditRow key={tx.id} tx={tx} categories={categories} accountId={accountId} year={year} month={month} onClose={() => setEditingId(null)} />
+            ) : (
+              <div key={tx.id} className="bg-slate-50 rounded-xl border border-slate-100 px-4 py-3 flex items-center gap-3 hover:bg-slate-100 transition-colors group">
+                <span className="text-slate-500 text-xs w-12 shrink-0 whitespace-nowrap">{formatDate(tx.date)}</span>
+                <span className="text-slate-700 text-sm flex-1 truncate text-right">{tx.notes ?? '—'}</span>
+                <div className="flex items-center gap-1 shrink-0">
+                  <span className="text-base">{tx.category?.icon ?? '📦'}</span>
+                  <span className="text-slate-600 text-xs truncate max-w-[80px]">{tx.category?.name ?? '—'}</span>
+                </div>
+                <Badge variant="secondary" className={`text-xs shrink-0 ${tx.type === 'income' ? 'bg-emerald-100 text-emerald-700' : 'bg-violet-100 text-violet-700'}`}>
+                  {tx.type === 'income' ? 'הכנסה' : 'הוצאה'}
+                </Badge>
+                <span className={`font-semibold text-sm shrink-0 ${tx.type === 'income' ? 'text-emerald-600' : 'text-slate-800'}`}>
+                  {tx.type === 'income' ? '+' : ''}{formatILS(tx.amount)}
+                </span>
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0">
+                  <button onClick={() => setEditingId(tx.id)} className="p-1 text-slate-300 hover:text-indigo-500" title="ערוך">
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={() => handleDelete(tx.id)} disabled={isPending} className="p-1 text-slate-300 hover:text-rose-500" title="מחק">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )
+          )}
         </div>
       )}
     </div>

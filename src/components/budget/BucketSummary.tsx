@@ -18,9 +18,9 @@ function formatILS(amount: number) {
 }
 
 const BUCKET_COLORS = {
-  'מחיה':   { bg: 'bg-blue-50',   border: 'border-blue-200',   text: 'text-blue-700',   bar: 'bg-blue-400' },
-  'מותרות': { bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700', bar: 'bg-violet-400' },
-  'חסכון':  { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', bar: 'bg-emerald-400' },
+  'מחיה':   { bg: 'bg-blue-50 dark:bg-blue-950/50',   border: 'border-blue-200 dark:border-blue-800/50',   text: 'text-blue-700 dark:text-blue-300',   bar: 'bg-blue-500' },
+  'מותרות': { bg: 'bg-violet-50 dark:bg-violet-950/50', border: 'border-violet-200 dark:border-violet-800/50', text: 'text-violet-700 dark:text-violet-300', bar: 'bg-violet-500' },
+  'חסכון':  { bg: 'bg-emerald-50 dark:bg-emerald-950/50', border: 'border-emerald-200 dark:border-emerald-800/50', text: 'text-emerald-700 dark:text-emerald-300', bar: 'bg-emerald-500' },
 }
 
 export default function BucketSummary({ categories, accountId, year, month }: BucketSummaryProps) {
