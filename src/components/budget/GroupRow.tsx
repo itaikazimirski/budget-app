@@ -74,7 +74,7 @@ export default function GroupRow({ groupName, categories, accountId, year, month
       </button>
 
       {open && (
-        <div className="border-t border-slate-100 bg-slate-50/50 divide-y divide-slate-100">
+        <div className="border-t border-slate-100 divide-y divide-slate-100">
           {categories.map((cat) => (
             <div key={cat.id} className="pr-4">
               <CategoryCard
