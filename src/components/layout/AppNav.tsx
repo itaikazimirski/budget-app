@@ -25,7 +25,7 @@ export default function AppNav({ accounts, userEmail }: AppNavProps) {
   const [showAccountMenu, setShowAccountMenu] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [creatingAccount, setCreatingAccount] = useState(false)
-  const { theme, setTheme } = useTheme()
+  const { resolvedTheme, setTheme } = useTheme()
 
   const pathParts = pathname.split('/')
   const currentAccountId = pathParts[1] ?? accounts[0]?.id
@@ -107,11 +107,11 @@ export default function AppNav({ accounts, userEmail }: AppNavProps) {
         {/* Right side: settings + user */}
         <div className="flex items-center gap-1">
           <button
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
             className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 dark:hover:text-white rounded-lg transition-colors"
             title="החלף מצב תצוגה"
           >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {resolvedTheme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
           {currentAccount && (
             <Link
