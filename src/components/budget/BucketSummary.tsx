@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import type { CategoryWithStats } from '@/lib/types'
+import type { CategoryWithStats, Transaction } from '@/lib/types'
 import { BUCKETS } from '@/lib/types'
 import CategoryCard from './CategoryCard'
 
@@ -11,6 +11,7 @@ interface BucketSummaryProps {
   accountId: string
   year: number
   month: number
+  transactions?: Transaction[]
 }
 
 function formatILS(amount: number) {
@@ -23,7 +24,7 @@ const BUCKET_COLORS = {
   'חסכון':  { bg: 'bg-emerald-50 dark:bg-emerald-950/50', border: 'border-emerald-200 dark:border-emerald-800/50', text: 'text-emerald-700 dark:text-emerald-300', bar: 'bg-emerald-500' },
 }
 
-export default function BucketSummary({ categories, accountId, year, month }: BucketSummaryProps) {
+export default function BucketSummary({ categories, accountId, year, month, transactions }: BucketSummaryProps) {
   const [openBucket, setOpenBucket] = useState<string | null>(null)
 
   const totalBudget = categories.reduce((s, c) => s + c.budget_amount, 0)
@@ -90,7 +91,7 @@ export default function BucketSummary({ categories, accountId, year, month }: Bu
           </div>
           <div className="divide-y divide-slate-50">
             {bucketData.find(b => b.bucket === openBucket)?.cats.map((cat) => (
-              <CategoryCard key={cat.id} category={cat} accountId={accountId} year={year} month={month} />
+              <CategoryCard key={cat.id} category={cat} accountId={accountId} year={year} month={month} transactions={transactions} />
             ))}
           </div>
         </div>
@@ -104,7 +105,7 @@ export default function BucketSummary({ categories, accountId, year, month }: Bu
           </div>
           <div className="divide-y divide-slate-50">
             {unassigned.map((cat) => (
-              <CategoryCard key={cat.id} category={cat} accountId={accountId} year={year} month={month} />
+              <CategoryCard key={cat.id} category={cat} accountId={accountId} year={year} month={month} transactions={transactions} />
             ))}
           </div>
         </div>

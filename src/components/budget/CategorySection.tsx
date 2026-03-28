@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { CategoryWithStats } from '@/lib/types'
+import type { CategoryWithStats, Transaction } from '@/lib/types'
 import CategoryCard from './CategoryCard'
 import AddCategoryDialog from './AddCategoryDialog'
 import { Plus } from 'lucide-react'
@@ -13,13 +13,14 @@ interface CategorySectionProps {
   accountId: string
   year: number
   month: number
+  transactions?: Transaction[]
 }
 
 function formatILS(amount: number) {
   return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(amount)
 }
 
-export default function CategorySection({ title, categories, type, accountId, year, month }: CategorySectionProps) {
+export default function CategorySection({ title, categories, type, accountId, year, month, transactions }: CategorySectionProps) {
   const [showAdd, setShowAdd] = useState(false)
 
   const total = categories.reduce((s, c) => s + c.actual_amount, 0)
@@ -64,6 +65,7 @@ export default function CategorySection({ title, categories, type, accountId, ye
               accountId={accountId}
               year={year}
               month={month}
+              transactions={transactions}
             />
           ))
         )}

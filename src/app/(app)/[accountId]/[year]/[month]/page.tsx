@@ -151,6 +151,7 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
         accountId={accountId}
         year={year}
         month={month}
+        transactions={txWithNames}
       />
 
       <CategorySection
@@ -160,6 +161,7 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
         accountId={accountId}
         year={year}
         month={month}
+        transactions={txWithNames}
       />
 
       <TransactionTable

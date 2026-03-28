@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import type { CategoryWithStats } from '@/lib/types'
+import type { CategoryWithStats, Transaction } from '@/lib/types'
 import { updateMonthBudget, updateCategory } from '@/app/actions/categories'
 import { CATEGORY_ICONS, BUCKETS } from '@/lib/types'
 import { Edit2, Check, X, Settings2 } from 'lucide-react'
@@ -14,14 +14,21 @@ interface CategoryCardProps {
   accountId: string
   year: number
   month: number
+  transactions?: Transaction[]
 }
 
 function formatILS(amount: number) {
   return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(amount)
 }
 
-export default function CategoryCard({ category, accountId, year, month }: CategoryCardProps) {
+function formatDate(dateStr: string) {
+  const d = new Date(dateStr + 'T00:00:00')
+  return d.toLocaleDateString('he-IL', { day: '2-digit', month: 'short' })
+}
+
+export default function CategoryCard({ category, accountId, year, month, transactions }: CategoryCardProps) {
   const [editing, setEditing] = useState(false)
+  const [showTxPopup, setShowTxPopup] = useState(false)
   const [budgetInput, setBudgetInput] = useState(String(category.budget_amount))
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [nameInput, setNameInput] = useState(category.name)
@@ -29,6 +36,7 @@ export default function CategoryCard({ category, accountId, year, month }: Categ
   const [selectedBucket, setSelectedBucket] = useState(category.bucket ?? 'מחיה')
   const [isPending, startTransition] = useTransition()
 
+  const catTransactions = (transactions ?? []).filter((tx) => tx.category_id === category.id)
   const { actual_amount, budget_amount, percentage, type } = category
   const isOver = actual_amount > budget_amount && budget_amount > 0
   const barColor = type === 'income'
@@ -68,13 +76,20 @@ export default function CategoryCard({ category, accountId, year, month }: Categ
     <>
       <div className="px-4 py-3 hover:bg-slate-50 transition-colors group">
         <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2 min-w-0">
+          <button
+            className="flex items-center gap-2 min-w-0 text-right hover:opacity-75 transition-opacity"
+            onClick={() => catTransactions.length > 0 && setShowTxPopup(true)}
+            title={catTransactions.length > 0 ? `${catTransactions.length} פעולות` : ''}
+          >
             <span className="text-base shrink-0">{category.icon ?? '📦'}</span>
             <span className="text-sm font-medium text-slate-800 truncate">{category.name}</span>
+            {catTransactions.length > 0 && (
+              <span className="text-xs text-slate-400 shrink-0">({catTransactions.length})</span>
+            )}
             {isOver && (
               <span className="text-xs bg-rose-100 text-rose-600 rounded px-1.5 py-0.5 shrink-0">חריגה!</span>
             )}
-          </div>
+          </button>
 
           <div className="flex items-center gap-2 shrink-0">
             <span className="text-sm font-semibold text-slate-800">{formatILS(actual_amount)}</span>
@@ -138,6 +153,33 @@ export default function CategoryCard({ category, accountId, year, month }: Categ
           <p className="text-xs text-slate-300">אין תקציב מוגדר — לחץ ✏️ להגדרה לחודש זה</p>
         )}
       </div>
+
+      {showTxPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => setShowTxPopup(false)}>
+          <div className="bg-white dark:bg-card rounded-2xl shadow-2xl w-full max-w-md max-h-[70vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+              <div className="text-right">
+                <h2 className="font-bold text-slate-900 text-base">{category.icon} {category.name}</h2>
+                <p className="text-xs text-slate-400 mt-0.5">סה"כ: {formatILS(actual_amount)}</p>
+              </div>
+              <button onClick={() => setShowTxPopup(false)} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="overflow-y-auto p-3 space-y-2">
+              {catTransactions.map((tx) => (
+                <div key={tx.id} className="flex items-center justify-between bg-slate-50 dark:bg-secondary rounded-xl px-4 py-3 gap-3">
+                  <span className="text-xs text-slate-400 shrink-0">{formatDate(tx.date)}</span>
+                  <span className="text-sm text-slate-700 flex-1 text-right truncate">{tx.notes ?? '—'}</span>
+                  <span className={`font-semibold text-sm shrink-0 ${tx.type === 'income' ? 'text-emerald-600' : 'text-slate-800'}`}>
+                    {tx.type === 'income' ? '+' : ''}{formatILS(tx.amount)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {showEditDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
