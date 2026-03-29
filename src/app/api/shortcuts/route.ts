@@ -46,7 +46,31 @@ export async function POST(request: NextRequest) {
 
     if (result?.error) return NextResponse.json({ error: result.error }, { status: 500 })
 
-    return NextResponse.json({ success: true, message: `${type} of ₪${amount} logged successfully.` })
+    // Check budget percentage for the category
+    let budgetAlert = false
+    let percentage = 0
+    if (category_name && type === 'expense') {
+      const now = new Date()
+      const year = now.getFullYear()
+      const month = now.getMonth() + 1
+      const { data: budgetData } = await supabase.rpc('get_category_budget_percentage', {
+        p_account_id: account_id,
+        p_category_name: category_name,
+        p_year: year,
+        p_month: month,
+      })
+      const row = budgetData?.[0]
+      if (row && row.budget > 0) {
+        percentage = row.percentage
+        budgetAlert = percentage >= 80
+      }
+    }
+
+    const message = budgetAlert
+      ? `✅ ההוצאה נרשמה! ⚠️ הגעת ל-${percentage}% מתקציב "${category_name}"`
+      : `✅ ההוצאה נרשמה בהצלחה`
+
+    return NextResponse.json({ success: true, message, budget_percentage: percentage, budget_alert: budgetAlert })
   } catch {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
   }
