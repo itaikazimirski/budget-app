@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       })
       const row = budgetData?.[0]
       if (row && row.budget > 0) {
-        percentage = row.percentage
+        percentage = Math.round(row.percentage)
         budgetAlert = percentage >= 80
       }
     }
