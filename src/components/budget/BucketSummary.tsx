@@ -86,10 +86,10 @@ export default function BucketSummary({ categories, accountId, year, month, tran
       {/* Expanded bucket categories */}
       {openBucket && (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className={`px-4 py-3 border-b ${BUCKET_COLORS[openBucket as keyof typeof BUCKET_COLORS].border} ${BUCKET_COLORS[openBucket as keyof typeof BUCKET_COLORS].bg}`}>
+          <div className={`px-4 py-3 border-b dark:border-white/[0.06] ${BUCKET_COLORS[openBucket as keyof typeof BUCKET_COLORS].border} ${BUCKET_COLORS[openBucket as keyof typeof BUCKET_COLORS].bg}`}>
             <h3 className={`font-semibold text-sm ${BUCKET_COLORS[openBucket as keyof typeof BUCKET_COLORS].text}`}>{openBucket}</h3>
           </div>
-          <div className="divide-y divide-slate-50">
+          <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
             {bucketData.find(b => b.bucket === openBucket)?.cats.map((cat) => (
               <CategoryCard key={cat.id} category={cat} accountId={accountId} year={year} month={month} transactions={transactions} />
             ))}
@@ -103,7 +103,7 @@ export default function BucketSummary({ categories, accountId, year, month, tran
           <div className="px-4 py-2 border-b border-slate-100">
             <p className="text-xs text-slate-400">ללא סיווג ({unassigned.length})</p>
           </div>
-          <div className="divide-y divide-slate-50">
+          <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
             {unassigned.map((cat) => (
               <CategoryCard key={cat.id} category={cat} accountId={accountId} year={year} month={month} transactions={transactions} />
             ))}
