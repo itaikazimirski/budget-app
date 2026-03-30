@@ -87,7 +87,7 @@ export async function setupHouseholdCategories(accountId: string) {
 
   for (const cat of HOUSEHOLD_CATEGORIES) {
     if (existingNames.has(cat.name)) continue
-    const { data: newCat } = await supabase
+    const { data: newCat, error: insertError } = await supabase
       .from('categories')
       .insert({
         account_id: accountId,
@@ -100,14 +100,13 @@ export async function setupHouseholdCategories(accountId: string) {
       })
       .select()
       .single()
+    if (insertError) return { error: `שגיאה ב-${cat.name}: ${insertError.message}` }
     if (newCat) {
       await supabase.from('budget_templates').insert({
         account_id: accountId,
         category_id: newCat.id,
         monthly_amount: 0,
       })
-    } else {
-      console.error('Failed to insert household category:', cat.name)
     }
   }
 
