@@ -106,10 +106,12 @@ export async function setupHouseholdCategories(accountId: string) {
         category_id: newCat.id,
         monthly_amount: 0,
       })
+    } else {
+      console.error('Failed to insert household category:', cat.name)
     }
   }
 
-  revalidatePath(`/${accountId}`)
+  revalidatePath(`/${accountId}`, 'layout')
   return { success: true }
 }
 

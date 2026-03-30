@@ -153,7 +153,10 @@ export default function SettingsClient({ account, members, isOwner, apiKeys, has
           <p className="text-xs text-emerald-600 font-medium">✓ ניהול משק בית פעיל</p>
         ) : (
           <button
-            onClick={() => startTransition(async () => { await setupHouseholdCategories(account.id) })}
+            onClick={() => startTransition(async () => {
+              const result = await setupHouseholdCategories(account.id)
+              if (result?.error) alert('שגיאה: ' + result.error)
+            })}
             disabled={isPending}
             className="flex items-center gap-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl px-4 py-2.5 transition-colors"
           >
