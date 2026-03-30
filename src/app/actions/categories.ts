@@ -61,6 +61,58 @@ export async function updateCategory(formData: FormData) {
   return { success: true }
 }
 
+const HOUSEHOLD_CATEGORIES = [
+  { name: 'שכר דירה', icon: '🏠' },
+  { name: 'משכנתא', icon: '🏦' },
+  { name: 'חשמל', icon: '⚡' },
+  { name: 'גז', icon: '🔥' },
+  { name: 'מים', icon: '💧' },
+  { name: 'ארנונה', icon: '🏛️' },
+  { name: 'ועד בית', icon: '🏢' },
+  { name: 'אינטרנט', icon: '🌐' },
+]
+
+export async function setupHouseholdCategories(accountId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const { data: existing } = await supabase
+    .from('categories')
+    .select('name')
+    .eq('account_id', accountId)
+    .eq('category_group', 'משק בית')
+
+  const existingNames = new Set((existing ?? []).map((c) => c.name))
+
+  for (const cat of HOUSEHOLD_CATEGORIES) {
+    if (existingNames.has(cat.name)) continue
+    const { data: newCat } = await supabase
+      .from('categories')
+      .insert({
+        account_id: accountId,
+        name: cat.name,
+        icon: cat.icon,
+        type: 'expense',
+        bucket: 'מחיה',
+        category_group: 'משק בית',
+        is_fixed: true,
+      })
+      .select()
+      .single()
+    if (newCat) {
+      await supabase.from('budget_templates').insert({
+        account_id: accountId,
+        category_id: newCat.id,
+        monthly_amount: 0,
+      })
+    }
+  }
+
+  revalidatePath(`/${accountId}`)
+  return { success: true }
+}
+
 export async function deleteCategory(categoryId: string, accountId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

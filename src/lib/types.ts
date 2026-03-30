@@ -1,6 +1,6 @@
 export type CategoryType = 'income' | 'expense'
 export type CategoryBucket = 'מחיה' | 'מותרות' | 'חסכון'
-export type CategoryGroup = 'מנוי' | 'ביטוח'
+export type CategoryGroup = 'מנוי' | 'ביטוח' | 'משק בית'
 export const BUCKETS: CategoryBucket[] = ['מחיה', 'מותרות', 'חסכון']
 export type TransactionType = 'income' | 'expense'
 export type AccountType = 'personal' | 'shared'

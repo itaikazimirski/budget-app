@@ -7,6 +7,7 @@ import CategorySection from '@/components/budget/CategorySection'
 import TransactionTable from '@/components/budget/TransactionTable'
 import BucketSummary from '@/components/budget/BucketSummary'
 import FixedExpensesButton from '@/components/budget/FixedExpensesButton'
+import HouseholdSection from '@/components/budget/HouseholdSection'
 
 export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[month]'>) {
   const { accountId, year: yearStr, month: monthStr } = await props.params
@@ -193,9 +194,17 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
         transactions={txWithNames}
       />
 
+      <HouseholdSection
+        categories={expenseCategories.filter((c) => c.category_group === 'משק בית')}
+        accountId={accountId}
+        year={year}
+        month={month}
+        transactions={txWithNames}
+      />
+
       <CategorySection
         title="הוצאות"
-        categories={expenseCategories}
+        categories={expenseCategories.filter((c) => c.category_group !== 'משק בית')}
         type="expense"
         accountId={accountId}
         year={year}

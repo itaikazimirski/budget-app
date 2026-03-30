@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { updateAccountName, inviteMember, generateApiKey, deleteApiKey } from '@/app/actions/accounts'
-import { User, Edit2, Check, X, UserPlus, Key, Copy, Trash2, Plus } from 'lucide-react'
+import { setupHouseholdCategories } from '@/app/actions/categories'
+import { User, Edit2, Check, X, UserPlus, Key, Copy, Trash2, Plus, Home } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { Account, AccountMember } from '@/lib/types'
@@ -19,9 +20,10 @@ interface SettingsClientProps {
   members: AccountMember[]
   isOwner: boolean
   apiKeys: ApiKey[]
+  hasHousehold: boolean
 }
 
-export default function SettingsClient({ account, members, isOwner, apiKeys }: SettingsClientProps) {
+export default function SettingsClient({ account, members, isOwner, apiKeys, hasHousehold }: SettingsClientProps) {
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState(account.name)
   const [inviteEmail, setInviteEmail] = useState('')
@@ -137,6 +139,27 @@ export default function SettingsClient({ account, members, isOwner, apiKeys }: S
             {inviteSuccess && <p className="text-xs text-emerald-600 mt-2">✓ המשתתף נוסף בהצלחה!</p>}
             <p className="text-xs text-slate-400 mt-2">המשתתף צריך להיות רשום בתקציב-לי קודם.</p>
           </div>
+        )}
+      </div>
+
+      {/* Household management */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+        <div className="flex items-center gap-2 mb-1">
+          <Home className="w-4 h-4 text-indigo-500" />
+          <h2 className="font-semibold text-slate-900 text-sm">ניהול משק בית</h2>
+        </div>
+        <p className="text-xs text-slate-500 mb-3">יוצר אוטומטית קטגוריות קבועות של הוצאות הבית (שכר דירה, חשמל, מים וכו׳).</p>
+        {hasHousehold ? (
+          <p className="text-xs text-emerald-600 font-medium">✓ ניהול משק בית פעיל</p>
+        ) : (
+          <button
+            onClick={() => startTransition(async () => { await setupHouseholdCategories(account.id) })}
+            disabled={isPending}
+            className="flex items-center gap-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl px-4 py-2.5 transition-colors"
+          >
+            <Home className="w-4 h-4" />
+            {isPending ? 'מפעיל...' : 'הפעל ניהול משק בית'}
+          </button>
         )}
       </div>
 

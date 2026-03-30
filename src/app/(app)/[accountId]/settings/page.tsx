@@ -37,6 +37,13 @@ export default async function SettingsPage(props: PageProps<'/[accountId]/settin
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
+  const { data: householdCats } = await supabase
+    .from('categories')
+    .select('id')
+    .eq('account_id', accountId)
+    .eq('category_group', 'משק בית')
+    .limit(1)
+
   const now = new Date()
 
   return (
@@ -59,6 +66,7 @@ export default async function SettingsPage(props: PageProps<'/[accountId]/settin
         members={members ?? []}
         isOwner={account.created_by === user.id}
         apiKeys={apiKeys ?? []}
+        hasHousehold={(householdCats ?? []).length > 0}
       />
     </div>
   )
