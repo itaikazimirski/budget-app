@@ -35,6 +35,7 @@ export default function CategoryCard({ category, accountId, year, month, transac
   const [selectedIcon, setSelectedIcon] = useState(category.icon ?? '📦')
   const [selectedBucket, setSelectedBucket] = useState(category.bucket ?? 'מחיה')
   const [selectedGroup, setSelectedGroup] = useState<'מנוי' | 'ביטוח' | null>(category.category_group ?? null)
+  const [isFixed, setIsFixed] = useState(category.is_fixed ?? false)
   const [isPending, startTransition] = useTransition()
 
   const catTransactions = (transactions ?? []).filter((tx) => tx.category_id === category.id)
@@ -69,6 +70,7 @@ export default function CategoryCard({ category, accountId, year, month, transac
       fd.set('icon', selectedIcon)
       fd.set('bucket', selectedBucket)
       if (selectedGroup) fd.set('category_group', selectedGroup)
+      fd.set('is_fixed', String(isFixed))
       await updateCategory(fd)
       setShowEditDialog(false)
     })
@@ -242,6 +244,24 @@ export default function CategoryCard({ category, accountId, year, month, transac
                     ))}
                   </div>
                 </div>
+              )}
+
+              {category.type === 'expense' && (
+                <button
+                  type="button"
+                  onClick={() => setIsFixed(!isFixed)}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all ${
+                    isFixed
+                      ? 'border-amber-400 bg-amber-50 text-amber-700'
+                      : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="text-right">
+                    <p className="font-medium text-sm">הוצאה קבועה</p>
+                    <p className="text-xs opacity-70 mt-0.5">לא תופיע באוטומציית השורטקאט</p>
+                  </div>
+                  <span className="text-2xl">{isFixed ? '🔒' : '🔓'}</span>
+                </button>
               )}
 
               <div className="space-y-1.5">

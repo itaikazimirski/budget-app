@@ -6,6 +6,7 @@ import MonthSummary from '@/components/budget/MonthSummary'
 import CategorySection from '@/components/budget/CategorySection'
 import TransactionTable from '@/components/budget/TransactionTable'
 import BucketSummary from '@/components/budget/BucketSummary'
+import FixedExpensesButton from '@/components/budget/FixedExpensesButton'
 
 export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[month]'>) {
   const { accountId, year: yearStr, month: monthStr } = await props.params
@@ -145,6 +146,8 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
           ✦ חלק מהקטגוריות קיבלו סכום מותאם לחודש זה.
         </p>
       )}
+
+      <FixedExpensesButton categories={expenseCategories} />
 
       <BucketSummary
         categories={expenseCategories}

@@ -18,6 +18,7 @@ export default function AddCategoryDialog({ type, accountId, onClose }: AddCateg
   const [selectedIcon, setSelectedIcon] = useState(type === 'income' ? '💰' : '📦')
   const [selectedBucket, setSelectedBucket] = useState<string>('מחיה')
   const [selectedGroup, setSelectedGroup] = useState<'מנוי' | 'ביטוח' | null>(null)
+  const [isFixed, setIsFixed] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -30,6 +31,7 @@ export default function AddCategoryDialog({ type, accountId, onClose }: AddCateg
     fd.set('icon', selectedIcon)
     fd.set('bucket', selectedBucket)
     if (selectedGroup) fd.set('category_group', selectedGroup)
+    fd.set('is_fixed', String(isFixed))
     startTransition(async () => {
       const result = await addCategory(fd)
       if (result?.error) setError(result.error)
@@ -109,6 +111,24 @@ export default function AddCategoryDialog({ type, accountId, onClose }: AddCateg
                 </div>
               </div>
             </>
+          )}
+
+          {type === 'expense' && (
+            <button
+              type="button"
+              onClick={() => setIsFixed(!isFixed)}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all ${
+                isFixed
+                  ? 'border-amber-400 bg-amber-50 text-amber-700'
+                  : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300'
+              }`}
+            >
+              <div className="text-right">
+                <p className="font-medium text-sm">הוצאה קבועה</p>
+                <p className="text-xs opacity-70 mt-0.5">לא תופיע באוטומציית השורטקאט</p>
+              </div>
+              <span className="text-2xl">{isFixed ? '🔒' : '🔓'}</span>
+            </button>
           )}
 
           <div className="space-y-1.5">

@@ -27,6 +27,7 @@ export interface Category {
   icon: string
   bucket: CategoryBucket | null
   category_group: CategoryGroup | null
+  is_fixed: boolean
   created_at: string
 }
 
