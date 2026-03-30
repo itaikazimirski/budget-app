@@ -34,7 +34,7 @@ export default function CategoryCard({ category, accountId, year, month, transac
   const [nameInput, setNameInput] = useState(category.name)
   const [selectedIcon, setSelectedIcon] = useState(category.icon ?? '📦')
   const [selectedBucket, setSelectedBucket] = useState(category.bucket ?? 'מחיה')
-  const [selectedGroup, setSelectedGroup] = useState<'מנוי' | 'ביטוח' | null>(category.category_group ?? null)
+  const [selectedGroup, setSelectedGroup] = useState<'מנוי' | 'ביטוח' | 'משק בית' | null>(category.category_group ?? null)
   const [isFixed, setIsFixed] = useState(category.is_fixed ?? false)
   const [isPending, startTransition] = useTransition()
 
