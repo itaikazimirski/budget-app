@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { updateAccountName, inviteMember, generateApiKey, deleteApiKey } from '@/app/actions/accounts'
 import { setupHouseholdCategories } from '@/app/actions/categories'
 import { User, Edit2, Check, X, UserPlus, Key, Copy, Trash2, Plus, Home } from 'lucide-react'
@@ -24,6 +25,7 @@ interface SettingsClientProps {
 }
 
 export default function SettingsClient({ account, members, isOwner, apiKeys, hasHousehold }: SettingsClientProps) {
+  const router = useRouter()
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState(account.name)
   const [inviteEmail, setInviteEmail] = useState('')
@@ -156,6 +158,7 @@ export default function SettingsClient({ account, members, isOwner, apiKeys, has
             onClick={() => startTransition(async () => {
               const result = await setupHouseholdCategories(account.id)
               if (result?.error) alert('שגיאה: ' + result.error)
+              else router.refresh()
             })}
             disabled={isPending}
             className="flex items-center gap-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl px-4 py-2.5 transition-colors"
