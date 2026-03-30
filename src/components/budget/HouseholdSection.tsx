@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Home, Plus } from 'lucide-react'
 import type { CategoryWithStats, Transaction } from '@/lib/types'
-import CategoryCard from './CategoryCard'
+import HouseholdCard from './HouseholdCard'
 import AddCategoryDialog from './AddCategoryDialog'
 
 interface HouseholdSectionProps {
@@ -52,9 +52,9 @@ export default function HouseholdSection({ categories, accountId, year, month, t
         </button>
       </div>
 
-      <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
+      <div className="grid grid-cols-2 gap-3 p-4">
         {categories.map((cat) => (
-          <CategoryCard
+          <HouseholdCard
             key={cat.id}
             category={cat}
             accountId={accountId}
