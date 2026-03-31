@@ -85,15 +85,6 @@ export async function setupHouseholdCategories(accountId: string) {
 
   const existingNames = new Set((existing ?? []).map((c) => c.name))
 
-  // Re-enable any previously disabled household categories
-  const householdNames = HOUSEHOLD_CATEGORIES.map((c) => c.name)
-  await supabase
-    .from('categories')
-    .update({ category_group: 'משק בית' })
-    .eq('account_id', accountId)
-    .in('name', householdNames)
-    .is('category_group', null)
-
   for (const cat of HOUSEHOLD_CATEGORIES) {
     if (existingNames.has(cat.name)) continue
     const { data: newCat, error: insertError } = await supabase
@@ -130,7 +121,7 @@ export async function disableHouseholdCategories(accountId: string) {
 
   const { error } = await supabase
     .from('categories')
-    .update({ category_group: null })
+    .delete()
     .eq('account_id', accountId)
     .eq('category_group', 'משק בית')
 
