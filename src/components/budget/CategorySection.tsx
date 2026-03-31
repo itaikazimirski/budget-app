@@ -62,13 +62,13 @@ export default function CategorySection({ title, categories, type, accountId, ye
         ) : (
           <>
             {regularCats.map((cat) => (
-              <CategoryCard key={cat.id} category={cat} accountId={accountId} year={year} month={month} transactions={transactions} />
+              <CategoryCard key={cat.id} category={cat} accountId={accountId} year={year} month={month} />
             ))}
             {subscriptionCats.length > 0 && (
-              <GroupRow groupName="מנוי" categories={subscriptionCats} accountId={accountId} year={year} month={month} transactions={transactions} />
+              <GroupRow groupName="מנוי" categories={subscriptionCats} accountId={accountId} year={year} month={month} />
             )}
             {insuranceCats.length > 0 && (
-              <GroupRow groupName="ביטוח" categories={insuranceCats} accountId={accountId} year={year} month={month} transactions={transactions} />
+              <GroupRow groupName="ביטוח" categories={insuranceCats} accountId={accountId} year={year} month={month} />
             )}
           </>
         )}

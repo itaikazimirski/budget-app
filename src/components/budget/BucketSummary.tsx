@@ -91,7 +91,7 @@ export default function BucketSummary({ categories, accountId, year, month, tran
           </div>
           <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
             {bucketData.find(b => b.bucket === openBucket)?.cats.map((cat) => (
-              <CategoryCard key={cat.id} category={cat} accountId={accountId} year={year} month={month} transactions={transactions} />
+              <CategoryCard key={cat.id} category={cat} accountId={accountId} year={year} month={month} />
             ))}
           </div>
         </div>
@@ -105,7 +105,7 @@ export default function BucketSummary({ categories, accountId, year, month, tran
           </div>
           <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
             {unassigned.map((cat) => (
-              <CategoryCard key={cat.id} category={cat} accountId={accountId} year={year} month={month} transactions={transactions} />
+              <CategoryCard key={cat.id} category={cat} accountId={accountId} year={year} month={month} />
             ))}
           </div>
         </div>

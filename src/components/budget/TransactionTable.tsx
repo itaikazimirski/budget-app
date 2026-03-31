@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef, useEffect } from 'react'
 import type { Transaction, Category } from '@/lib/types'
 import { addTransaction, updateTransaction, deleteTransaction } from '@/app/actions/transactions'
-import { Plus, Trash2, Edit2, Check, X } from 'lucide-react'
+import { Plus, Trash2, Edit2, Check, X, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -163,6 +163,43 @@ export default function TransactionTable({ transactions, categories, accountId, 
   const [showAdd, setShowAdd] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [showFilterMenu, setShowFilterMenu] = useState(false)
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<string>>(new Set())
+  const filterRef = useRef<HTMLDivElement>(null)
+
+  // Close filter menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setShowFilterMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // Categories that actually have transactions this month
+  const activeCategoryIds = [...new Set(transactions.map((tx) => tx.category_id).filter(Boolean))] as string[]
+  const activeCategories = categories.filter((c) => activeCategoryIds.includes(c.id))
+
+  const isFiltered = selectedCategoryIds.size > 0
+  const visibleTransactions = isFiltered
+    ? transactions.filter((tx) => tx.category_id && selectedCategoryIds.has(tx.category_id))
+    : transactions
+
+  function toggleCategory(id: string) {
+    setSelectedCategoryIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function clearFilter() {
+    setSelectedCategoryIds(new Set())
+    setShowFilterMenu(false)
+  }
 
   function handleDelete(id: string) {
     if (!confirm('למחוק את הפעולה הזו?')) return
@@ -173,13 +210,69 @@ export default function TransactionTable({ transactions, categories, accountId, 
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-        <h3 className="font-semibold text-slate-900 text-sm">
-          פעולות
-          {transactions.length > 0 && (
-            <span className="ms-1.5 text-xs text-slate-400 font-normal">({transactions.length})</span>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-white/[0.06]">
+        <div className="flex items-center gap-2">
+          <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
+            פעולות
+            {visibleTransactions.length > 0 && (
+              <span className="ms-1.5 text-xs text-slate-400 font-normal">
+                ({visibleTransactions.length}{isFiltered ? ` מתוך ${transactions.length}` : ''})
+              </span>
+            )}
+          </h3>
+
+          {/* Filter button */}
+          <div className="relative" ref={filterRef}>
+            <button
+              onClick={() => setShowFilterMenu((v) => !v)}
+              className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg border transition-colors ${
+                isFiltered
+                  ? 'bg-indigo-100 border-indigo-300 text-indigo-700 dark:bg-indigo-900/40 dark:border-indigo-700 dark:text-indigo-300'
+                  : 'border-slate-200 text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/5'
+              }`}
+            >
+              <Filter className="w-3 h-3" />
+              {isFiltered ? `${selectedCategoryIds.size} נבחרו` : 'סנן'}
+            </button>
+
+            {/* Dropdown */}
+            {showFilterMenu && activeCategories.length > 0 && (
+              <div className="absolute top-full mt-1 right-0 z-30 bg-white dark:bg-card border border-slate-200 dark:border-white/10 rounded-xl shadow-lg p-2 min-w-[160px]">
+                {isFiltered && (
+                  <button onClick={clearFilter} className="w-full text-right text-xs text-rose-500 hover:text-rose-700 px-2 py-1.5 rounded-lg hover:bg-rose-50 mb-1">
+                    נקה סינון ✕
+                  </button>
+                )}
+                {activeCategories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => toggleCategory(cat.id)}
+                    className={`w-full flex items-center gap-2 text-right text-xs px-2 py-1.5 rounded-lg transition-colors ${
+                      selectedCategoryIds.has(cat.id)
+                        ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300'
+                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'
+                    }`}
+                  >
+                    <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${
+                      selectedCategoryIds.has(cat.id) ? 'bg-indigo-500 border-indigo-500' : 'border-slate-300'
+                    }`}>
+                      {selectedCategoryIds.has(cat.id) && <Check className="w-2.5 h-2.5 text-white" />}
+                    </span>
+                    <span>{cat.icon}</span>
+                    <span className="truncate">{cat.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {isFiltered && (
+            <button onClick={clearFilter} className="text-xs text-slate-400 hover:text-rose-500 transition-colors">
+              <X className="w-3.5 h-3.5" />
+            </button>
           )}
-        </h3>
+        </div>
+
         <Button size="sm" onClick={() => setShowAdd(!showAdd)}
           className="h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white gap-1">
           <Plus className="w-3 h-3" />
@@ -193,9 +286,11 @@ export default function TransactionTable({ transactions, categories, accountId, 
 
       {transactions.length === 0 ? (
         <div className="px-4 py-10 text-center text-slate-400 text-sm">אין פעולות החודש עדיין.</div>
+      ) : visibleTransactions.length === 0 ? (
+        <div className="px-4 py-10 text-center text-slate-400 text-sm">אין פעולות לקטגוריות שנבחרו.</div>
       ) : (
         <div className="p-3 space-y-2">
-          {transactions.map((tx) =>
+          {visibleTransactions.map((tx) =>
             editingId === tx.id ? (
               <EditRow key={tx.id} tx={tx} categories={categories} accountId={accountId} year={year} month={month} onClose={() => setEditingId(null)} />
             ) : (

@@ -82,7 +82,7 @@ export default function GroupRow({ groupName, categories, accountId, year, month
                 accountId={accountId}
                 year={year}
                 month={month}
-                transactions={transactions}
+               
               />
             </div>
           ))}
