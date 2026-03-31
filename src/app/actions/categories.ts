@@ -85,6 +85,15 @@ export async function setupHouseholdCategories(accountId: string) {
 
   const existingNames = new Set((existing ?? []).map((c) => c.name))
 
+  // Re-enable any previously disabled household categories
+  const householdNames = HOUSEHOLD_CATEGORIES.map((c) => c.name)
+  await supabase
+    .from('categories')
+    .update({ category_group: 'משק בית' })
+    .eq('account_id', accountId)
+    .in('name', householdNames)
+    .is('category_group', null)
+
   for (const cat of HOUSEHOLD_CATEGORIES) {
     if (existingNames.has(cat.name)) continue
     const { data: newCat, error: insertError } = await supabase
@@ -109,6 +118,23 @@ export async function setupHouseholdCategories(accountId: string) {
       })
     }
   }
+
+  revalidatePath(`/${accountId}`, 'layout')
+  return { success: true }
+}
+
+export async function disableHouseholdCategories(accountId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const { error } = await supabase
+    .from('categories')
+    .update({ category_group: null })
+    .eq('account_id', accountId)
+    .eq('category_group', 'משק בית')
+
+  if (error) return { error: error.message }
 
   revalidatePath(`/${accountId}`, 'layout')
   return { success: true }

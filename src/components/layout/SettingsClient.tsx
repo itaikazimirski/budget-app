@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateAccountName, inviteMember, generateApiKey, deleteApiKey } from '@/app/actions/accounts'
-import { setupHouseholdCategories } from '@/app/actions/categories'
+import { setupHouseholdCategories, disableHouseholdCategories } from '@/app/actions/categories'
 import { User, Edit2, Check, X, UserPlus, Key, Copy, Trash2, Plus, Home } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -152,7 +152,20 @@ export default function SettingsClient({ account, members, isOwner, apiKeys, has
         </div>
         <p className="text-xs text-slate-500 mb-3">יוצר אוטומטית קטגוריות קבועות של הוצאות הבית (שכר דירה, חשמל, מים וכו׳).</p>
         {hasHousehold ? (
-          <p className="text-xs text-emerald-600 font-medium">✓ ניהול משק בית פעיל</p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-emerald-600 font-medium">✓ ניהול משק בית פעיל</p>
+            <button
+              onClick={() => startTransition(async () => {
+                const result = await disableHouseholdCategories(account.id)
+                if (result?.error) alert('שגיאה: ' + result.error)
+                else router.refresh()
+              })}
+              disabled={isPending}
+              className="text-xs text-slate-400 hover:text-rose-500 transition-colors"
+            >
+              {isPending ? '...' : 'כבה'}
+            </button>
+          </div>
         ) : (
           <button
             onClick={() => startTransition(async () => {
