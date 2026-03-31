@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Home, Plus, X } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Home, Plus, X, ChevronDown, ChevronUp } from 'lucide-react'
 import type { CategoryWithStats, Transaction } from '@/lib/types'
 import HouseholdCard from './HouseholdCard'
 import AddCategoryDialog from './AddCategoryDialog'
@@ -26,6 +26,16 @@ function formatDate(dateStr: string) {
 export default function HouseholdSection({ categories, accountId, year, month, transactions }: HouseholdSectionProps) {
   const [showAdd, setShowAdd] = useState(false)
   const [showRentPopup, setShowRentPopup] = useState(false)
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return localStorage.getItem('household-collapsed') === 'true'
+  })
+
+  function toggleCollapsed() {
+    const next = !collapsed
+    setCollapsed(next)
+    localStorage.setItem('household-collapsed', String(next))
+  }
 
   if (categories.length === 0) return null
 
@@ -63,17 +73,28 @@ export default function HouseholdSection({ categories, accountId, year, month, t
             )}
           </div>
         </div>
-        <button
-          onClick={() => setShowAdd(true)}
-          className="p-1.5 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors"
-          title="הוסף הוצאת בית"
-        >
-          <Plus className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          {!collapsed && (
+            <button
+              onClick={() => setShowAdd(true)}
+              className="p-1.5 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors"
+              title="הוסף הוצאת בית"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          )}
+          <button
+            onClick={toggleCollapsed}
+            className="p-1.5 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors"
+            title={collapsed ? 'הצג' : 'כבה'}
+          >
+            {collapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+          </button>
+        </div>
       </div>
 
       {/* Dashboard layout */}
-      <div className="p-4 flex gap-3">
+      {!collapsed && <div className="p-4 flex gap-3">
 
         {/* Featured rent/mortgage card — right side */}
         {rentCats.length > 0 && (
@@ -145,7 +166,7 @@ export default function HouseholdSection({ categories, accountId, year, month, t
             ))}
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Rent popup */}
       {showRentPopup && (
