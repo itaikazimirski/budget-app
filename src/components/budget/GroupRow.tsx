@@ -28,47 +28,53 @@ export default function GroupRow({ groupName, categories, accountId, year, month
 
   const totalBudget = categories.reduce((s, c) => s + c.budget_amount, 0)
   const totalActual = categories.reduce((s, c) => s + c.actual_amount, 0)
-  const percentage = totalBudget > 0 ? Math.min((totalActual / totalBudget) * 100, 100) : 0
+  const rawPercentage = totalBudget > 0 ? (totalActual / totalBudget) * 100 : 0
+  const percentage = Math.min(rawPercentage, 100)
   const isOver = totalActual > totalBudget && totalBudget > 0
   const { label, icon } = GROUP_CONFIG[groupName]
+
+  const barColor = isOver
+    ? 'bg-rose-500'
+    : rawPercentage > 85
+      ? 'bg-rose-400'
+      : rawPercentage > 60
+        ? 'bg-amber-400'
+        : 'bg-emerald-400'
 
   return (
     <>
       <button
         onClick={() => setOpen(!open)}
-        className="w-full px-4 py-3 hover:bg-slate-50 transition-colors text-right"
+        className={`w-full px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors text-right rounded-xl ${isOver ? 'border border-rose-200 dark:border-rose-900/50 bg-rose-50/30 dark:bg-rose-950/10' : ''}`}
       >
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <span className="text-base">{icon}</span>
-            <span className="text-sm font-medium text-slate-800">{label}</span>
+            <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{label}</span>
             <span className="text-xs text-slate-400">({categories.length})</span>
-            {isOver && (
-              <span className="text-xs bg-rose-100 text-rose-600 rounded px-1.5 py-0.5">חריגה!</span>
-            )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-sm font-semibold text-slate-800">{formatILS(totalActual)}</span>
+            {totalBudget > 0 ? (
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                <span className={`font-semibold ${isOver ? 'text-rose-500' : 'text-slate-700 dark:text-slate-200'}`}>
+                  {formatILS(totalActual)}
+                </span>
+                {' / '}
+                {formatILS(totalBudget)}
+              </span>
+            ) : (
+              <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{formatILS(totalActual)}</span>
+            )}
             {open ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
           </div>
         </div>
 
         {totalBudget > 0 && (
-          <div className="space-y-1">
-            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all ${isOver ? 'bg-rose-500' : 'bg-indigo-400'}`}
-                style={{ width: `${percentage}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-xs text-slate-400">
-              <span>{Math.round(percentage)}%</span>
-              <span className={isOver ? 'text-rose-500' : ''}>
-                {isOver
-                  ? `${formatILS(totalActual - totalBudget)} חריגה`
-                  : `${formatILS(totalBudget - totalActual)} נותר`} מתוך {formatILS(totalBudget)}
-              </span>
-            </div>
+          <div className="h-3 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all ${barColor}`}
+              style={{ width: `${percentage}%` }}
+            />
           </div>
         )}
       </button>
