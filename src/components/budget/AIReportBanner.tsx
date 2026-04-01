@@ -33,8 +33,8 @@ export default function AIReportBanner({ accountId, prevYear, prevMonth, hasExis
       const data = await res.json()
       if (data.error) setError(data.error)
       else setReport(data.content)
-    } catch {
-      setError('שגיאה בחיבור לשרת')
+    } catch (err) {
+      setError('שגיאה: ' + String(err))
     } finally {
       setLoading(false)
     }

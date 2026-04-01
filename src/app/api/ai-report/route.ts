@@ -142,7 +142,12 @@ ${expenseCats.map((c) => {
   const genAI = new GoogleGenerativeAI(apiKey)
   const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
-  const result = await model.generateContent(`${SYSTEM_PROMPT}\n\nהנה נתוני החודש:\n${dataText}`)
+  let result
+  try {
+    result = await model.generateContent(`${SYSTEM_PROMPT}\n\nהנה נתוני החודש:\n${dataText}`)
+  } catch (err) {
+    return NextResponse.json({ error: 'שגיאת ג\'מיני: ' + String(err) }, { status: 500 })
+  }
   const content = result.response.text()
 
   // Save to DB
