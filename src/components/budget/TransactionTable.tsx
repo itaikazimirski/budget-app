@@ -208,35 +208,38 @@ export default function TransactionTable({ transactions, categories, accountId, 
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-white/[0.06]">
-        <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
-            פעולות
-            {visibleTransactions.length > 0 && (
-              <span className="ms-1.5 text-xs text-slate-400 font-normal">
-                ({visibleTransactions.length}{isFiltered ? ` מתוך ${transactions.length}` : ''})
-              </span>
-            )}
-          </h3>
+    <div className="bg-white dark:bg-card rounded-2xl border border-slate-200 dark:border-white/[0.08] shadow-sm overflow-hidden">
+      <div className="max-w-3xl mx-auto px-4 pt-5 pb-4 border-b border-slate-100 dark:border-white/[0.06] flex items-center justify-between">
 
+        {/* Right: title + count pill */}
+        <div className="flex items-center gap-2.5">
+          <h3 className="text-2xl font-bold text-slate-900 dark:text-white">פעולות</h3>
+          {transactions.length > 0 && (
+            <span className="text-xs font-medium bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 rounded-full px-2.5 py-1">
+              {isFiltered ? `${visibleTransactions.length} / ${transactions.length}` : transactions.length}
+            </span>
+          )}
+        </div>
+
+        {/* Left: filter + add */}
+        <div className="flex items-center gap-2">
           {/* Filter button */}
           <div className="relative" ref={filterRef}>
             <button
               onClick={() => setShowFilterMenu((v) => !v)}
-              className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg border transition-colors ${
+              className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-xl border transition-colors ${
                 isFiltered
                   ? 'bg-indigo-100 border-indigo-300 text-indigo-700 dark:bg-indigo-900/40 dark:border-indigo-700 dark:text-indigo-300'
-                  : 'border-slate-200 text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/5'
+                  : 'border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5'
               }`}
             >
-              <Filter className="w-3 h-3" />
+              <Filter className="w-3.5 h-3.5" />
               {isFiltered ? `${selectedCategoryIds.size} נבחרו` : 'סנן'}
             </button>
 
             {/* Dropdown */}
             {showFilterMenu && activeCategories.length > 0 && (
-              <div className="absolute top-full mt-1 right-0 z-30 bg-white dark:bg-card border border-slate-200 dark:border-white/10 rounded-xl shadow-lg p-2 min-w-[160px]">
+              <div className="absolute top-full mt-1 left-0 z-30 bg-white dark:bg-card border border-slate-200 dark:border-white/10 rounded-xl shadow-lg p-2 min-w-[160px]">
                 {isFiltered && (
                   <button onClick={clearFilter} className="w-full text-right text-xs text-rose-500 hover:text-rose-700 px-2 py-1.5 rounded-lg hover:bg-rose-50 mb-1">
                     נקה סינון ✕
@@ -266,17 +269,17 @@ export default function TransactionTable({ transactions, categories, accountId, 
           </div>
 
           {isFiltered && (
-            <button onClick={clearFilter} className="text-xs text-slate-400 hover:text-rose-500 transition-colors">
-              <X className="w-3.5 h-3.5" />
+            <button onClick={clearFilter} className="text-slate-400 hover:text-rose-500 transition-colors">
+              <X className="w-4 h-4" />
             </button>
           )}
-        </div>
 
-        <Button size="sm" onClick={() => setShowAdd(!showAdd)}
-          className="h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white gap-1">
-          <Plus className="w-3 h-3" />
-          הוסף
-        </Button>
+          <Button size="sm" onClick={() => setShowAdd(!showAdd)}
+            className="h-9 text-sm bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5 rounded-xl px-4">
+            <Plus className="w-3.5 h-3.5" />
+            הוסף
+          </Button>
+        </div>
       </div>
 
       {showAdd && (
