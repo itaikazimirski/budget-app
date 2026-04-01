@@ -6,7 +6,6 @@ import { addTransaction, updateTransaction, deleteTransaction } from '@/app/acti
 import { Plus, Trash2, Edit2, Check, X, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 
 interface TransactionTableProps {
   transactions: (Transaction & { entered_by?: string | null })[]
@@ -289,32 +288,42 @@ export default function TransactionTable({ transactions, categories, accountId, 
       ) : visibleTransactions.length === 0 ? (
         <div className="px-4 py-10 text-center text-slate-400 text-sm">אין פעולות לקטגוריות שנבחרו.</div>
       ) : (
-        <div className="p-3 space-y-2">
+        <div className="p-3 space-y-2 max-w-3xl mx-auto">
           {visibleTransactions.map((tx) =>
             editingId === tx.id ? (
               <EditRow key={tx.id} tx={tx} categories={categories} accountId={accountId} year={year} month={month} onClose={() => setEditingId(null)} />
             ) : (
-              <div key={tx.id} className="bg-slate-50 rounded-xl border border-slate-100 px-4 py-3 flex items-center gap-3 hover:bg-slate-100 transition-colors group">
-                <span className="text-slate-500 text-xs w-12 shrink-0 whitespace-nowrap">{formatDate(tx.date)}</span>
-                <span className="text-slate-700 text-sm flex-1 truncate text-right">{tx.notes ?? '—'}</span>
-                <div className="flex items-center gap-1 shrink-0">
-                  <span className="text-base">{tx.category?.icon ?? '📦'}</span>
-                  <span className="text-slate-600 text-xs truncate max-w-[80px]">{tx.category?.name ?? '—'}</span>
+              <div key={tx.id} className="bg-slate-50 dark:bg-white/[0.03] rounded-xl border border-slate-100 dark:border-white/[0.06] px-4 py-3 flex items-center gap-4 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors group">
+
+                {/* Right: category + date */}
+                <div className="flex items-center gap-2 shrink-0 min-w-0 w-36">
+                  <span className="text-lg shrink-0">{tx.category?.icon ?? '📦'}</span>
+                  <div className="min-w-0 text-right">
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{tx.category?.name ?? '—'}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{formatDate(tx.date)}</p>
+                  </div>
                 </div>
-                <Badge variant="secondary" className={`text-xs shrink-0 ${tx.type === 'income' ? 'bg-emerald-100 text-emerald-700' : 'bg-violet-100 text-violet-700'}`}>
-                  {tx.type === 'income' ? 'הכנסה' : 'הוצאה'}
-                </Badge>
-                <span className={`font-semibold text-sm shrink-0 ${tx.type === 'income' ? 'text-emerald-600' : 'text-slate-800'}`}>
-                  {tx.type === 'income' ? '+' : ''}{formatILS(tx.amount)}
+
+                {/* Middle: notes */}
+                <span className="flex-1 text-sm text-slate-500 dark:text-slate-400 truncate text-right min-w-0">
+                  {tx.notes ?? ''}
                 </span>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0">
-                  <button onClick={() => setEditingId(tx.id)} className="p-1 text-slate-300 hover:text-indigo-500" title="ערוך">
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </button>
-                  <button onClick={() => handleDelete(tx.id)} disabled={isPending} className="p-1 text-slate-300 hover:text-rose-500" title="מחק">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+
+                {/* Left: amount + actions */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={`font-semibold text-sm ${tx.type === 'income' ? 'text-emerald-600' : 'text-rose-500'}`}>
+                    {tx.type === 'income' ? '+' : '-'}{formatILS(tx.amount)}
+                  </span>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                    <button onClick={() => setEditingId(tx.id)} className="p-1 text-slate-300 hover:text-indigo-500" title="ערוך">
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => handleDelete(tx.id)} disabled={isPending} className="p-1 text-slate-300 hover:text-rose-500" title="מחק">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
+
               </div>
             )
           )}
