@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
 
 const SYSTEM_PROMPT = `אתה יועץ פיננסי אישי, חד וחכם. המשתמש מולך מבין בפיננסים, אז דבר אליו ישירות, בגובה העיניים ובלי קלישאות. המטרה שלך היא לנתח את תקציב החודש החולף. אל תחזור סתם על מספרים, אלא הפק תובנות:
 
@@ -139,16 +138,24 @@ ${expenseCats.map((c) => {
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) return NextResponse.json({ error: 'GEMINI_API_KEY not set' }, { status: 500 })
 
-  const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-preview-04-17' })
-
-  let result
+  let content: string
   try {
-    result = await model.generateContent(`${SYSTEM_PROMPT}\n\nהנה נתוני החודש:\n${dataText}`)
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `${SYSTEM_PROMPT}\n\nהנה נתוני החודש:\n${dataText}` }] }],
+        }),
+      }
+    )
+    const json = await res.json()
+    if (!res.ok) return NextResponse.json({ error: 'שגיאת ג\'מיני: ' + JSON.stringify(json) }, { status: 500 })
+    content = json.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
   } catch (err) {
     return NextResponse.json({ error: 'שגיאת ג\'מיני: ' + String(err) }, { status: 500 })
   }
-  const content = result.response.text()
 
   // Save to DB
   await supabase.from('ai_reports').insert({
