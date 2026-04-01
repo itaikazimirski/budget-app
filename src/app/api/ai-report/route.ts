@@ -140,7 +140,7 @@ ${expenseCats.map((c) => {
   if (!apiKey) return NextResponse.json({ error: 'GEMINI_API_KEY not set' }, { status: 500 })
 
   const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
   let result
   try {
