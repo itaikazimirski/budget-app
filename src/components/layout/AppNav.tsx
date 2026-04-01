@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { Wallet, ChevronDown, LogOut, Settings, Plus, User, Sun, Moon } from 'lucide-react'
+import { Wallet, ChevronDown, LogOut, Settings, Plus, User, Sun, Moon, Sparkles } from 'lucide-react'
 import { logout } from '@/app/actions/auth'
 import { createSharedAccount } from '@/app/actions/accounts'
 import { useTheme } from 'next-themes'
@@ -113,6 +113,15 @@ export default function AppNav({ accounts, userEmail }: AppNavProps) {
           >
             {resolvedTheme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
+          {currentAccount && (
+            <Link
+              href={`/${currentAccount.id}/reports`}
+              className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+              title="היסטוריית דוחות"
+            >
+              <Sparkles className="w-4 h-4" />
+            </Link>
+          )}
           {currentAccount && (
             <Link
               href={`/${currentAccount.id}/settings`}

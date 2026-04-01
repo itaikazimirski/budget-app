@@ -8,6 +8,7 @@ import TransactionTable from '@/components/budget/TransactionTable'
 import BucketSummary from '@/components/budget/BucketSummary'
 import FixedExpensesButton from '@/components/budget/FixedExpensesButton'
 import HouseholdSection from '@/components/budget/HouseholdSection'
+import AIReportBanner from '@/components/budget/AIReportBanner'
 
 export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[month]'>) {
   const { accountId, year: yearStr, month: monthStr } = await props.params
@@ -172,8 +173,36 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
 
   const hasMonthOverride = (monthOverrides ?? []).length > 0
 
+  // Check if today is the 1st of the month — show banner for previous month
+  const today = new Date()
+  const isFirstOfMonth = today.getDate() === 1
+  const prevMonth = month === 1 ? 12 : month - 1
+  const prevYear = month === 1 ? year - 1 : year
+  const isCurrentMonth = today.getFullYear() === year && today.getMonth() + 1 === month
+
+  // Show banner if we're on the current month AND today is the 1st
+  const showReportBanner = isCurrentMonth && isFirstOfMonth
+
+  // Check if report already exists for previous month
+  const { data: existingReport } = await supabase
+    .from('ai_reports')
+    .select('id')
+    .eq('account_id', accountId)
+    .eq('year', prevYear)
+    .eq('month', prevMonth)
+    .single()
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+      {showReportBanner && (
+        <AIReportBanner
+          accountId={accountId}
+          prevYear={prevYear}
+          prevMonth={prevMonth}
+          hasExisting={!!existingReport}
+        />
+      )}
+
       <MonthNav accountId={accountId} year={year} month={month} />
 
       <MonthSummary stats={stats} accountId={accountId} year={year} month={month} />
