@@ -40,7 +40,13 @@ export default function CategoryCard({ category, accountId, year, month }: Categ
   const isOver = actual_amount > budget_amount && budget_amount > 0
   const barColor = type === 'income'
     ? (percentage >= 100 ? 'bg-emerald-500' : 'bg-emerald-400')
-    : (isOver ? 'bg-rose-500' : percentage > 80 ? 'bg-amber-400' : 'bg-indigo-400')
+    : isOver
+      ? 'bg-rose-500'
+      : percentage > 85
+        ? 'bg-rose-400'
+        : percentage > 60
+          ? 'bg-amber-400'
+          : 'bg-emerald-400'
 
   function handleSaveBudget() {
     const amount = parseFloat(budgetInput)
@@ -75,18 +81,27 @@ export default function CategoryCard({ category, accountId, year, month }: Categ
 
   return (
     <>
-      <div className="px-4 py-3 hover:bg-slate-50 transition-colors group">
+      <div className={`px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors group rounded-xl ${isOver ? 'border border-rose-200 dark:border-rose-900/50 bg-rose-50/30 dark:bg-rose-950/10' : ''}`}>
+
+        {/* Top row: category name + amount ratio */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-base shrink-0">{category.icon ?? '📦'}</span>
-            <span className="text-sm font-medium text-slate-800 truncate">{category.name}</span>
-            {isOver && (
-              <span className="text-xs bg-rose-100 text-rose-600 rounded px-1.5 py-0.5 shrink-0">חריגה!</span>
-            )}
+            <span className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{category.name}</span>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-sm font-semibold text-slate-800">{formatILS(actual_amount)}</span>
+            {budget_amount > 0 ? (
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                <span className={`font-semibold ${isOver ? 'text-rose-500' : 'text-slate-700 dark:text-slate-200'}`}>
+                  {formatILS(actual_amount)}
+                </span>
+                {' / '}
+                {formatILS(budget_amount)}
+              </span>
+            ) : (
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{formatILS(actual_amount)}</span>
+            )}
 
             <button
               onClick={() => setShowEditDialog(true)}
@@ -126,22 +141,13 @@ export default function CategoryCard({ category, accountId, year, month }: Categ
           </div>
         </div>
 
+        {/* Progress bar */}
         {budget_amount > 0 ? (
-          <div className="space-y-1">
-            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all ${barColor}`}
-                style={{ width: `${Math.min(percentage, 100)}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-xs text-slate-400">
-              <span>{Math.round(percentage)}%</span>
-              <span className={isOver ? 'text-rose-500' : ''}>
-                {isOver
-                  ? `${formatILS(Math.abs(category.remaining))} חריגה`
-                  : `${formatILS(category.remaining)} נותר`} מתוך {formatILS(budget_amount)}
-              </span>
-            </div>
+          <div className="h-3 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all ${barColor}`}
+              style={{ width: `${Math.min(percentage, 100)}%` }}
+            />
           </div>
         ) : (
           <p className="text-xs text-slate-300">אין תקציב מוגדר — לחץ ✏️ להגדרה לחודש זה</p>
