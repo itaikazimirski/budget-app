@@ -31,80 +31,44 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
 
   if (!membership) redirect('/')
 
-  // Fetch categories
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('*')
-    .eq('account_id', accountId)
-    .order('name')
+  const startDate = `${year}-${String(month).padStart(2, '0')}-01`
+  const endDate = new Date(year, month, 0).toISOString().split('T')[0]
 
-  // Fetch budget templates
-  const { data: templates } = await supabase
-    .from('budget_templates')
-    .select('*')
-    .eq('account_id', accountId)
-
-  // Fetch monthly overrides for this month
-  const { data: monthOverrides } = await supabase
-    .from('month_budgets')
-    .select('*')
-    .eq('account_id', accountId)
-    .eq('year', year)
-    .eq('month', month)
+  // Fetch all data in parallel
+  const [
+    { data: categories },
+    { data: templates },
+    { data: monthOverrides },
+    { data: transactions },
+    { data: members },
+  ] = await Promise.all([
+    supabase.from('categories').select('*').eq('account_id', accountId).order('name'),
+    supabase.from('budget_templates').select('*').eq('account_id', accountId),
+    supabase.from('month_budgets').select('*').eq('account_id', accountId).eq('year', year).eq('month', month),
+    supabase.from('transactions').select('*, category:categories(*)').eq('account_id', accountId).gte('date', startDate).lte('date', endDate).order('date', { ascending: false }),
+    supabase.from('account_members').select('user_id, display_name').eq('account_id', accountId),
+  ])
 
   // Auto-insert fixed expense transactions on the 1st if not already present
   const fixedCategories = (categories ?? []).filter((c) => c.type === 'expense' && c.is_fixed)
   if (fixedCategories.length > 0) {
     const firstOfMonth = `${year}-${String(month).padStart(2, '0')}-01`
-    for (const cat of fixedCategories) {
+    const templateMap2 = Object.fromEntries((templates ?? []).map((t) => [t.category_id, t.monthly_amount]))
+    await Promise.all(fixedCategories.map(async (cat) => {
       const { data: existing } = await supabase
-        .from('transactions')
-        .select('id')
-        .eq('account_id', accountId)
-        .eq('category_id', cat.id)
-        .eq('date', firstOfMonth)
-        .eq('type', 'expense')
-        .limit(1)
+        .from('transactions').select('id').eq('account_id', accountId)
+        .eq('category_id', cat.id).eq('date', firstOfMonth).eq('type', 'expense').limit(1)
       if (!existing || existing.length === 0) {
-        const { data: template } = await supabase
-          .from('budget_templates')
-          .select('monthly_amount')
-          .eq('account_id', accountId)
-          .eq('category_id', cat.id)
-          .single()
-        const amount = template?.monthly_amount ?? 0
+        const amount = templateMap2[cat.id] ?? 0
         if (amount > 0) {
           await supabase.from('transactions').insert({
-            account_id: accountId,
-            category_id: cat.id,
-            user_id: user.id,
-            amount,
-            type: 'expense',
-            date: firstOfMonth,
-            notes: 'הוצאה קבועה (אוטומטי)',
+            account_id: accountId, category_id: cat.id, user_id: user.id,
+            amount, type: 'expense', date: firstOfMonth, notes: 'הוצאה קבועה (אוטומטי)',
           })
         }
       }
-    }
+    }))
   }
-
-  // Fetch transactions for this month
-  const startDate = `${year}-${String(month).padStart(2, '0')}-01`
-  const endDate = new Date(year, month, 0).toISOString().split('T')[0]
-
-  const { data: transactions } = await supabase
-    .from('transactions')
-    .select('*, category:categories(*)')
-    .eq('account_id', accountId)
-    .gte('date', startDate)
-    .lte('date', endDate)
-    .order('date', { ascending: false })
-
-  // Fetch member display names for "entered by"
-  const { data: members } = await supabase
-    .from('account_members')
-    .select('user_id, display_name')
-    .eq('account_id', accountId)
 
   const memberMap = Object.fromEntries((members ?? []).map((m) => [m.user_id, m.display_name]))
 
