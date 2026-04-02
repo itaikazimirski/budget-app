@@ -182,15 +182,6 @@ export default function SettingsClient({ account, members, isOwner, apiKeys, has
         )}
       </div>
 
-      {/* Budget template */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-        <h2 className="font-semibold text-slate-900 text-sm mb-1">תבנית התקציב</h2>
-        <p className="text-xs text-slate-500 mb-3">ניהול הסכומים החודשיים הדיפולטיביים לכל הקטגוריות.</p>
-        <a href={`/${account.id}/template`} className="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-700 font-medium hover:underline">
-          פתח עורך התבנית ←
-        </a>
-      </div>
-
       {/* API Keys for mobile automation */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
