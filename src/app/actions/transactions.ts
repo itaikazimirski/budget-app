@@ -17,7 +17,7 @@ export async function addTransaction(formData: FormData) {
 
   if (isNaN(amount) || amount <= 0) return { error: 'Invalid amount' }
 
-  const { error } = await supabase.from('transactions').insert({
+  const { data: newTx, error } = await supabase.from('transactions').insert({
     account_id: accountId,
     category_id: categoryId,
     user_id: user.id,
@@ -25,13 +25,13 @@ export async function addTransaction(formData: FormData) {
     type,
     date,
     notes,
-  })
+  }).select('*').single()
 
   if (error) return { error: error.message }
 
   const [year, month] = date.split('-')
   revalidatePath(`/${accountId}/${year}/${parseInt(month)}`)
-  return { success: true }
+  return { success: true, transaction: newTx }
 }
 
 export async function updateTransaction(formData: FormData) {

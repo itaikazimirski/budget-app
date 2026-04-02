@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useRef, useEffect } from 'react'
+import { useState, useTransition, useRef, useEffect, useOptimistic } from 'react'
 import type { Transaction, Category } from '@/lib/types'
 import { addTransaction, updateTransaction, deleteTransaction } from '@/app/actions/transactions'
 import { Plus, Trash2, Edit2, Check, X, Filter } from 'lucide-react'
@@ -30,9 +30,10 @@ interface AddFormProps {
   year: number
   month: number
   onClose: () => void
+  onAdd?: (tx: Transaction & { entered_by?: string | null }) => void
 }
 
-function AddTransactionForm({ categories, accountId, year, month, onClose }: AddFormProps) {
+function AddTransactionForm({ categories, accountId, year, month, onClose, onAdd }: AddFormProps) {
   const [type, setType] = useState<'expense' | 'income'>('expense')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -47,10 +48,30 @@ function AddTransactionForm({ categories, accountId, year, month, onClose }: Add
     const fd = new FormData(e.currentTarget)
     fd.set('accountId', accountId)
     fd.set('type', type)
+    const amount = parseFloat(fd.get('amount') as string)
+    const date = fd.get('date') as string
+    const notes = fd.get('notes') as string || null
+    const categoryId = fd.get('categoryId') as string || null
+    const category = categoryId ? categories.find((c) => c.id === categoryId) ?? null : null
     startTransition(async () => {
+      if (onAdd) {
+        onAdd({
+          id: `optimistic-${Date.now()}`,
+          account_id: accountId,
+          category_id: categoryId,
+          user_id: '',
+          amount,
+          type,
+          date,
+          notes,
+          created_at: new Date().toISOString(),
+          category: category ?? null,
+          entered_by: null,
+        })
+      }
+      onClose()
       const result = await addTransaction(fd)
       if (result?.error) setError(result.error)
-      else onClose()
     })
   }
 
@@ -159,6 +180,10 @@ function EditRow({ tx, categories, accountId, year, month, onClose }: EditRowPro
 }
 
 export default function TransactionTable({ transactions, categories, accountId, year, month }: TransactionTableProps) {
+  const [optimisticTransactions, addOptimisticTx] = useOptimistic(
+    transactions,
+    (state, newTx: Transaction & { entered_by?: string | null }) => [newTx, ...state]
+  )
   const [showAdd, setShowAdd] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -178,13 +203,13 @@ export default function TransactionTable({ transactions, categories, accountId, 
   }, [])
 
   // Categories that actually have transactions this month
-  const activeCategoryIds = [...new Set(transactions.map((tx) => tx.category_id).filter(Boolean))] as string[]
+  const activeCategoryIds = [...new Set(optimisticTransactions.map((tx) => tx.category_id).filter(Boolean))] as string[]
   const activeCategories = categories.filter((c) => activeCategoryIds.includes(c.id))
 
   const isFiltered = selectedCategoryIds.size > 0
   const visibleTransactions = isFiltered
-    ? transactions.filter((tx) => tx.category_id && selectedCategoryIds.has(tx.category_id))
-    : transactions
+    ? optimisticTransactions.filter((tx) => tx.category_id && selectedCategoryIds.has(tx.category_id))
+    : optimisticTransactions
 
   function toggleCategory(id: string) {
     setSelectedCategoryIds((prev) => {
@@ -214,9 +239,9 @@ export default function TransactionTable({ transactions, categories, accountId, 
         {/* Right: title + count pill */}
         <div className="flex items-center gap-2.5">
           <h3 className="text-2xl font-bold text-slate-900 dark:text-white">פעולות</h3>
-          {transactions.length > 0 && (
+          {optimisticTransactions.length > 0 && (
             <span className="text-xs font-medium bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 rounded-full px-2.5 py-1">
-              {isFiltered ? `${visibleTransactions.length} / ${transactions.length}` : transactions.length}
+              {isFiltered ? `${visibleTransactions.length} / ${optimisticTransactions.length}` : optimisticTransactions.length}
             </span>
           )}
         </div>
@@ -283,10 +308,10 @@ export default function TransactionTable({ transactions, categories, accountId, 
       </div>
 
       {showAdd && (
-        <AddTransactionForm categories={categories} accountId={accountId} year={year} month={month} onClose={() => setShowAdd(false)} />
+        <AddTransactionForm categories={categories} accountId={accountId} year={year} month={month} onClose={() => setShowAdd(false)} onAdd={addOptimisticTx} />
       )}
 
-      {transactions.length === 0 ? (
+      {optimisticTransactions.length === 0 ? (
         <div className="px-4 py-10 text-center text-slate-400 text-sm">אין פעולות החודש עדיין.</div>
       ) : visibleTransactions.length === 0 ? (
         <div className="px-4 py-10 text-center text-slate-400 text-sm">אין פעולות לקטגוריות שנבחרו.</div>
@@ -296,7 +321,7 @@ export default function TransactionTable({ transactions, categories, accountId, 
             editingId === tx.id ? (
               <EditRow key={tx.id} tx={tx} categories={categories} accountId={accountId} year={year} month={month} onClose={() => setEditingId(null)} />
             ) : (
-              <div key={tx.id} className="bg-slate-50 dark:bg-white/[0.03] rounded-xl border border-slate-100 dark:border-white/[0.06] px-4 py-3 flex items-center gap-4 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors group">
+              <div key={tx.id} className={`bg-slate-50 dark:bg-white/[0.03] rounded-xl border border-slate-100 dark:border-white/[0.06] px-4 py-3 flex items-center gap-4 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors group ${tx.id.startsWith('optimistic-') ? 'opacity-60' : ''}`}>
 
                 {/* Right: category + date */}
                 <div className="flex items-center gap-2 shrink-0 min-w-0 w-36">
@@ -317,14 +342,16 @@ export default function TransactionTable({ transactions, categories, accountId, 
                   <span className={`font-semibold text-sm ${tx.type === 'income' ? 'text-emerald-600' : 'text-rose-500'}`}>
                     {tx.type === 'income' ? '+' : '-'}{formatILS(tx.amount)}
                   </span>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                    <button onClick={() => setEditingId(tx.id)} className="p-1 text-slate-300 hover:text-indigo-500" title="ערוך">
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={() => handleDelete(tx.id)} disabled={isPending} className="p-1 text-slate-300 hover:text-rose-500" title="מחק">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  {!tx.id.startsWith('optimistic-') && (
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                      <button onClick={() => setEditingId(tx.id)} className="p-1 text-slate-300 hover:text-indigo-500" title="ערוך">
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => handleDelete(tx.id)} disabled={isPending} className="p-1 text-slate-300 hover:text-rose-500" title="מחק">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
                 </div>
 
               </div>
