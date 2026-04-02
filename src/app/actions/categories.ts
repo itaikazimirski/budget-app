@@ -62,14 +62,14 @@ export async function updateCategory(formData: FormData) {
 }
 
 const HOUSEHOLD_CATEGORIES = [
-  { name: 'שכר דירה', icon: '🏠' },
-  { name: 'משכנתא', icon: '🏦' },
-  { name: 'חשמל', icon: '⚡' },
-  { name: 'גז', icon: '🔥' },
-  { name: 'מים', icon: '💧' },
-  { name: 'ארנונה', icon: '🏛️' },
-  { name: 'ועד בית', icon: '🏢' },
-  { name: 'אינטרנט', icon: '🌐' },
+  { name: 'שכר דירה', icon: '🏠', is_fixed: true },
+  { name: 'משכנתא', icon: '🏦', is_fixed: true },
+  { name: 'חשמל', icon: '⚡', is_fixed: false },
+  { name: 'גז', icon: '🔥', is_fixed: false },
+  { name: 'מים', icon: '💧', is_fixed: false },
+  { name: 'ארנונה', icon: '🏛️', is_fixed: true },
+  { name: 'ועד בית', icon: '🏢', is_fixed: true },
+  { name: 'אינטרנט', icon: '🌐', is_fixed: true },
 ]
 
 export async function setupHouseholdCategories(accountId: string) {
@@ -96,7 +96,7 @@ export async function setupHouseholdCategories(accountId: string) {
         type: 'expense',
         bucket: 'מחיה',
         category_group: 'משק בית',
-        is_fixed: true,
+        is_fixed: cat.is_fixed,
       })
       .select()
       .single()
