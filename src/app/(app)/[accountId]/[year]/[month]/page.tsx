@@ -49,25 +49,30 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
     supabase.from('account_members').select('user_id, display_name').eq('account_id', accountId),
   ])
 
-  // Auto-insert fixed expense transactions on the 1st if not already present
-  const fixedCategories = (categories ?? []).filter((c) => c.type === 'expense' && c.is_fixed)
-  if (fixedCategories.length > 0) {
-    const firstOfMonth = `${year}-${String(month).padStart(2, '0')}-01`
-    const templateMap2 = Object.fromEntries((templates ?? []).map((t) => [t.category_id, t.monthly_amount]))
-    await Promise.all(fixedCategories.map(async (cat) => {
-      const { data: existing } = await supabase
-        .from('transactions').select('id').eq('account_id', accountId)
-        .eq('category_id', cat.id).eq('date', firstOfMonth).eq('type', 'expense').limit(1)
-      if (!existing || existing.length === 0) {
-        const amount = templateMap2[cat.id] ?? 0
-        if (amount > 0) {
-          await supabase.from('transactions').insert({
-            account_id: accountId, category_id: cat.id, user_id: user.id,
-            amount, type: 'expense', date: firstOfMonth, notes: 'הוצאה קבועה (אוטומטי)',
-          })
+  // Auto-insert fixed expense transactions — only run in the first 5 days of the current month
+  const today = new Date()
+  const isCurrentMonth = today.getFullYear() === year && today.getMonth() + 1 === month
+  const isEarlyInMonth = today.getDate() <= 5
+  if (isCurrentMonth && isEarlyInMonth) {
+    const fixedCategories = (categories ?? []).filter((c) => c.type === 'expense' && c.is_fixed)
+    if (fixedCategories.length > 0) {
+      const firstOfMonth = `${year}-${String(month).padStart(2, '0')}-01`
+      const templateMap2 = Object.fromEntries((templates ?? []).map((t) => [t.category_id, t.monthly_amount]))
+      await Promise.all(fixedCategories.map(async (cat) => {
+        const { data: existing } = await supabase
+          .from('transactions').select('id').eq('account_id', accountId)
+          .eq('category_id', cat.id).eq('date', firstOfMonth).eq('type', 'expense').limit(1)
+        if (!existing || existing.length === 0) {
+          const amount = templateMap2[cat.id] ?? 0
+          if (amount > 0) {
+            await supabase.from('transactions').insert({
+              account_id: accountId, category_id: cat.id, user_id: user.id,
+              amount, type: 'expense', date: firstOfMonth, notes: 'הוצאה קבועה (אוטומטי)',
+            })
+          }
         }
-      }
-    }))
+      }))
+    }
   }
 
   const memberMap = Object.fromEntries((members ?? []).map((m) => [m.user_id, m.display_name]))
