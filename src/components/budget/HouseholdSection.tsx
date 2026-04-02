@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Home, Plus, X, ChevronDown, ChevronUp } from 'lucide-react'
+import { Home, Plus, ChevronDown, ChevronUp } from 'lucide-react'
 import type { CategoryWithStats, Transaction } from '@/lib/types'
-import HouseholdCard from './HouseholdCard'
+import HouseholdCardCompact from './HouseholdCardCompact'
+import TransactionPopup from './TransactionPopup'
 import AddCategoryDialog from './AddCategoryDialog'
+import { formatILS } from '@/lib/budget-utils'
 
 interface HouseholdSectionProps {
   categories: CategoryWithStats[]
@@ -14,14 +16,6 @@ interface HouseholdSectionProps {
   transactions?: Transaction[]
 }
 
-function formatILS(amount: number) {
-  return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(amount)
-}
-
-function formatDate(dateStr: string) {
-  const d = new Date(dateStr + 'T00:00:00')
-  return d.toLocaleDateString('he-IL', { day: '2-digit', month: 'short' })
-}
 
 export default function HouseholdSection({ categories, accountId, year, month, transactions }: HouseholdSectionProps) {
   const [showAdd, setShowAdd] = useState(false)
@@ -137,14 +131,13 @@ export default function HouseholdSection({ categories, accountId, year, month, t
         {otherCats.length > 0 && (
           <div className="flex-1 grid grid-cols-2 gap-2 content-start">
             {otherCats.map((cat) => (
-              <HouseholdCard
+              <HouseholdCardCompact
                 key={cat.id}
                 category={cat}
                 accountId={accountId}
                 year={year}
                 month={month}
                 transactions={transactions}
-                compact
               />
             ))}
           </div>
@@ -154,44 +147,26 @@ export default function HouseholdSection({ categories, accountId, year, month, t
         {rentCats.length === 0 && (
           <div className="flex-1 grid grid-cols-2 gap-2">
             {categories.map((cat) => (
-              <HouseholdCard
+              <HouseholdCardCompact
                 key={cat.id}
                 category={cat}
                 accountId={accountId}
                 year={year}
                 month={month}
                 transactions={transactions}
-                compact
               />
             ))}
           </div>
         )}
       </div>}
 
-      {/* Rent popup */}
       {showRentPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => setShowRentPopup(false)}>
-          <div className="bg-white dark:bg-card rounded-2xl shadow-2xl w-full max-w-md max-h-[70vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-white/[0.06]">
-              <div className="text-right">
-                <h2 className="font-bold text-slate-900 dark:text-white text-base">🏠 שכר דירה / משכנתא</h2>
-                <p className="text-xs text-slate-400 mt-0.5">סה"כ: {formatILS(rentActual)}</p>
-              </div>
-              <button onClick={() => setShowRentPopup(false)} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="overflow-y-auto p-3 space-y-2">
-              {rentTransactions.map((tx) => (
-                <div key={tx.id} className="flex items-center justify-between bg-slate-50 dark:bg-secondary rounded-xl px-4 py-3 gap-3">
-                  <span className="text-xs text-slate-400 shrink-0">{formatDate(tx.date)}</span>
-                  <span className="text-sm text-slate-700 dark:text-slate-200 flex-1 text-right truncate">{tx.notes ?? '—'}</span>
-                  <span className="font-semibold text-sm shrink-0 text-slate-800 dark:text-white">{formatILS(tx.amount)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <TransactionPopup
+          title="🏠 שכר דירה / משכנתא"
+          totalAmount={rentActual}
+          transactions={rentTransactions}
+          onClose={() => setShowRentPopup(false)}
+        />
       )}
 
       {showAdd && (
