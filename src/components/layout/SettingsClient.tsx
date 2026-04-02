@@ -191,15 +191,15 @@ export default function SettingsClient({ account, members, isOwner, apiKeys, has
         </a>
       </div>
 
-      {/* API Keys for Apple Shortcuts */}
+      {/* API Keys for mobile automation */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
           <div>
             <h2 className="font-semibold text-slate-900 text-sm flex items-center gap-2">
               <Key className="w-3.5 h-3.5 text-slate-400" />
-              Apple Shortcuts — מפתח API
+              אוטומציה — מפתח API
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">לחיבור האפליקציה לאוטומציה מהאייפון</p>
+            <p className="text-xs text-slate-400 mt-0.5">לחיבור האפליקציה לאוטומציה מהטלפון (Shortcuts, Tasker וכו׳)</p>
           </div>
           <button
             onClick={handleGenerateKey}
