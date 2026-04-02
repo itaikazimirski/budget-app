@@ -143,11 +143,9 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
   const hasMonthOverride = (monthOverrides ?? []).length > 0
 
   // Check if today is the 1st of the month — show banner for previous month
-  const today = new Date()
   const isFirstOfMonth = today.getDate() === 1
   const prevMonth = month === 1 ? 12 : month - 1
   const prevYear = month === 1 ? year - 1 : year
-  const isCurrentMonth = today.getFullYear() === year && today.getMonth() + 1 === month
 
   // Show banner if we're on the current month AND today is the 1st
   const showReportBanner = isCurrentMonth && isFirstOfMonth
