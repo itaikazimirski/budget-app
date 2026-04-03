@@ -9,6 +9,7 @@ import BucketSummary from '@/components/budget/BucketSummary'
 import FixedExpensesButton from '@/components/budget/FixedExpensesButton'
 import HouseholdSection from '@/components/budget/HouseholdSection'
 import AIReportBanner from '@/components/budget/AIReportBanner'
+import PDFDownloadButton from '@/components/budget/PDFDownloadButton'
 
 export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[month]'>) {
   const { accountId, year: yearStr, month: monthStr } = await props.params
@@ -170,7 +171,18 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
         />
       )}
 
-      <MonthNav accountId={accountId} year={year} month={month} />
+      <div className="flex items-center justify-between">
+        <PDFDownloadButton
+          accountId={accountId}
+          year={year}
+          month={month}
+          totalIncome={totalIncome}
+          totalExpenses={totalExpenses}
+          balance={totalIncome - totalExpenses}
+          expenseCategories={expenseCategories}
+        />
+        <MonthNav accountId={accountId} year={year} month={month} />
+      </div>
 
       <MonthSummary stats={stats} accountId={accountId} year={year} month={month} />
 
