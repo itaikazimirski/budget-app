@@ -23,6 +23,9 @@ export default function PDFDownloadButton({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const now = new Date()
+  const isCurrentMonth = now.getFullYear() === year && now.getMonth() + 1 === month
+
   async function handleDownload() {
     setLoading(true)
     setError(null)
@@ -77,25 +80,35 @@ export default function PDFDownloadButton({
 
   return (
     <div className="flex flex-col items-end gap-1">
-      <Button
-        onClick={handleDownload}
-        disabled={loading}
-        variant="outline"
-        size="sm"
-        className="gap-2 h-9 rounded-xl border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300"
-      >
-        {loading ? (
-          <>
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            מכין דוח מקיף...
-          </>
-        ) : (
-          <>
-            <FileDown className="w-3.5 h-3.5" />
-            הורד PDF
-          </>
+      <div className="relative group">
+        <Button
+          onClick={handleDownload}
+          disabled={loading}
+          variant="outline"
+          size="sm"
+          className="gap-2 h-9 rounded-xl border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              מכין דוח מקיף...
+            </>
+          ) : (
+            <>
+              <FileDown className="w-3.5 h-3.5" />
+              הורד PDF
+            </>
+          )}
+        </Button>
+
+        {isCurrentMonth && !loading && (
+          <div className="absolute bottom-full mb-2 right-0 w-56 px-3 py-2 bg-slate-800 dark:bg-slate-700 text-white text-xs rounded-xl shadow-lg
+            opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none text-right leading-relaxed">
+            מומלץ לחכות לסיום החודש כדי לקבל דוח מלא
+            <div className="absolute top-full right-4 border-4 border-transparent border-t-slate-800 dark:border-t-slate-700" />
+          </div>
         )}
-      </Button>
+      </div>
       {error && <p className="text-xs text-rose-500">{error}</p>}
     </div>
   )
