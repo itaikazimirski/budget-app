@@ -11,6 +11,11 @@ Font.register({
 
 const MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר']
 
+// Strip emoji characters — Heebo font doesn't support them
+function stripEmoji(str: string): string {
+  return str.replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27BF}]|[\uD800-\uDFFF]/gu, '').trim()
+}
+
 const PIE_GROUPS = [
   { key: 'משק בית', label: 'משק בית', color: '#6366f1' },
   { key: 'ביטוח',   label: 'ביטוחים',  color: '#f59e0b' },
@@ -211,29 +216,36 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
               </Svg>
             </View>
 
-            {/* Budget vs Actual totals */}
-            {(() => {
-              const totalBudget = expenseCategories.reduce((s, c) => s + c.budget_amount, 0)
-              const isOver = totalExpenses > totalBudget && totalBudget > 0
-              return totalBudget > 0 ? (
-                <View style={{ flexDirection: 'row-reverse', gap: 10, marginBottom: 22, marginTop: -10 }}>
-                  <View style={{ flex: 1, backgroundColor: '#f8fafc', borderRadius: 8, padding: 10, alignItems: 'flex-end' }}>
-                    <Text style={{ fontSize: 8, color: '#94a3b8', marginBottom: 3 }}>תוכנן</Text>
-                    <Text style={{ fontSize: 13, fontWeight: 'bold', color: '#475569' }}>{formatILS(totalBudget)}</Text>
-                  </View>
-                  <View style={{ flex: 1, backgroundColor: '#f8fafc', borderRadius: 8, padding: 10, alignItems: 'flex-end' }}>
-                    <Text style={{ fontSize: 8, color: '#94a3b8', marginBottom: 3 }}>בפועל</Text>
-                    <Text style={{ fontSize: 13, fontWeight: 'bold', color: '#dc2626' }}>{formatILS(totalExpenses)}</Text>
-                  </View>
-                  <View style={{ flex: 1, backgroundColor: isOver ? '#fef2f2' : '#f0fdf4', borderRadius: 8, padding: 10, alignItems: 'flex-end' }}>
-                    <Text style={{ fontSize: 8, color: '#94a3b8', marginBottom: 3 }}>{isOver ? 'חריגה' : 'נותר'}</Text>
-                    <Text style={{ fontSize: 13, fontWeight: 'bold', color: isOver ? '#dc2626' : '#16a34a' }}>
-                      {isOver ? '-' : ''}{formatILS(Math.abs(totalBudget - totalExpenses))}
-                    </Text>
-                  </View>
-                </View>
-              ) : null
-            })()}
+            {/* Per-category budget breakdown */}
+            <View style={{ marginBottom: 22, marginTop: 10 }}>
+              <View style={{ flexDirection: 'row-reverse', backgroundColor: '#f1f5f9', borderRadius: 6, paddingVertical: 5, paddingHorizontal: 10, marginBottom: 3 }}>
+                <Text style={{ flex: 2.5, fontSize: 8, fontWeight: 'bold', color: '#64748b', textAlign: 'right' }}>קטגוריה</Text>
+                <Text style={{ flex: 1, fontSize: 8, fontWeight: 'bold', color: '#64748b', textAlign: 'right' }}>תוכנן</Text>
+                <Text style={{ flex: 1, fontSize: 8, fontWeight: 'bold', color: '#64748b', textAlign: 'right' }}>בפועל</Text>
+                <Text style={{ flex: 1, fontSize: 8, fontWeight: 'bold', color: '#64748b', textAlign: 'right' }}>נותר</Text>
+              </View>
+              {expenseCategories
+                .filter((c) => c.actual_amount > 0 || c.budget_amount > 0)
+                .sort((a, b) => b.actual_amount - a.actual_amount)
+                .map((cat) => {
+                  const remaining = cat.budget_amount - cat.actual_amount
+                  const isOver = remaining < 0 && cat.budget_amount > 0
+                  return (
+                    <View key={cat.id} style={{ flexDirection: 'row-reverse', paddingVertical: 5, paddingHorizontal: 10, borderBottom: '0.5 solid #f1f5f9' }}>
+                      <Text style={{ flex: 2.5, fontSize: 9, color: '#374151', textAlign: 'right' }}>{stripEmoji(cat.name)}</Text>
+                      <Text style={{ flex: 1, fontSize: 9, color: '#64748b', textAlign: 'right' }}>{cat.budget_amount > 0 ? formatILS(cat.budget_amount) : '—'}</Text>
+                      <Text style={{ flex: 1, fontSize: 9, color: '#374151', textAlign: 'right' }}>{formatILS(cat.actual_amount)}</Text>
+                      {cat.budget_amount > 0 ? (
+                        <Text style={{ flex: 1, fontSize: 9, color: isOver ? '#dc2626' : '#16a34a', textAlign: 'right' }}>
+                          {isOver ? '-' : ''}{formatILS(Math.abs(remaining))}
+                        </Text>
+                      ) : (
+                        <Text style={{ flex: 1, fontSize: 9, color: '#94a3b8', textAlign: 'right' }}>—</Text>
+                      )}
+                    </View>
+                  )
+                })}
+            </View>
           </>
         )}
 
@@ -253,7 +265,7 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
             <Text style={styles.sectionTitle}>שינויים מול חודש קודם</Text>
             {catChanges.map((c) => (
               <View key={c.name} style={styles.momRow}>
-                <Text style={styles.momName}>{c.icon} {c.name}</Text>
+                <Text style={styles.momName}>{stripEmoji(c.name)}</Text>
                 <View style={c.diff > 0 ? styles.momBadgeUp : styles.momBadgeDown}>
                   <Text style={c.diff > 0 ? styles.momTextUp : styles.momTextDown}>
                     {c.diff > 0 ? '+' : ''}{formatILS(c.diff)} ({c.diff > 0 ? '+' : ''}{Math.round(c.pct)}%)
@@ -280,7 +292,7 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
               const isOver = remaining < 0
               return (
                 <View key={cat.id} style={styles.tableRow}>
-                  <Text style={styles.tableCellName}>{cat.icon} {cat.name}</Text>
+                  <Text style={styles.tableCellName}>{stripEmoji(cat.name)}</Text>
                   <Text style={styles.tableCellNum}>{cat.budget_amount > 0 ? formatILS(cat.budget_amount) : '—'}</Text>
                   <Text style={styles.tableCellNum}>{formatILS(cat.actual_amount)}</Text>
                   {cat.budget_amount > 0 ? (
