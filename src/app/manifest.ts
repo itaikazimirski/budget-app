@@ -1,0 +1,33 @@
+import type { MetadataRoute } from 'next'
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: 'תקציב-לי',
+    short_name: 'תקציב-לי',
+    description: 'מעקב תקציב אישי ומשפחתי',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#f8fafc',
+    theme_color: '#6366f1',
+    orientation: 'portrait',
+    lang: 'he',
+    icons: [
+      {
+        src: '/icons/icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+      },
+      {
+        src: '/icons/icon-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+      },
+      {
+        src: '/icons/icon-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+    ],
+  }
+}

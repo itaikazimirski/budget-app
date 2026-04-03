@@ -8,6 +8,15 @@ const rubik = Rubik({ subsets: ['latin', 'hebrew'], weight: '400' })
 export const metadata: Metadata = {
   title: 'תקציב-לי — מעקב תקציב',
   description: 'עקוב אחרי התקציב האישי והמשותף שלך בקלות.',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'תקציב-לי',
+    startupImage: '/icons/apple-touch-icon.png',
+  },
+  icons: {
+    apple: '/icons/apple-touch-icon.png',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
