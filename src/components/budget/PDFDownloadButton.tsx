@@ -102,10 +102,10 @@ export default function PDFDownloadButton({
         </Button>
 
         {isCurrentMonth && !loading && (
-          <div className="absolute bottom-full mb-2 right-0 w-56 px-3 py-2 bg-slate-800 dark:bg-slate-700 text-white text-xs rounded-xl shadow-lg
+          <div className="absolute top-1/2 -translate-y-1/2 right-full mr-2 w-52 px-3 py-2 bg-slate-800 dark:bg-slate-700 text-white text-xs rounded-xl shadow-lg
             opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none text-right leading-relaxed">
             מומלץ לחכות לסיום החודש כדי לקבל דוח מלא
-            <div className="absolute top-full right-4 border-4 border-transparent border-t-slate-800 dark:border-t-slate-700" />
+            <div className="absolute top-1/2 -translate-y-1/2 left-full border-4 border-transparent border-l-slate-800 dark:border-l-slate-700" />
           </div>
         )}
       </div>
