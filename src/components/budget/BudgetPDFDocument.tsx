@@ -210,6 +210,30 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
                 </G>
               </Svg>
             </View>
+
+            {/* Budget vs Actual totals */}
+            {(() => {
+              const totalBudget = expenseCategories.reduce((s, c) => s + c.budget_amount, 0)
+              const isOver = totalExpenses > totalBudget && totalBudget > 0
+              return totalBudget > 0 ? (
+                <View style={{ flexDirection: 'row-reverse', gap: 10, marginBottom: 22, marginTop: -10 }}>
+                  <View style={{ flex: 1, backgroundColor: '#f8fafc', borderRadius: 8, padding: 10, alignItems: 'flex-end' }}>
+                    <Text style={{ fontSize: 8, color: '#94a3b8', marginBottom: 3 }}>תוכנן</Text>
+                    <Text style={{ fontSize: 13, fontWeight: 'bold', color: '#475569' }}>{formatILS(totalBudget)}</Text>
+                  </View>
+                  <View style={{ flex: 1, backgroundColor: '#f8fafc', borderRadius: 8, padding: 10, alignItems: 'flex-end' }}>
+                    <Text style={{ fontSize: 8, color: '#94a3b8', marginBottom: 3 }}>בפועל</Text>
+                    <Text style={{ fontSize: 13, fontWeight: 'bold', color: '#dc2626' }}>{formatILS(totalExpenses)}</Text>
+                  </View>
+                  <View style={{ flex: 1, backgroundColor: isOver ? '#fef2f2' : '#f0fdf4', borderRadius: 8, padding: 10, alignItems: 'flex-end' }}>
+                    <Text style={{ fontSize: 8, color: '#94a3b8', marginBottom: 3 }}>{isOver ? 'חריגה' : 'נותר'}</Text>
+                    <Text style={{ fontSize: 13, fontWeight: 'bold', color: isOver ? '#dc2626' : '#16a34a' }}>
+                      {isOver ? '-' : ''}{formatILS(Math.abs(totalBudget - totalExpenses))}
+                    </Text>
+                  </View>
+                </View>
+              ) : null
+            })()}
           </>
         )}
 
