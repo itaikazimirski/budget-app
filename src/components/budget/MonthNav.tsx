@@ -81,14 +81,14 @@ export default function MonthNav({ accountId, year, month }: MonthNavProps) {
             {/* Year bar */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-white/[0.06]">
               <button
-                onClick={() => setPickerYear((y) => y - 1)}
+                onClick={() => setPickerYear((y) => y + 1)}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.07] transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <span className="font-bold text-slate-800 dark:text-white text-base">{pickerYear}</span>
               <button
-                onClick={() => setPickerYear((y) => y + 1)}
+                onClick={() => setPickerYear((y) => y - 1)}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.07] transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />
