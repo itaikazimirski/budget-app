@@ -23,6 +23,7 @@ export default function AddCategoryDialog({ type, accountId, year, month, onClos
   const [selectedGroup, setSelectedGroup] = useState<'מנוי' | 'ביטוח' | null>(null)
   const [isFixed, setIsFixed] = useState(false)
   const [isOneTime, setIsOneTime] = useState(false)
+  const [hasDifferentThisMonth, setHasDifferentThisMonth] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -39,6 +40,9 @@ export default function AddCategoryDialog({ type, accountId, year, month, onClos
     if (isOneTime) {
       fd.set('one_time_year', String(year))
       fd.set('one_time_month', String(month))
+    } else if (hasDifferentThisMonth) {
+      fd.set('override_year', String(year))
+      fd.set('override_month', String(month))
     }
     startTransition(async () => {
       const result = await addCategory(fd)
@@ -105,10 +109,30 @@ export default function AddCategoryDialog({ type, accountId, year, month, onClos
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="monthlyAmount">תקציב חודשי (₪)</Label>
+            <Label htmlFor="monthlyAmount">{isOneTime ? 'תקציב (₪)' : 'תקציב בסיס חודשי (₪)'}</Label>
             <Input id="monthlyAmount" name="monthlyAmount" type="number" min="0" step="0.01" placeholder="0" />
-            <p className="text-xs text-slate-400">ניתן לשנות לפי חודש בהמשך.</p>
+            {!isOneTime && <p className="text-xs text-slate-400">הסכום שיחזור בכל חודש.</p>}
           </div>
+
+          {!isOneTime && (
+            <div className="space-y-2">
+              <label className="flex items-center gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={hasDifferentThisMonth}
+                  onChange={(e) => setHasDifferentThisMonth(e.target.checked)}
+                  className="w-4 h-4 rounded accent-indigo-600"
+                />
+                <span className="text-sm text-slate-600 dark:text-slate-300">התקציב לחודש הנוכחי שונה מסכום הבסיס</span>
+              </label>
+              {hasDifferentThisMonth && (
+                <div className="space-y-1.5 pr-6">
+                  <Label htmlFor="thisMonthAmount">תקציב לחודש זה בלבד (₪)</Label>
+                  <Input id="thisMonthAmount" name="thisMonthAmount" type="number" min="0" step="0.01" placeholder="0" autoFocus />
+                </div>
+              )}
+            </div>
+          )}
 
           {type === 'expense' && (
             <>

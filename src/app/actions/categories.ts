@@ -20,6 +20,9 @@ export async function addCategory(formData: FormData) {
   const one_time_year = formData.get('one_time_year') ? parseInt(formData.get('one_time_year') as string) : null
   const one_time_month = formData.get('one_time_month') ? parseInt(formData.get('one_time_month') as string) : null
   const isOneTime = one_time_year !== null && one_time_month !== null
+  const override_year = formData.get('override_year') ? parseInt(formData.get('override_year') as string) : null
+  const override_month = formData.get('override_month') ? parseInt(formData.get('override_month') as string) : null
+  const thisMonthAmount = formData.get('thisMonthAmount') ? parseFloat(formData.get('thisMonthAmount') as string) : null
 
   const { data: category, error } = await supabase
     .from('categories')
@@ -45,6 +48,16 @@ export async function addCategory(formData: FormData) {
       category_id: category.id,
       monthly_amount: monthlyAmount,
     })
+    // Also create a month override if this month's budget differs from the base
+    if (override_year !== null && override_month !== null && thisMonthAmount !== null) {
+      await supabase.from('month_budgets').insert({
+        account_id: accountId,
+        category_id: category.id,
+        year: override_year,
+        month: override_month,
+        monthly_amount: thisMonthAmount,
+      })
+    }
   }
 
   revalidatePath(`/${accountId}`)
