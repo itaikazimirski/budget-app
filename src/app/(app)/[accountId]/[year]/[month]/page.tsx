@@ -192,8 +192,6 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
         </p>
       )}
 
-      <FixedExpensesButton categories={expenseCategories} />
-
       <BucketSummary
         categories={expenseCategories}
         accountId={accountId}
@@ -219,6 +217,8 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
         month={month}
         transactions={txWithNames}
       />
+
+      <FixedExpensesButton categories={expenseCategories} />
 
       <TransactionTable
         transactions={txWithNames}
