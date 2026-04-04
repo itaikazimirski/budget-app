@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { X } from 'lucide-react'
+import { X, Trash2 } from 'lucide-react'
 import type { CategoryWithStats } from '@/lib/types'
-import { updateCategory } from '@/app/actions/categories'
+import { updateCategory, deleteCategory } from '@/app/actions/categories'
 import { CATEGORY_ICONS, BUCKETS } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,6 +22,14 @@ export default function CategoryEditDialog({ category, accountId, onClose }: Cat
   const [selectedGroup, setSelectedGroup] = useState<'מנוי' | 'ביטוח' | 'משק בית' | null>(category.category_group ?? null)
   const [isFixed, setIsFixed] = useState(category.is_fixed ?? false)
   const [isPending, startTransition] = useTransition()
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  function handleDelete() {
+    startTransition(async () => {
+      await deleteCategory(category.id, accountId)
+      onClose()
+    })
+  }
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -139,6 +147,29 @@ export default function CategoryEditDialog({ category, accountId, onClose }: Cat
             <Button type="submit" disabled={isPending} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white">
               {isPending ? 'שומר...' : 'שמור'}
             </Button>
+          </div>
+
+          <div className="border-t border-slate-100 pt-3">
+            {!confirmDelete ? (
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(true)}
+                className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-rose-500 transition-colors mx-auto"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                מחק קטגוריה
+              </button>
+            ) : (
+              <div className="flex items-center justify-between bg-rose-50 rounded-xl px-4 py-2.5">
+                <p className="text-xs text-rose-600 font-medium">למחוק את "{category.name}"?</p>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setConfirmDelete(false)} className="text-xs text-slate-400 hover:text-slate-600">ביטול</button>
+                  <button type="button" onClick={handleDelete} disabled={isPending} className="text-xs text-rose-600 font-bold hover:text-rose-700">
+                    {isPending ? '...' : 'מחק'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </form>
       </div>
