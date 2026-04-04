@@ -34,7 +34,7 @@ export default function EmojiPickerButton({ value, onChange }: EmojiPickerButton
       </button>
 
       {open && (
-        <div className="absolute z-50 top-full mt-2 right-0">
+        <div className="absolute z-50 bottom-full mb-2 right-0">
           <Suspense fallback={<div className="w-64 h-64 bg-white rounded-xl border border-slate-200 flex items-center justify-center text-slate-400 text-sm">טוען...</div>}>
             <EmojiPicker
               onEmojiClick={(data) => {
