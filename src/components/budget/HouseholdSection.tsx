@@ -133,6 +133,8 @@ export default function HouseholdSection({ categories, accountId, year, month, t
         <AddCategoryDialog
           type="expense"
           accountId={accountId}
+          year={year}
+          month={month}
           onClose={() => setShowAdd(false)}
         />
       )}

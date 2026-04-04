@@ -4,22 +4,25 @@ import { useState, useTransition } from 'react'
 import { addCategory } from '@/app/actions/categories'
 import { BUCKETS } from '@/lib/types'
 import { X } from 'lucide-react'
-import EmojiPickerButton from './EmojiPickerButton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import EmojiPickerButton from './EmojiPickerButton'
 
 interface AddCategoryDialogProps {
   type: 'income' | 'expense'
   accountId: string
+  year: number
+  month: number
   onClose: () => void
 }
 
-export default function AddCategoryDialog({ type, accountId, onClose }: AddCategoryDialogProps) {
+export default function AddCategoryDialog({ type, accountId, year, month, onClose }: AddCategoryDialogProps) {
   const [selectedIcon, setSelectedIcon] = useState(type === 'income' ? '💰' : '📦')
   const [selectedBucket, setSelectedBucket] = useState<string>('מחיה')
   const [selectedGroup, setSelectedGroup] = useState<'מנוי' | 'ביטוח' | null>(null)
   const [isFixed, setIsFixed] = useState(false)
+  const [isOneTime, setIsOneTime] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -33,6 +36,10 @@ export default function AddCategoryDialog({ type, accountId, onClose }: AddCateg
     fd.set('bucket', selectedBucket)
     if (selectedGroup) fd.set('category_group', selectedGroup)
     fd.set('is_fixed', String(isFixed))
+    if (isOneTime) {
+      fd.set('one_time_year', String(year))
+      fd.set('one_time_month', String(month))
+    }
     startTransition(async () => {
       const result = await addCategory(fd)
       if (result?.error) setError(result.error)
@@ -42,9 +49,9 @@ export default function AddCategoryDialog({ type, accountId, onClose }: AddCateg
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
-        <div className="flex items-center justify-between p-5 border-b border-slate-100">
-          <h2 className="font-semibold text-slate-900">
+      <div className="bg-white dark:bg-card rounded-2xl shadow-xl w-full max-w-sm">
+        <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-white/[0.06]">
+          <h2 className="font-semibold text-slate-900 dark:text-white">
             הוסף קטגוריית {type === 'income' ? 'הכנסה' : 'הוצאה'}
           </h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1">
@@ -53,6 +60,39 @@ export default function AddCategoryDialog({ type, accountId, onClose }: AddCateg
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
+
+          {/* Recurring vs One-time */}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setIsOneTime(false)}
+              className={`flex-1 py-2 text-sm rounded-xl font-medium transition-colors ${
+                !isOneTime
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-slate-100 dark:bg-white/[0.06] text-slate-500 hover:bg-slate-200'
+              }`}
+            >
+              🔁 קבועה
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsOneTime(true)}
+              className={`flex-1 py-2 text-sm rounded-xl font-medium transition-colors ${
+                isOneTime
+                  ? 'bg-amber-500 text-white'
+                  : 'bg-slate-100 dark:bg-white/[0.06] text-slate-500 hover:bg-slate-200'
+              }`}
+            >
+              1️⃣ חד-פעמית
+            </button>
+          </div>
+
+          {isOneTime && (
+            <p className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 rounded-lg px-3 py-2">
+              קטגוריה זו תופיע רק בחודש הנוכחי ולא תשוכפל לחודשים הבאים.
+            </p>
+          )}
+
           <div className="space-y-1.5">
             <Label htmlFor="name">שם הקטגוריה</Label>
             <Input
@@ -114,7 +154,7 @@ export default function AddCategoryDialog({ type, accountId, onClose }: AddCateg
             </>
           )}
 
-          {type === 'expense' && (
+          {type === 'expense' && !isOneTime && (
             <button
               type="button"
               onClick={() => setIsFixed(!isFixed)}

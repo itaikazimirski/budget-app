@@ -95,8 +95,11 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
     }
   }
 
-  // Build stats
-  const cats = categories ?? []
+  // Build stats — filter out one-time categories that don't belong to this month
+  const cats = (categories ?? []).filter((c) =>
+    c.one_time_year === null ||
+    (c.one_time_year === year && c.one_time_month === month)
+  )
   const incomeCategories: CategoryWithStats[] = cats
     .filter((c) => c.type === 'income')
     .map((c) => {

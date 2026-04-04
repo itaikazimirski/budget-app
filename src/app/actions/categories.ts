@@ -17,21 +17,35 @@ export async function addCategory(formData: FormData) {
   const category_group = formData.get('category_group') as string || null
   const is_fixed = formData.get('is_fixed') === 'true'
   const monthlyAmount = parseFloat(formData.get('monthlyAmount') as string) || 0
+  const one_time_year = formData.get('one_time_year') ? parseInt(formData.get('one_time_year') as string) : null
+  const one_time_month = formData.get('one_time_month') ? parseInt(formData.get('one_time_month') as string) : null
+  const isOneTime = one_time_year !== null && one_time_month !== null
 
   const { data: category, error } = await supabase
     .from('categories')
-    .insert({ account_id: accountId, name, type, icon, bucket, category_group, is_fixed })
+    .insert({ account_id: accountId, name, type, icon, bucket, category_group, is_fixed, one_time_year, one_time_month })
     .select()
     .single()
 
   if (error) return { error: error.message }
 
-  // Add to budget template
-  await supabase.from('budget_templates').insert({
-    account_id: accountId,
-    category_id: category.id,
-    monthly_amount: monthlyAmount,
-  })
+  if (isOneTime) {
+    // One-time: only create a month override, no template
+    await supabase.from('month_budgets').insert({
+      account_id: accountId,
+      category_id: category.id,
+      year: one_time_year,
+      month: one_time_month,
+      monthly_amount: monthlyAmount,
+    })
+  } else {
+    // Recurring: add to budget template
+    await supabase.from('budget_templates').insert({
+      account_id: accountId,
+      category_id: category.id,
+      monthly_amount: monthlyAmount,
+    })
+  }
 
   revalidatePath(`/${accountId}`)
   return { success: true }
@@ -166,6 +180,7 @@ export async function updateBudgetTemplate(formData: FormData) {
   return { success: true }
 }
 
+// Updates only this specific month — does not affect the base template
 export async function updateMonthBudget(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -186,13 +201,30 @@ export async function updateMonthBudget(formData: FormData) {
 
   if (error) return { error: error.message }
 
-  // Also update the base template so the amount carries to future months
-  await supabase
+  revalidatePath(`/${accountId}/${year}/${month}`)
+  return { success: true }
+}
+
+// Updates the base template (recurring) — affects all future months
+export async function updateTemplateBudget(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const accountId = formData.get('accountId') as string
+  const categoryId = formData.get('categoryId') as string
+  const year = parseInt(formData.get('year') as string)
+  const month = parseInt(formData.get('month') as string)
+  const monthlyAmount = parseFloat(formData.get('monthlyAmount') as string) || 0
+
+  const { error } = await supabase
     .from('budget_templates')
     .upsert(
       { account_id: accountId, category_id: categoryId, monthly_amount: monthlyAmount },
       { onConflict: 'account_id,category_id' }
     )
+
+  if (error) return { error: error.message }
 
   revalidatePath(`/${accountId}/${year}/${month}`)
   return { success: true }

@@ -133,8 +133,8 @@ export default function TemplateEditor({ categories, accountId }: TemplateEditor
         </div>
       </div>
 
-      {showAddIncome && <AddCategoryDialog type="income" accountId={accountId} onClose={() => setShowAddIncome(false)} />}
-      {showAddExpense && <AddCategoryDialog type="expense" accountId={accountId} onClose={() => setShowAddExpense(false)} />}
+      {showAddIncome && <AddCategoryDialog type="income" accountId={accountId} year={new Date().getFullYear()} month={new Date().getMonth() + 1} onClose={() => setShowAddIncome(false)} />}
+      {showAddExpense && <AddCategoryDialog type="expense" accountId={accountId} year={new Date().getFullYear()} month={new Date().getMonth() + 1} onClose={() => setShowAddExpense(false)} />}
     </div>
   )
 }

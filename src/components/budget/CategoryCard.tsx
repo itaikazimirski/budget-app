@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import type { CategoryWithStats } from '@/lib/types'
-import { updateMonthBudget } from '@/app/actions/categories'
+import { updateMonthBudget, updateTemplateBudget } from '@/app/actions/categories'
 import { Edit2, Check, X, Settings2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { formatILS } from '@/lib/budget-utils'
@@ -19,9 +19,12 @@ export default function CategoryCard({ category, accountId, year, month }: Categ
   const [editing, setEditing] = useState(false)
   const [budgetInput, setBudgetInput] = useState(String(category.budget_amount))
   const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showScopeModal, setShowScopeModal] = useState(false)
+  const [pendingAmount, setPendingAmount] = useState<number | null>(null)
   const [isPending, startTransition] = useTransition()
 
   const { actual_amount, budget_amount, percentage, type } = category
+  const isOneTime = category.one_time_year !== null
   const isOver = actual_amount > budget_amount && budget_amount > 0
   const barColor = type === 'income'
     ? (percentage >= 100 ? 'bg-emerald-500' : 'bg-emerald-400')
@@ -36,6 +39,16 @@ export default function CategoryCard({ category, accountId, year, month }: Categ
   function handleSaveBudget() {
     const amount = parseFloat(budgetInput)
     if (isNaN(amount) || amount < 0) return
+    if (isOneTime) {
+      // One-time category: always save as month override only
+      saveMonthOnly(amount)
+    } else {
+      setPendingAmount(amount)
+      setShowScopeModal(true)
+    }
+  }
+
+  function saveMonthOnly(amount: number) {
     startTransition(async () => {
       const fd = new FormData()
       fd.set('accountId', accountId)
@@ -45,6 +58,21 @@ export default function CategoryCard({ category, accountId, year, month }: Categ
       fd.set('monthlyAmount', String(amount))
       await updateMonthBudget(fd)
       setEditing(false)
+      setShowScopeModal(false)
+    })
+  }
+
+  function saveTemplate(amount: number) {
+    startTransition(async () => {
+      const fd = new FormData()
+      fd.set('accountId', accountId)
+      fd.set('categoryId', category.id)
+      fd.set('year', String(year))
+      fd.set('month', String(month))
+      fd.set('monthlyAmount', String(amount))
+      await updateTemplateBudget(fd)
+      setEditing(false)
+      setShowScopeModal(false)
     })
   }
 
@@ -129,6 +157,41 @@ export default function CategoryCard({ category, accountId, year, month }: Categ
           accountId={accountId}
           onClose={() => setShowEditDialog(false)}
         />
+      )}
+
+      {showScopeModal && pendingAmount !== null && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
+          <div className="bg-white dark:bg-card rounded-2xl shadow-xl w-full max-w-sm p-5">
+            <h3 className="font-semibold text-slate-900 dark:text-white mb-1 text-right">איך לשמור את השינוי?</h3>
+            <p className="text-sm text-slate-500 mb-5 text-right">
+              שינוי תקציב <span className="font-medium text-slate-700 dark:text-slate-300">{category.name}</span> ל-{new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(pendingAmount)}
+            </p>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => saveMonthOnly(pendingAmount)}
+                disabled={isPending}
+                className="w-full px-4 py-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-sm font-medium text-right hover:bg-indigo-100 transition-colors"
+              >
+                <p className="font-semibold">החל על חודש זה בלבד</p>
+                <p className="text-xs opacity-70 mt-0.5">מהחודש הבא התקציב יחזור לסכום הקבוע</p>
+              </button>
+              <button
+                onClick={() => saveTemplate(pendingAmount)}
+                disabled={isPending}
+                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-white/[0.04] text-slate-700 dark:text-slate-300 text-sm font-medium text-right hover:bg-slate-100 transition-colors"
+              >
+                <p className="font-semibold">החל מעכשיו והלאה</p>
+                <p className="text-xs opacity-70 mt-0.5">מעדכן את התקציב הקבוע לכל החודשים הבאים</p>
+              </button>
+              <button
+                onClick={() => { setShowScopeModal(false); setPendingAmount(null) }}
+                className="text-sm text-slate-400 hover:text-slate-600 py-2"
+              >
+                ביטול
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   )

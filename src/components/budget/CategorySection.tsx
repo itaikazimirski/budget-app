@@ -78,6 +78,8 @@ export default function CategorySection({ title, categories, type, accountId, ye
         <AddCategoryDialog
           type={type}
           accountId={accountId}
+          year={year}
+          month={month}
           onClose={() => setShowAdd(false)}
         />
       )}

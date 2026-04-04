@@ -29,6 +29,8 @@ export interface Category {
   category_group: CategoryGroup | null
   is_fixed: boolean
   created_at: string
+  one_time_year: number | null
+  one_time_month: number | null
 }
 
 export interface BudgetTemplate {

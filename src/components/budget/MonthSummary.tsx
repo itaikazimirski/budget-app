@@ -115,7 +115,7 @@ export default function MonthSummary({ stats, accountId, year, month }: MonthSum
       )}
 
       {showAdd && (
-        <AddCategoryDialog type="income" accountId={accountId} onClose={() => setShowAdd(false)} />
+        <AddCategoryDialog type="income" accountId={accountId} year={year} month={month} onClose={() => setShowAdd(false)} />
       )}
     </>
   )
