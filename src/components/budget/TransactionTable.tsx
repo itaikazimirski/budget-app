@@ -347,7 +347,7 @@ export default function TransactionTable({ transactions, categories, accountId, 
                       <button onClick={() => setEditingId(tx.id)} className="p-1 text-slate-300 hover:text-indigo-500" title="ערוך">
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
-                      <button onClick={() => handleDelete(tx.id)} disabled={isPending} className="p-1 text-slate-300 hover:text-rose-500" title="מחק">
+                      <button onClick={() => handleDelete(tx.id)} disabled={isPending} className="p-1 text-rose-300 hover:text-rose-500" title="מחק">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>

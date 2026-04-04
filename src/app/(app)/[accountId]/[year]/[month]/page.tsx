@@ -211,7 +211,7 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
       />
 
       <CategorySection
-        title="הוצאות"
+        title="תקציב הוצאות חודשיות"
         categories={expenseCategories.filter((c) => c.category_group !== 'משק בית')}
         type="expense"
         accountId={accountId}

@@ -154,7 +154,7 @@ export default function CategoryEditDialog({ category, accountId, onClose }: Cat
               <button
                 type="button"
                 onClick={() => setConfirmDelete(true)}
-                className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-rose-500 transition-colors mx-auto"
+                className="flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-600 transition-colors mx-auto"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 מחק קטגוריה
