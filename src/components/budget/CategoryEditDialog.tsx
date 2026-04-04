@@ -4,7 +4,8 @@ import { useState, useTransition } from 'react'
 import { X, Trash2 } from 'lucide-react'
 import type { CategoryWithStats } from '@/lib/types'
 import { updateCategory, deleteCategory } from '@/app/actions/categories'
-import { CATEGORY_ICONS, BUCKETS } from '@/lib/types'
+import { BUCKETS } from '@/lib/types'
+import EmojiPickerButton from './EmojiPickerButton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -124,22 +125,7 @@ export default function CategoryEditDialog({ category, accountId, onClose }: Cat
 
           <div className="space-y-1.5">
             <Label>אייקון</Label>
-            <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
-              {CATEGORY_ICONS.map((icon) => (
-                <button
-                  key={icon}
-                  type="button"
-                  onClick={() => setSelectedIcon(icon)}
-                  className={`w-9 h-9 text-xl rounded-lg transition-all flex items-center justify-center ${
-                    selectedIcon === icon
-                      ? 'bg-indigo-100 ring-2 ring-indigo-400 scale-110'
-                      : 'bg-slate-50 hover:bg-slate-100'
-                  }`}
-                >
-                  {icon}
-                </button>
-              ))}
-            </div>
+            <EmojiPickerButton value={selectedIcon} onChange={setSelectedIcon} />
           </div>
 
           <div className="flex gap-2 pt-1">

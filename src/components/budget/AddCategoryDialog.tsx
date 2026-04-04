@@ -2,8 +2,9 @@
 
 import { useState, useTransition } from 'react'
 import { addCategory } from '@/app/actions/categories'
-import { CATEGORY_ICONS, BUCKETS } from '@/lib/types'
+import { BUCKETS } from '@/lib/types'
 import { X } from 'lucide-react'
+import EmojiPickerButton from './EmojiPickerButton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -133,22 +134,7 @@ export default function AddCategoryDialog({ type, accountId, onClose }: AddCateg
 
           <div className="space-y-1.5">
             <Label>אייקון</Label>
-            <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
-              {CATEGORY_ICONS.map((icon) => (
-                <button
-                  key={icon}
-                  type="button"
-                  onClick={() => setSelectedIcon(icon)}
-                  className={`w-9 h-9 text-xl rounded-lg transition-all flex items-center justify-center ${
-                    selectedIcon === icon
-                      ? 'bg-indigo-100 ring-2 ring-indigo-400 scale-110'
-                      : 'bg-slate-50 hover:bg-slate-100'
-                  }`}
-                >
-                  {icon}
-                </button>
-              ))}
-            </div>
+            <EmojiPickerButton value={selectedIcon} onChange={setSelectedIcon} />
           </div>
 
           {error && <div className="bg-red-50 text-red-600 text-sm rounded-lg p-3">{error}</div>}
