@@ -74,7 +74,7 @@ export default function CategoryCard({ category, accountId, year, month }: Categ
 
             <button
               onClick={() => setShowEditDialog(true)}
-              className="p-1 text-slate-300 hover:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="p-1 text-slate-300 hover:text-slate-500 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity"
               title="ערוך קטגוריה"
             >
               <Settings2 className="w-3 h-3" />
@@ -83,7 +83,7 @@ export default function CategoryCard({ category, accountId, year, month }: Categ
             {!editing ? (
               <button
                 onClick={() => { setBudgetInput(String(budget_amount)); setEditing(true) }}
-                className="p-1 text-slate-300 hover:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="p-1 text-slate-300 hover:text-slate-500 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity"
                 title="ערוך תקציב לחודש זה"
               >
                 <Edit2 className="w-3 h-3" />

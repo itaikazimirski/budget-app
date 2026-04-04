@@ -53,7 +53,7 @@ export default function HouseholdCardFull({ category, accountId, year, month, tr
       >
         <button
           onClick={(e) => { e.stopPropagation(); setBudgetInput(String(budget_amount)); setEditing(true) }}
-          className="absolute top-2 left-2 p-1.5 text-slate-300 hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg hover:bg-indigo-50"
+          className="absolute top-2 left-2 p-1.5 text-slate-300 hover:text-indigo-500 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity rounded-lg hover:bg-indigo-50"
         >
           <Edit2 className="w-3 h-3" />
         </button>

@@ -54,7 +54,7 @@ export default function HouseholdRentCard({ category, accountId, year, month, tr
       >
         <button
           onClick={(e) => { e.stopPropagation(); setBudgetInput(String(budget_amount)); setEditing(true) }}
-          className="absolute top-2 left-2 p-1 text-indigo-300 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity rounded"
+          className="absolute top-2 left-2 p-1 text-indigo-300 hover:text-indigo-600 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity rounded"
         >
           <Edit2 className="w-3 h-3" />
         </button>

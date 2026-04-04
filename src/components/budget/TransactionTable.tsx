@@ -343,7 +343,7 @@ export default function TransactionTable({ transactions, categories, accountId, 
                     {tx.type === 'income' ? '+' : '-'}{formatILS(tx.amount)}
                   </span>
                   {!tx.id.startsWith('optimistic-') && (
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                    <div className="flex gap-1 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-all">
                       <button onClick={() => setEditingId(tx.id)} className="p-1 text-slate-300 hover:text-indigo-500" title="ערוך">
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>

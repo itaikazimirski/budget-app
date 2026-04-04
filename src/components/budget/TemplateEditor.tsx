@@ -63,14 +63,14 @@ function CategoryRow({ cat, accountId }: { cat: CatWithAmount; accountId: string
           </span>
           <button
             onClick={() => { setAmount(String(cat.monthly_amount)); setEditing(true) }}
-            className="p-1 text-slate-300 hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="p-1 text-slate-300 hover:text-indigo-500 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity"
             title="ערוך תקציב"
           >
             <Edit2 className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={handleDelete}
-            className="p-1 text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="p-1 text-slate-300 hover:text-rose-500 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity"
             title="מחק קטגוריה"
           >
             <Trash2 className="w-3.5 h-3.5" />
