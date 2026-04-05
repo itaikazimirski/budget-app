@@ -60,7 +60,10 @@ export default function AppNav({ accounts, userEmail }: AppNavProps) {
 
   return (
     <header className="bg-white dark:bg-card border-b border-slate-200 dark:border-white/[0.08] sticky top-0 z-40">
-      <div className="max-w-5xl mx-auto px-4 h-16 flex items-center gap-4">
+      <div className="max-w-5xl mx-auto px-4">
+
+        {/* ── Single row: logo+account | center | icons ── */}
+        <div className="flex items-center justify-between h-14 md:h-16 gap-2">
 
         {/* Right: Logo + account switcher */}
         <div className="flex items-center gap-3 shrink-0">
@@ -113,11 +116,11 @@ export default function AppNav({ accounts, userEmail }: AppNavProps) {
           </div>
         </div>
 
-        {/* Center: Month nav (only on month pages) */}
-        <div className="flex-1 flex justify-center">
-          {isMonthPage && currentAccount ? (
+        {/* Center: Month nav — desktop only, hidden on mobile */}
+        <div className="hidden md:flex flex-1 justify-center">
+          {isMonthPage && currentAccount && (
             <MonthNav accountId={currentAccount.id} year={routeYear!} month={routeMonth!} compact />
-          ) : null}
+          )}
         </div>
 
         {/* Left: PDF + icons */}
@@ -173,6 +176,16 @@ export default function AppNav({ accounts, userEmail }: AppNavProps) {
             )}
           </div>
         </div>
+
+        </div>{/* end single row */}
+
+        {/* ── Mobile only: MonthNav second row ── */}
+        {isMonthPage && currentAccount && (
+          <div className="flex justify-center pb-2 md:hidden">
+            <MonthNav accountId={currentAccount.id} year={routeYear!} month={routeMonth!} compact />
+          </div>
+        )}
+
       </div>
     </header>
   )
