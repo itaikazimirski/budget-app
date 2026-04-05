@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Plus, Pencil, Trash2, Check, X, FolderPlus } from 'lucide-react'
+import { Plus, Pencil, Trash2, Check, X, FolderPlus, ChevronDown } from 'lucide-react'
 import type { CategoryWithStats, CategoryGroupRecord, Transaction } from '@/lib/types'
 import { BUCKETS } from '@/lib/types'
 import { createCategoryGroup, updateCategoryGroup, deleteCategoryGroup } from '@/app/actions/categoryGroups'
@@ -242,12 +242,22 @@ function GroupCard({
   month: number
   allGroups: CategoryGroupRecord[]
 }) {
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return localStorage.getItem(`collapsed_group_${group.id}`) === 'true'
+  })
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState(group.name)
   const [showAddCategory, setShowAddCategory] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [targetGroupId, setTargetGroupId] = useState<string>('')
   const [isPending, startTransition] = useTransition()
+
+  function toggleCollapse() {
+    const next = !isCollapsed
+    setIsCollapsed(next)
+    localStorage.setItem(`collapsed_group_${group.id}`, String(next))
+  }
 
   const totalBudget = categories.reduce((s, c) => s + c.budget_amount, 0)
   const totalActual = categories.reduce((s, c) => s + c.actual_amount, 0)
@@ -273,9 +283,12 @@ function GroupCard({
       <div className="group/card bg-white dark:bg-card rounded-2xl border border-slate-200 dark:border-white/[0.08] shadow-sm overflow-hidden flex flex-col">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 dark:border-white/[0.06] bg-slate-50/60 dark:bg-white/[0.02]">
+        <div
+          className="flex items-center justify-between px-3 py-2 border-b border-slate-100 dark:border-white/[0.06] bg-slate-50/60 dark:bg-white/[0.02] cursor-pointer select-none"
+          onClick={toggleCollapse}
+        >
           {editingName ? (
-            <div className="flex items-center gap-1 flex-1">
+            <div className="flex items-center gap-1 flex-1" onClick={(e) => e.stopPropagation()}>
               <input
                 value={nameInput}
                 onChange={(e) => setNameInput(e.target.value)}
@@ -289,6 +302,7 @@ function GroupCard({
           ) : (
             <>
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-300 ${isCollapsed ? '-rotate-90' : ''}`} />
                 <span className="text-sm font-semibold text-slate-800 dark:text-white truncate">{group.name}</span>
                 {totalBudget > 0 && (
                   <span className={`text-xs tabular-nums shrink-0 ${isOver ? 'text-rose-500 font-medium' : 'text-slate-400'}`}>
@@ -297,7 +311,10 @@ function GroupCard({
                 )}
               </div>
 
-              <div className="flex items-center gap-0.5 shrink-0 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/card:opacity-100 transition-opacity">
+              <div
+                className="flex items-center gap-0.5 shrink-0 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/card:opacity-100 transition-opacity"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <button
                   onClick={() => setShowAddCategory(true)}
                   className="p-1.5 text-slate-400 hover:text-indigo-500 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
@@ -324,20 +341,24 @@ function GroupCard({
           )}
         </div>
 
-        {/* Category list */}
-        <div className="flex-1 py-1 px-1">
-          {categories.length === 0 ? (
-            <button
-              onClick={() => setShowAddCategory(true)}
-              className="w-full py-4 text-xs text-slate-400 hover:text-indigo-500 transition-colors text-center"
-            >
-              + הוסף קטגוריה ראשונה
-            </button>
-          ) : (
-            categories.map((cat) => (
-              <CategoryRow key={cat.id} category={cat} accountId={accountId} year={year} month={month} />
-            ))
-          )}
+        {/* Category list — animated collapse */}
+        <div className={`grid transition-all duration-300 ease-in-out ${isCollapsed ? 'grid-rows-[0fr]' : 'grid-rows-[1fr]'}`}>
+          <div className="overflow-hidden">
+            <div className="py-1 px-1">
+              {categories.length === 0 ? (
+                <button
+                  onClick={() => setShowAddCategory(true)}
+                  className="w-full py-4 text-xs text-slate-400 hover:text-indigo-500 transition-colors text-center"
+                >
+                  + הוסף קטגוריה ראשונה
+                </button>
+              ) : (
+                categories.map((cat) => (
+                  <CategoryRow key={cat.id} category={cat} accountId={accountId} year={year} month={month} />
+                ))
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
