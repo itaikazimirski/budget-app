@@ -49,8 +49,7 @@ export default function CategoryEditDialog({ category, accountId, onClose }: Cat
     })
   }
 
-  return (
-    return createPortal(
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-md overflow-y-auto max-h-[90vh]">
           <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-white/[0.06]">
