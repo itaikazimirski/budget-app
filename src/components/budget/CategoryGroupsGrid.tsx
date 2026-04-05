@@ -157,11 +157,17 @@ function CategoryRow({
               className="flex items-baseline gap-1 tabular-nums"
               title="לחץ לעריכת תקציב"
             >
-              <span className={`text-sm font-semibold ${isOver ? 'text-rose-400 dark:text-rose-400' : 'text-slate-700 dark:text-slate-200'}`}>
+              <span className={`text-sm font-semibold tabular-nums ${
+                budget_amount === 0
+                  ? 'text-slate-400 dark:text-slate-400'
+                  : isOver
+                    ? 'text-rose-400'
+                    : 'text-emerald-400'
+              }`}>
                 {formatILS(actual_amount)}
               </span>
               {budget_amount > 0 && (
-                <span className="text-xs text-slate-400 dark:text-slate-500">
+                <span className="text-xs text-white/80 dark:text-white tabular-nums">
                   / {formatILS(budget_amount)}
                 </span>
               )}
