@@ -92,17 +92,9 @@ function CategoryRow({
   const [pendingAmount, setPendingAmount] = useState<number | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  const { actual_amount, budget_amount, percentage } = category
+  const { actual_amount, budget_amount } = category
   const isOver = actual_amount > budget_amount && budget_amount > 0
   const isOneTime = category.one_time_year !== null
-
-  const barColor = isOver
-    ? 'bg-rose-500'
-    : percentage > 85
-      ? 'bg-rose-400'
-      : percentage > 60
-        ? 'bg-amber-400'
-        : 'bg-emerald-400'
 
   function handleSaveBudget() {
     const amount = parseFloat(budgetInput)
@@ -132,70 +124,55 @@ function CategoryRow({
 
   return (
     <>
-      <div className="group/row px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/[0.04] rounded-xl transition-colors">
-        {/* Row 1 — texts */}
-        <div className="flex items-center gap-2">
-          <span className="text-base shrink-0 leading-none">{category.icon ?? '📦'}</span>
-          <span className="text-sm font-medium text-slate-800 dark:text-white truncate flex-1 min-w-0">
-            {category.name}
-          </span>
+      <div className="group/row flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] rounded-xl transition-colors">
+        <span className="text-base shrink-0 leading-none">{category.icon ?? '📦'}</span>
+        <span className="text-sm font-medium text-slate-800 dark:text-white truncate flex-1 min-w-0">
+          {category.name}
+        </span>
 
-          {editing ? (
-            <div className="flex items-center gap-0.5 shrink-0">
-              <input
-                type="number"
-                value={budgetInput}
-                onChange={(e) => setBudgetInput(e.target.value)}
-                className="w-16 text-xs border border-slate-300 dark:border-white/20 rounded-lg px-1.5 py-0.5 bg-white dark:bg-slate-800 focus:outline-none focus:border-indigo-400 text-right"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleSaveBudget()
-                  if (e.key === 'Escape') setEditing(false)
-                }}
-              />
-              <button onClick={handleSaveBudget} disabled={isPending} className="p-0.5 text-emerald-500 hover:text-emerald-600">
-                <Check className="w-3.5 h-3.5" />
-              </button>
-              <button onClick={() => setEditing(false)} className="p-0.5 text-slate-400 hover:text-slate-600">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5 shrink-0">
-              {/* Click amount to edit budget */}
-              <button
-                onClick={() => { setBudgetInput(String(budget_amount)); setEditing(true) }}
-                className="flex items-baseline gap-1 tabular-nums"
-                title="לחץ לעריכת תקציב"
-              >
-                <span className={`text-sm font-semibold ${isOver ? 'text-rose-400' : 'text-slate-800 dark:text-white'}`}>
-                  {formatILS(actual_amount)}
-                </span>
-                {budget_amount > 0 && (
-                  <span className="text-xs text-slate-400 dark:text-slate-500">
-                    / {formatILS(budget_amount)}
-                  </span>
-                )}
-              </button>
-              {/* Edit category — hover only */}
-              <button
-                onClick={() => setShowEditDialog(true)}
-                className="p-0.5 text-slate-300 hover:text-slate-500 dark:hover:text-slate-400 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/row:opacity-100 transition-opacity"
-                title="ערוך קטגוריה"
-              >
-                <Pencil className="w-2.5 h-2.5" />
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Row 2 — progress bar */}
-        {budget_amount > 0 && (
-          <div className="mt-1.5 h-1 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all ${barColor}`}
-              style={{ width: `${Math.min(percentage, 100)}%` }}
+        {editing ? (
+          <div className="flex items-center gap-0.5 shrink-0">
+            <input
+              type="number"
+              value={budgetInput}
+              onChange={(e) => setBudgetInput(e.target.value)}
+              className="w-16 text-xs border border-slate-300 dark:border-white/20 rounded-lg px-1.5 py-0.5 bg-white dark:bg-slate-800 focus:outline-none focus:border-indigo-400 text-right"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSaveBudget()
+                if (e.key === 'Escape') setEditing(false)
+              }}
             />
+            <button onClick={handleSaveBudget} disabled={isPending} className="p-0.5 text-emerald-500 hover:text-emerald-600">
+              <Check className="w-3.5 h-3.5" />
+            </button>
+            <button onClick={() => setEditing(false)} className="p-0.5 text-slate-400 hover:text-slate-600">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={() => { setBudgetInput(String(budget_amount)); setEditing(true) }}
+              className="flex items-baseline gap-1 tabular-nums"
+              title="לחץ לעריכת תקציב"
+            >
+              <span className={`text-sm font-semibold ${isOver ? 'text-rose-400 dark:text-rose-400' : 'text-slate-700 dark:text-slate-200'}`}>
+                {formatILS(actual_amount)}
+              </span>
+              {budget_amount > 0 && (
+                <span className="text-xs text-slate-400 dark:text-slate-500">
+                  / {formatILS(budget_amount)}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setShowEditDialog(true)}
+              className="p-0.5 text-slate-300 hover:text-slate-500 dark:hover:text-slate-400 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/row:opacity-100 transition-opacity"
+              title="ערוך קטגוריה"
+            >
+              <Pencil className="w-2.5 h-2.5" />
+            </button>
           </div>
         )}
       </div>
@@ -448,7 +425,7 @@ export default function CategoryGroupsGrid({
       )}
 
       {/* Groups grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
         {groups.map((group) => (
           <GroupCard
             key={group.id}

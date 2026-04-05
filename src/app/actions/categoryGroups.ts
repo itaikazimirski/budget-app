@@ -9,50 +9,53 @@ const GROUP_MAP: Record<string, string> = {
   'משק בית': 'משק בית',
 }
 
-// Assigns any expense categories with group_id = null to the default group (idempotent)
+// Assigns orphan expense categories (group_id = null) to the correct group,
+// respecting their legacy category_group field (idempotent).
 export async function fixOrphanCategories(accountId: string) {
   const supabase = await createClient()
 
   const { data: orphans } = await supabase
     .from('categories')
-    .select('id')
+    .select('id, category_group')
     .eq('account_id', accountId)
     .eq('type', 'expense')
     .is('group_id', null)
 
   if (!orphans || orphans.length === 0) return
 
-  // Find or create the default group
-  const { data: groups } = await supabase
+  // Load existing groups once
+  const { data: existingGroups } = await supabase
     .from('category_groups')
     .select('id, name, sort_order')
     .eq('account_id', accountId)
     .order('sort_order')
 
-  let defaultGroupId: string | null = null
+  const groupByName: Record<string, string> = {}
+  for (const g of existingGroups ?? []) groupByName[g.name] = g.id
+  const maxOrder = Math.max(-1, ...(existingGroups ?? []).map((g) => g.sort_order))
+  let nextOrder = maxOrder + 1
 
-  if (groups && groups.length > 0) {
-    // Prefer a group named 'הוצאות שוטפות', otherwise use first
-    const preferred = groups.find((g) => g.name === 'הוצאות שוטפות') ?? groups[0]
-    defaultGroupId = preferred.id
-  } else {
-    // No groups at all — create the default
-    const { data: created } = await supabase
+  async function ensureGroup(name: string): Promise<string | null> {
+    if (groupByName[name]) return groupByName[name]
+    const { data } = await supabase
       .from('category_groups')
-      .insert({ account_id: accountId, name: 'הוצאות שוטפות', sort_order: 0 })
-      .select()
+      .insert({ account_id: accountId, name, sort_order: nextOrder++ })
+      .select('id')
       .single()
-    defaultGroupId = created?.id ?? null
+    if (data) groupByName[name] = data.id
+    return data?.id ?? null
   }
 
-  if (!defaultGroupId) return
-
-  await supabase
-    .from('categories')
-    .update({ group_id: defaultGroupId })
-    .eq('account_id', accountId)
-    .eq('type', 'expense')
-    .is('group_id', null)
+  // Assign each orphan to the correct group based on its legacy category_group field
+  for (const cat of orphans) {
+    const targetName = cat.category_group && GROUP_MAP[cat.category_group]
+      ? GROUP_MAP[cat.category_group]
+      : 'הוצאות שוטפות'
+    const groupId = await ensureGroup(targetName)
+    if (groupId) {
+      await supabase.from('categories').update({ group_id: groupId }).eq('id', cat.id)
+    }
+  }
 }
 
 // Runs once per account — migrates flat categories into groups
