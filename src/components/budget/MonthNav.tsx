@@ -10,9 +10,10 @@ interface MonthNavProps {
   accountId: string
   year: number
   month: number
+  compact?: boolean
 }
 
-export default function MonthNav({ accountId, year, month }: MonthNavProps) {
+export default function MonthNav({ accountId, year, month, compact = false }: MonthNavProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [pickerYear, setPickerYear] = useState(year)
@@ -65,12 +66,17 @@ export default function MonthNav({ accountId, year, month }: MonthNavProps) {
           onClick={handleOpen}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/[0.07] transition-colors group"
         >
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-            {MONTH_NAMES[month - 1]} {year}
-          </h2>
+          <div className="flex items-center gap-1.5">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+              {MONTH_NAMES[month - 1]} {year}
+            </h2>
+            {isCurrentMonth && compact && (
+              <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" title="החודש הנוכחי" />
+            )}
+          </div>
           <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
         </button>
-        {isCurrentMonth && (
+        {isCurrentMonth && !compact && (
           <p className="text-xs text-indigo-500 font-medium text-center -mt-0.5">החודש הנוכחי</p>
         )}
 
