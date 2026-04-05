@@ -9,8 +9,8 @@ const GROUP_MAP: Record<string, string> = {
   'משק בית': 'משק בית',
 }
 
-// Assigns orphan expense categories (group_id = null) to the correct group,
-// respecting their legacy category_group field (idempotent).
+// Assigns orphan expense categories (group_id = null) to the correct group.
+// Batches updates — one DB write per target group, not per category. Idempotent.
 export async function fixOrphanCategories(accountId: string) {
   const supabase = await createClient()
 
@@ -23,7 +23,6 @@ export async function fixOrphanCategories(accountId: string) {
 
   if (!orphans || orphans.length === 0) return
 
-  // Load existing groups once
   const { data: existingGroups } = await supabase
     .from('category_groups')
     .select('id, name, sort_order')
@@ -32,8 +31,7 @@ export async function fixOrphanCategories(accountId: string) {
 
   const groupByName: Record<string, string> = {}
   for (const g of existingGroups ?? []) groupByName[g.name] = g.id
-  const maxOrder = Math.max(-1, ...(existingGroups ?? []).map((g) => g.sort_order))
-  let nextOrder = maxOrder + 1
+  let nextOrder = Math.max(-1, ...(existingGroups ?? []).map((g) => g.sort_order)) + 1
 
   async function ensureGroup(name: string): Promise<string | null> {
     if (groupByName[name]) return groupByName[name]
@@ -46,14 +44,21 @@ export async function fixOrphanCategories(accountId: string) {
     return data?.id ?? null
   }
 
-  // Assign each orphan to the correct group based on its legacy category_group field
+  // Bucket orphans by target group name
+  const byTarget: Record<string, string[]> = {}
   for (const cat of orphans) {
-    const targetName = cat.category_group && GROUP_MAP[cat.category_group]
-      ? GROUP_MAP[cat.category_group]
+    const targetName = cat.category_group && GROUP_MAP[cat.category_group as string]
+      ? GROUP_MAP[cat.category_group as string]
       : 'הוצאות שוטפות'
+    if (!byTarget[targetName]) byTarget[targetName] = []
+    byTarget[targetName].push(cat.id)
+  }
+
+  // One update per group instead of one per category
+  for (const [targetName, ids] of Object.entries(byTarget)) {
     const groupId = await ensureGroup(targetName)
     if (groupId) {
-      await supabase.from('categories').update({ group_id: groupId }).eq('id', cat.id)
+      await supabase.from('categories').update({ group_id: groupId }).in('id', ids)
     }
   }
 }
@@ -100,16 +105,24 @@ export async function reassignMisplacedCategories(accountId: string) {
     return data?.id ?? null
   }
 
+  // Bucket misplaced categories by target group name
+  const byTarget: Record<string, string[]> = {}
   for (const cat of cats) {
     const expectedGroupName = GROUP_MAP[cat.category_group as string]
-    if (!expectedGroupName) continue // no mapping — not our concern
-
+    if (!expectedGroupName) continue
     const currentGroupName = cat.group_id ? groupById[cat.group_id] : null
     if (currentGroupName === expectedGroupName) continue // already correct
+    if (!byTarget[expectedGroupName]) byTarget[expectedGroupName] = []
+    byTarget[expectedGroupName].push(cat.id)
+  }
 
-    const groupId = await ensureGroup(expectedGroupName)
+  if (Object.keys(byTarget).length === 0) return // nothing to fix
+
+  // One update per target group instead of one per category
+  for (const [targetName, ids] of Object.entries(byTarget)) {
+    const groupId = await ensureGroup(targetName)
     if (groupId) {
-      await supabase.from('categories').update({ group_id: groupId }).eq('id', cat.id)
+      await supabase.from('categories').update({ group_id: groupId }).in('id', ids)
     }
   }
 }

@@ -35,10 +35,12 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
   const startDate = `${year}-${String(month).padStart(2, '0')}-01`
   const endDate = new Date(year, month, 0).toISOString().split('T')[0]
 
-  // Run migration (no-op if already done), then fix group assignments
+  // Run migration (no-op if already done), then fix group assignments in parallel
   await migrateToGroups(accountId)
-  await fixOrphanCategories(accountId)         // assigns null group_id to correct group
-  await reassignMisplacedCategories(accountId) // corrects wrong group assignments
+  await Promise.all([
+    fixOrphanCategories(accountId),        // assigns null group_id to correct group
+    reassignMisplacedCategories(accountId) // corrects wrong group assignments
+  ])
 
   // Fetch all data in parallel
   const [
