@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Plus, Pencil, Trash2, Check, X, FolderPlus } from 'lucide-react'
+import { Plus, Pencil, Trash2, Check, X, FolderPlus, MoreHorizontal } from 'lucide-react'
 import type { CategoryWithStats, CategoryGroupRecord, Transaction } from '@/lib/types'
 import { createCategoryGroup, updateCategoryGroup, deleteCategoryGroup } from '@/app/actions/categoryGroups'
 import { updateMonthBudget, updateTemplateBudget } from '@/app/actions/categories'
@@ -20,16 +20,22 @@ interface Props {
 }
 
 function BudgetBar({ percentage, isOver }: { percentage: number; isOver: boolean }) {
-  const color = isOver ? 'bg-rose-500' : percentage > 85 ? 'bg-rose-400' : percentage > 60 ? 'bg-amber-400' : 'bg-emerald-400'
+  const color = isOver
+    ? 'bg-rose-500'
+    : percentage > 85
+      ? 'bg-rose-400'
+      : percentage > 60
+        ? 'bg-amber-400'
+        : 'bg-emerald-400'
   return (
     <div className="h-1 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden mt-1">
-      <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.min(percentage, 100)}%` }} />
+      <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${Math.min(percentage, 100)}%` }} />
     </div>
   )
 }
 
 function CategoryRow({
-  category, accountId, year, month
+  category, accountId, year, month,
 }: {
   category: CategoryWithStats
   accountId: string
@@ -75,54 +81,61 @@ function CategoryRow({
 
   return (
     <>
-      <div className="group flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 dark:hover:bg-white/[0.03] rounded-lg transition-colors">
-        <span className="text-base shrink-0">{category.icon ?? '📦'}</span>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-1">
-            <span className="text-xs font-medium text-slate-700 dark:text-slate-200 truncate">{category.name}</span>
+      <div className="group/row flex flex-col px-3 py-1 hover:bg-slate-50 dark:hover:bg-white/[0.03] rounded-lg transition-colors">
+        <div className="flex items-center gap-1.5">
+          {/* Right: emoji + name */}
+          <span className="text-sm shrink-0 leading-none">{category.icon ?? '📦'}</span>
+          <span className="text-sm text-slate-700 dark:text-slate-200 truncate flex-1 min-w-0">{category.name}</span>
+
+          {/* Left: amount / inline edit */}
+          {editing ? (
+            <div className="flex items-center gap-0.5 shrink-0">
+              <input
+                type="number"
+                value={budgetInput}
+                onChange={(e) => setBudgetInput(e.target.value)}
+                className="w-16 text-xs border border-slate-300 dark:border-white/20 rounded px-1.5 py-0.5 bg-white dark:bg-card focus:outline-none focus:border-indigo-400 text-right"
+                autoFocus
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSaveBudget(); if (e.key === 'Escape') setEditing(false) }}
+              />
+              <button onClick={handleSaveBudget} disabled={isPending} className="p-0.5 text-emerald-500 hover:text-emerald-600">
+                <Check className="w-3.5 h-3.5" />
+              </button>
+              <button onClick={() => setEditing(false)} className="p-0.5 text-slate-400 hover:text-slate-600">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
             <div className="flex items-center gap-1 shrink-0">
-              {budget_amount > 0 ? (
-                <span className={`text-xs ${isOver ? 'text-rose-500 font-semibold' : 'text-slate-400'}`}>
-                  {formatILS(actual_amount)} / {formatILS(budget_amount)}
-                </span>
-              ) : (
-                <span className="text-xs text-slate-400">{formatILS(actual_amount)}</span>
-              )}
+              {/* Amount — click to edit budget */}
+              <button
+                onClick={() => { setBudgetInput(String(budget_amount)); setEditing(true) }}
+                className={`text-xs tabular-nums transition-colors ${
+                  isOver
+                    ? 'text-rose-500 font-semibold'
+                    : budget_amount > 0
+                      ? 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                      : 'text-slate-300 hover:text-slate-500'
+                }`}
+                title="לחץ לעריכת תקציב"
+              >
+                {budget_amount > 0
+                  ? `${formatILS(actual_amount)} / ${formatILS(budget_amount)}`
+                  : formatILS(actual_amount)}
+              </button>
+              {/* Category edit — hover only */}
               <button
                 onClick={() => setShowEditDialog(true)}
-                className="p-0.5 text-slate-300 hover:text-slate-500 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity"
+                className="p-0.5 text-slate-300 hover:text-slate-500 dark:hover:text-slate-400 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/row:opacity-100 transition-opacity"
+                title="ערוך קטגוריה"
               >
                 <Pencil className="w-2.5 h-2.5" />
               </button>
-              {!editing ? (
-                <button
-                  onClick={() => { setBudgetInput(String(budget_amount)); setEditing(true) }}
-                  className="p-0.5 text-slate-300 hover:text-indigo-500 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity"
-                >
-                  <X className="w-2.5 h-2.5 rotate-45" />
-                </button>
-              ) : (
-                <div className="flex items-center gap-0.5">
-                  <input
-                    type="number"
-                    value={budgetInput}
-                    onChange={(e) => setBudgetInput(e.target.value)}
-                    className="w-14 text-xs border border-slate-300 rounded px-1 py-0.5 focus:outline-none focus:border-indigo-400"
-                    autoFocus
-                    onKeyDown={(e) => { if (e.key === 'Enter') handleSaveBudget(); if (e.key === 'Escape') setEditing(false) }}
-                  />
-                  <button onClick={handleSaveBudget} disabled={isPending} className="p-0.5 text-emerald-500">
-                    <Check className="w-3 h-3" />
-                  </button>
-                  <button onClick={() => setEditing(false)} className="p-0.5 text-slate-400">
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              )}
             </div>
-          </div>
-          {budget_amount > 0 && <BudgetBar percentage={percentage} isOver={isOver} />}
+          )}
         </div>
+
+        {budget_amount > 0 && <BudgetBar percentage={percentage} isOver={isOver} />}
       </div>
 
       {showEditDialog && (
@@ -155,7 +168,7 @@ function CategoryRow({
 }
 
 function GroupCard({
-  group, categories, accountId, year, month, transactions, allGroups
+  group, categories, accountId, year, month, transactions, allGroups,
 }: {
   group: CategoryGroupRecord
   categories: CategoryWithStats[]
@@ -191,9 +204,10 @@ function GroupCard({
 
   return (
     <>
-      <div className="bg-white dark:bg-card rounded-2xl border border-slate-200 dark:border-white/[0.08] shadow-sm overflow-hidden flex flex-col">
+      <div className="group/card bg-white dark:bg-card rounded-2xl border border-slate-200 dark:border-white/[0.08] shadow-sm overflow-hidden flex flex-col">
+
         {/* Card header */}
-        <div className="flex items-center justify-between px-3 py-2.5 border-b border-slate-100 dark:border-white/[0.06] bg-slate-50 dark:bg-white/[0.02]">
+        <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 dark:border-white/[0.06] bg-slate-50/60 dark:bg-white/[0.02]">
           {editingName ? (
             <div className="flex items-center gap-1 flex-1">
               <input
@@ -207,45 +221,67 @@ function GroupCard({
               <button onClick={() => setEditingName(false)} className="p-1 text-slate-400"><X className="w-3.5 h-3.5" /></button>
             </div>
           ) : (
-            <div className="flex items-center gap-1 min-w-0">
-              <span className="text-sm font-semibold text-slate-800 dark:text-white truncate">{group.name}</span>
-              {totalBudget > 0 && (
-                <span className={`text-xs ${isOver ? 'text-rose-500' : 'text-slate-400'} shrink-0`}>
-                  {formatILS(totalActual)}/{formatILS(totalBudget)}
-                </span>
-              )}
-            </div>
-          )}
-          <div className="flex items-center gap-0.5 shrink-0">
-            <button onClick={() => setShowAddCategory(true)} className="p-1.5 text-slate-400 hover:text-indigo-500 transition-colors" title="הוסף קטגוריה">
-              <Plus className="w-3.5 h-3.5" />
-            </button>
-            <button onClick={() => { setNameInput(group.name); setEditingName(true) }} className="p-1.5 text-slate-400 hover:text-slate-600 transition-colors" title="שנה שם">
-              <Pencil className="w-3 h-3" />
-            </button>
-            {!confirmDelete ? (
-              <button onClick={() => setConfirmDelete(true)} className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors" title="מחק קבוצה">
-                <Trash2 className="w-3 h-3" />
-              </button>
-            ) : (
-              <div className="flex items-center gap-1">
-                <button onClick={handleDelete} disabled={isPending} className="text-xs text-rose-600 font-bold px-1">מחק</button>
-                <button onClick={() => setConfirmDelete(false)} className="text-xs text-slate-400 px-1">ביטול</button>
+            <>
+              {/* Name + total (always visible) */}
+              <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                <span className="text-sm font-semibold text-slate-800 dark:text-white truncate">{group.name}</span>
+                {totalBudget > 0 && (
+                  <span className={`text-xs tabular-nums shrink-0 ${isOver ? 'text-rose-500 font-medium' : 'text-slate-400'}`}>
+                    {formatILS(totalActual)}/{formatILS(totalBudget)}
+                  </span>
+                )}
               </div>
-            )}
-          </div>
+
+              {/* Action buttons — hover only (always visible on touch) */}
+              {confirmDelete ? (
+                <div className="flex items-center gap-1 shrink-0">
+                  <button onClick={handleDelete} disabled={isPending} className="text-xs text-rose-600 font-bold px-1.5 py-0.5 rounded hover:bg-rose-50">מחק</button>
+                  <button onClick={() => setConfirmDelete(false)} className="text-xs text-slate-400 px-1.5 py-0.5 rounded hover:bg-slate-100">ביטול</button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-0.5 shrink-0 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/card:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => setShowAddCategory(true)}
+                    className="p-1.5 text-slate-400 hover:text-indigo-500 transition-colors rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
+                    title="הוסף קטגוריה"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => { setNameInput(group.name); setEditingName(true) }}
+                    className="p-1.5 text-slate-400 hover:text-slate-600 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-white/[0.06]"
+                    title="שנה שם"
+                  >
+                    <Pencil className="w-3 h-3" />
+                  </button>
+                  <button
+                    onClick={() => setConfirmDelete(true)}
+                    className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20"
+                    title="מחק קבוצה"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
 
-        {/* Categories */}
+        {/* Categories list */}
         <div className="flex-1 py-1">
           {categories.length === 0 ? (
-            <button onClick={() => setShowAddCategory(true)} className="w-full py-4 text-xs text-slate-400 hover:text-indigo-500 transition-colors text-center">
+            <button
+              onClick={() => setShowAddCategory(true)}
+              className="w-full py-3 text-xs text-slate-400 hover:text-indigo-500 transition-colors text-center"
+            >
               + הוסף קטגוריה ראשונה
             </button>
           ) : (
-            categories.map((cat) => (
-              <CategoryRow key={cat.id} category={cat} accountId={accountId} year={year} month={month} />
-            ))
+            <div className="px-1">
+              {categories.map((cat) => (
+                <CategoryRow key={cat.id} category={cat} accountId={accountId} year={year} month={month} />
+              ))}
+            </div>
           )}
         </div>
       </div>
@@ -279,7 +315,7 @@ export default function CategoryGroupsGrid({ groups, expenseCategories, incomeCa
     })
   }
 
-  // Map categories to their groups
+  // Map expense categories to their groups
   const catsByGroup: Record<string, CategoryWithStats[]> = {}
   for (const cat of expenseCategories) {
     const key = cat.group_id ?? '__ungrouped__'
@@ -289,7 +325,6 @@ export default function CategoryGroupsGrid({ groups, expenseCategories, incomeCa
 
   return (
     <div className="space-y-4">
-      {/* Groups grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {groups.map((group) => (
           <GroupCard
@@ -307,10 +342,10 @@ export default function CategoryGroupsGrid({ groups, expenseCategories, incomeCa
         {/* Ungrouped */}
         {(catsByGroup['__ungrouped__'] ?? []).length > 0 && (
           <div className="bg-white dark:bg-card rounded-2xl border border-dashed border-slate-200 dark:border-white/[0.08] shadow-sm overflow-hidden">
-            <div className="px-3 py-2.5 border-b border-slate-100 dark:border-white/[0.06]">
+            <div className="px-3 py-2 border-b border-slate-100 dark:border-white/[0.06]">
               <span className="text-sm font-semibold text-slate-400">ללא קבוצה</span>
             </div>
-            <div className="py-1">
+            <div className="py-1 px-1">
               {catsByGroup['__ungrouped__'].map((cat) => (
                 <CategoryRow key={cat.id} category={cat} accountId={accountId} year={year} month={month} />
               ))}
@@ -330,11 +365,17 @@ export default function CategoryGroupsGrid({ groups, expenseCategories, incomeCa
               onKeyDown={(e) => { if (e.key === 'Enter') handleCreateGroup(); if (e.key === 'Escape') setShowNewGroup(false) }}
             />
             <div className="flex gap-2">
-              <button onClick={handleCreateGroup} disabled={isPending || !newGroupName.trim()}
-                className="flex-1 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+              <button
+                onClick={handleCreateGroup}
+                disabled={isPending || !newGroupName.trim()}
+                className="flex-1 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+              >
                 {isPending ? 'יוצר...' : 'צור קבוצה'}
               </button>
-              <button onClick={() => setShowNewGroup(false)} className="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-600 border border-slate-200 rounded-lg">
+              <button
+                onClick={() => setShowNewGroup(false)}
+                className="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-600 border border-slate-200 rounded-lg"
+              >
                 ביטול
               </button>
             </div>
