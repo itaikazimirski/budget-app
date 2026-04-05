@@ -2,6 +2,14 @@ export type CategoryType = 'income' | 'expense'
 export type CategoryBucket = 'מחיה' | 'מותרות' | 'חסכון'
 export type CategoryGroup = 'מנוי' | 'ביטוח' | 'משק בית'
 export const BUCKETS: CategoryBucket[] = ['מחיה', 'מותרות', 'חסכון']
+
+export interface CategoryGroupRecord {
+  id: string
+  account_id: string
+  name: string
+  sort_order: number
+  created_at: string
+}
 export type TransactionType = 'income' | 'expense'
 export type AccountType = 'personal' | 'shared'
 
@@ -31,6 +39,7 @@ export interface Category {
   created_at: string
   one_time_year: number | null
   one_time_month: number | null
+  group_id: string | null
 }
 
 export interface BudgetTemplate {

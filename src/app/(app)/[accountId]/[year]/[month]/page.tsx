@@ -8,6 +8,8 @@ import BucketSummary from '@/components/budget/BucketSummary'
 import FixedExpensesButton from '@/components/budget/FixedExpensesButton'
 import HouseholdSection from '@/components/budget/HouseholdSection'
 import AIReportBanner from '@/components/budget/AIReportBanner'
+import { migrateToGroups } from '@/app/actions/categoryGroups'
+import CategoryGroupsGrid from '@/components/budget/CategoryGroupsGrid'
 
 export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[month]'>) {
   const { accountId, year: yearStr, month: monthStr } = await props.params
@@ -33,6 +35,9 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
   const startDate = `${year}-${String(month).padStart(2, '0')}-01`
   const endDate = new Date(year, month, 0).toISOString().split('T')[0]
 
+  // Run migration (no-op if already done)
+  await migrateToGroups(accountId)
+
   // Fetch all data in parallel
   const [
     { data: categories },
@@ -40,12 +45,14 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
     { data: monthOverrides },
     { data: transactions },
     { data: members },
+    { data: categoryGroups },
   ] = await Promise.all([
     supabase.from('categories').select('*').eq('account_id', accountId).order('name'),
     supabase.from('budget_templates').select('*').eq('account_id', accountId),
     supabase.from('month_budgets').select('*').eq('account_id', accountId).eq('year', year).eq('month', month),
     supabase.from('transactions').select('*, category:categories(*)').eq('account_id', accountId).gte('date', startDate).lte('date', endDate).order('date', { ascending: false }),
     supabase.from('account_members').select('user_id, display_name').eq('account_id', accountId),
+    supabase.from('category_groups').select('*').eq('account_id', accountId).order('sort_order'),
   ])
 
   // Auto-insert fixed expense transactions — only run in the first 5 days of the current month
@@ -175,26 +182,10 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
       <MonthSummary stats={stats} accountId={accountId} year={year} month={month} />
 
 
-      <BucketSummary
-        categories={expenseCategories}
-        accountId={accountId}
-        year={year}
-        month={month}
-        transactions={txWithNames}
-      />
-
-      <HouseholdSection
-        categories={expenseCategories.filter((c) => c.category_group === 'משק בית')}
-        accountId={accountId}
-        year={year}
-        month={month}
-        transactions={txWithNames}
-      />
-
-      <CategorySection
-        title="תקציב הוצאות חודשיות"
-        categories={expenseCategories.filter((c) => c.category_group !== 'משק בית')}
-        type="expense"
+      <CategoryGroupsGrid
+        groups={categoryGroups ?? []}
+        expenseCategories={expenseCategories}
+        incomeCategories={incomeCategories}
         accountId={accountId}
         year={year}
         month={month}

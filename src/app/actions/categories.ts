@@ -20,10 +20,11 @@ export async function addCategory(formData: FormData) {
   const one_time_year = formData.get('one_time_year') ? parseInt(formData.get('one_time_year') as string) : null
   const one_time_month = formData.get('one_time_month') ? parseInt(formData.get('one_time_month') as string) : null
   const isOneTime = one_time_year !== null && one_time_month !== null
+  const group_id = formData.get('group_id') as string || null
 
   const { data: category, error } = await supabase
     .from('categories')
-    .insert({ account_id: accountId, name, type, icon, bucket, category_group, is_fixed, one_time_year, one_time_month })
+    .insert({ account_id: accountId, name, type, icon, bucket, category_group, is_fixed, one_time_year, one_time_month, group_id })
     .select()
     .single()
 
