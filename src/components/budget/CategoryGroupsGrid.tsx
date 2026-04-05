@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef } from 'react'
 import { Plus, Pencil, Trash2, Check, X, FolderPlus, ChevronDown } from 'lucide-react'
 import type { CategoryWithStats, CategoryGroupRecord, Transaction } from '@/lib/types'
 import { BUCKETS } from '@/lib/types'
@@ -88,7 +88,9 @@ function CategoryRow({
   const [editing, setEditing] = useState(false)
   const [budgetInput, setBudgetInput] = useState(String(category.budget_amount))
   const [showEditDialog, setShowEditDialog] = useState(false)
+  const [anchorRect, setAnchorRect] = useState<DOMRect | undefined>(undefined)
   const [showScopeModal, setShowScopeModal] = useState(false)
+  const pencilRef = useRef<HTMLButtonElement>(null)
   const [pendingAmount, setPendingAmount] = useState<number | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -176,7 +178,11 @@ function CategoryRow({
               </span>
             </button>
             <button
-              onClick={() => setShowEditDialog(true)}
+              ref={pencilRef}
+              onClick={() => {
+                setAnchorRect(pencilRef.current?.getBoundingClientRect())
+                setShowEditDialog(true)
+              }}
               className="p-0.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/row:opacity-100 transition-opacity"
               title="ערוך קטגוריה"
             >
@@ -191,6 +197,7 @@ function CategoryRow({
           category={category}
           accountId={accountId}
           onClose={() => setShowEditDialog(false)}
+          anchor={anchorRect}
         />
       )}
 
