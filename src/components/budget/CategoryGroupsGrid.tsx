@@ -245,7 +245,8 @@ function GroupCard({
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState(group.name)
   const [showAddCategory, setShowAddCategory] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [targetGroupId, setTargetGroupId] = useState<string>('')
   const [isPending, startTransition] = useTransition()
 
   const totalBudget = categories.reduce((s, c) => s + c.budget_amount, 0)
@@ -262,7 +263,8 @@ function GroupCard({
 
   function handleDelete() {
     startTransition(async () => {
-      await deleteCategoryGroup(group.id, accountId)
+      await deleteCategoryGroup(group.id, accountId, categories.length > 0 ? targetGroupId : undefined)
+      setShowDeleteModal(false)
     })
   }
 
@@ -295,36 +297,29 @@ function GroupCard({
                 )}
               </div>
 
-              {confirmDelete ? (
-                <div className="flex items-center gap-1 shrink-0">
-                  <button onClick={handleDelete} disabled={isPending} className="text-xs text-rose-600 font-bold px-1.5 py-0.5 rounded hover:bg-rose-50">מחק</button>
-                  <button onClick={() => setConfirmDelete(false)} className="text-xs text-slate-400 px-1.5 py-0.5 rounded hover:bg-slate-100">ביטול</button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-0.5 shrink-0 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/card:opacity-100 transition-opacity">
-                  <button
-                    onClick={() => setShowAddCategory(true)}
-                    className="p-1.5 text-slate-400 hover:text-indigo-500 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
-                    title="הוסף קטגוריה"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => { setNameInput(group.name); setEditingName(true) }}
-                    className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors"
-                    title="שנה שם"
-                  >
-                    <Pencil className="w-3 h-3" />
-                  </button>
-                  <button
-                    onClick={() => setConfirmDelete(true)}
-                    className="p-1.5 text-slate-300 hover:text-rose-500 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"
-                    title="מחק קבוצה"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                </div>
-              )}
+              <div className="flex items-center gap-0.5 shrink-0 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/card:opacity-100 transition-opacity">
+                <button
+                  onClick={() => setShowAddCategory(true)}
+                  className="p-1.5 text-slate-400 hover:text-indigo-500 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
+                  title="הוסף קטגוריה"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => { setNameInput(group.name); setEditingName(true) }}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors"
+                  title="שנה שם"
+                >
+                  <Pencil className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={() => { setTargetGroupId(''); setShowDeleteModal(true) }}
+                  className="p-1.5 text-slate-300 hover:text-rose-500 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"
+                  title="מחק קבוצה"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
             </>
           )}
         </div>
@@ -356,6 +351,75 @@ function GroupCard({
           groups={allGroups}
           onClose={() => setShowAddCategory(false)}
         />
+      )}
+
+      {/* Smart Delete Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white dark:bg-card rounded-2xl shadow-xl w-full max-w-sm p-6 text-right">
+            {categories.length === 0 ? (
+              /* Empty group — simple confirmation */
+              <>
+                <h3 className="font-semibold text-slate-900 dark:text-white text-base mb-2">מחיקת קבוצה</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                  הקבוצה <span className="font-semibold text-slate-700 dark:text-slate-200">{group.name}</span> ריקה. למחוק אותה לצמיתות?
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowDeleteModal(false)}
+                    className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors"
+                  >
+                    ביטול
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={isPending}
+                    className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-sm font-medium text-white transition-colors disabled:opacity-50"
+                  >
+                    {isPending ? 'מוחק...' : 'מחק קבוצה'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              /* Group has categories — require target selection */
+              <>
+                <h3 className="font-semibold text-slate-900 dark:text-white text-base mb-2">מחיקת קבוצה עם קטגוריות</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                  קבוצה זו מכילה{' '}
+                  <span className="font-semibold text-slate-700 dark:text-slate-200">{categories.length} קטגוריות פעילות</span>.
+                  אנא בחר לאן להעביר אותן כדי להשלים את המחיקה.
+                </p>
+                <select
+                  value={targetGroupId}
+                  onChange={(e) => setTargetGroupId(e.target.value)}
+                  className="w-full text-sm border border-slate-200 dark:border-white/[0.1] rounded-xl px-3 py-2.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-5"
+                >
+                  <option value="">— בחר קבוצת יעד —</option>
+                  {allGroups
+                    .filter((g) => g.id !== group.id)
+                    .map((g) => (
+                      <option key={g.id} value={g.id}>{g.name}</option>
+                    ))}
+                </select>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowDeleteModal(false)}
+                    className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors"
+                  >
+                    ביטול
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={isPending || !targetGroupId}
+                    className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-sm font-medium text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {isPending ? 'מעביר ומוחק...' : 'העבר ומחק קבוצה'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       )}
     </>
   )

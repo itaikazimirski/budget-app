@@ -224,13 +224,18 @@ export async function updateCategoryGroup(groupId: string, name: string, account
   return { success: true }
 }
 
-export async function deleteCategoryGroup(groupId: string, accountId: string) {
+export async function deleteCategoryGroup(groupId: string, accountId: string, targetGroupId?: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  // Unassign categories from this group before deleting
-  await supabase.from('categories').update({ group_id: null }).eq('group_id', groupId)
+  if (targetGroupId) {
+    // Move categories to target group before deleting
+    await supabase.from('categories').update({ group_id: targetGroupId }).eq('group_id', groupId)
+  } else {
+    // Empty group — just unlink (safety fallback)
+    await supabase.from('categories').update({ group_id: null }).eq('group_id', groupId)
+  }
 
   const { error } = await supabase
     .from('category_groups')
