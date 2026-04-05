@@ -157,6 +157,14 @@ function CategoryRow({
               className="flex items-baseline gap-1 tabular-nums"
               title="לחץ לעריכת תקציב"
             >
+              {budget_amount > 0 && (
+                <>
+                  <span className="text-sm font-normal text-slate-400 tabular-nums">
+                    {formatILS(budget_amount)}
+                  </span>
+                  <span className="text-slate-500 mx-1">/</span>
+                </>
+              )}
               <span className={`text-sm font-bold tabular-nums ${
                 budget_amount === 0
                   ? 'text-slate-400'
@@ -166,14 +174,6 @@ function CategoryRow({
               }`}>
                 {formatILS(actual_amount)}
               </span>
-              {budget_amount > 0 && (
-                <>
-                  <span className="text-slate-500 mx-1">/</span>
-                  <span className="text-sm font-normal text-slate-400 tabular-nums">
-                    {formatILS(budget_amount)}
-                  </span>
-                </>
-              )}
             </button>
             <button
               onClick={() => setShowEditDialog(true)}
