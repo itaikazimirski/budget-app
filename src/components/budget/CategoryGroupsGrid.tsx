@@ -159,7 +159,7 @@ function CategoryRow({
             >
               {budget_amount > 0 && (
                 <>
-                  <span className="text-sm font-normal text-slate-400 tabular-nums">
+                  <span className="text-sm font-normal text-white tabular-nums">
                     {formatILS(budget_amount)}
                   </span>
                   <span className="text-slate-500 mx-1">/</span>
