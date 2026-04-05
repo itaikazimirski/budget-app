@@ -57,10 +57,11 @@ export default function CategoryEditDialog({ category, accountId, onClose, ancho
     const spaceBelow = window.innerHeight - anchor.bottom
     const top = spaceBelow >= 300
       ? anchor.bottom + 8
-      : Math.max(8, anchor.top - 8 - 520) // flip above if not enough space below
-    const rightEdge = window.innerWidth - anchor.right
-    const right = Math.max(8, Math.min(rightEdge, window.innerWidth - popoverWidth - 8))
-    return { position: 'fixed' as const, top, right, width: popoverWidth, zIndex: 50 }
+      : Math.max(8, anchor.top - 8 - 520)
+    // Center the popover under the button, clamped to stay on screen
+    const centerX = (anchor.left + anchor.right) / 2
+    const left = Math.max(8, Math.min(centerX - popoverWidth / 2, window.innerWidth - popoverWidth - 8))
+    return { position: 'fixed' as const, top, left, width: popoverWidth, zIndex: 50 }
   })()
 
   const form = (
