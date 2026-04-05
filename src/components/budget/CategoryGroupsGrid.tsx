@@ -126,7 +126,7 @@ function CategoryRow({
     <>
       <div className="group/row flex items-center gap-2 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] rounded-xl transition-colors">
         <span className="text-base shrink-0 leading-none">{category.icon ?? '📦'}</span>
-        <span className="text-sm font-medium text-slate-100 truncate flex-1 min-w-0">
+        <span className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate flex-1 min-w-0">
           {category.name}
         </span>
 
@@ -159,25 +159,25 @@ function CategoryRow({
             >
               {budget_amount > 0 && (
                 <>
-                  <span className="text-sm font-normal text-white tabular-nums">
+                  <span className="text-sm font-normal text-slate-600 dark:text-white tabular-nums">
                     {formatILS(budget_amount)}
                   </span>
-                  <span className="text-slate-500 mx-1">/</span>
+                  <span className="text-slate-400 dark:text-slate-500 mx-1">/</span>
                 </>
               )}
               <span className={`text-sm font-bold tabular-nums ${
                 budget_amount === 0
                   ? 'text-slate-400'
                   : isOver
-                    ? 'text-rose-400'
-                    : 'text-emerald-400'
+                    ? 'text-rose-600 dark:text-rose-400'
+                    : 'text-emerald-600 dark:text-emerald-400'
               }`}>
                 {formatILS(actual_amount)}
               </span>
             </button>
             <button
               onClick={() => setShowEditDialog(true)}
-              className="p-0.5 text-slate-300 hover:text-slate-500 dark:hover:text-slate-400 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/row:opacity-100 transition-opacity"
+              className="p-0.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/row:opacity-100 transition-opacity"
               title="ערוך קטגוריה"
             >
               <Pencil className="w-2.5 h-2.5" />
@@ -306,9 +306,9 @@ function GroupCard({
                 <span className="text-sm font-semibold text-slate-800 dark:text-white truncate">{group.name}</span>
                 {totalBudget > 0 && (
                   <span className="flex items-baseline gap-1 shrink-0 tabular-nums">
-                    <span className="text-xs font-normal text-white">{formatILS(totalBudget)}</span>
-                    <span className="text-xs text-slate-500">/</span>
-                    <span className={`text-xs font-bold ${isOver ? 'text-rose-400' : 'text-emerald-400'}`}>{formatILS(totalActual)}</span>
+                    <span className="text-xs font-normal text-slate-600 dark:text-white">{formatILS(totalBudget)}</span>
+                    <span className="text-xs text-slate-400 dark:text-slate-500">/</span>
+                    <span className={`text-xs font-bold ${isOver ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>{formatILS(totalActual)}</span>
                   </span>
                 )}
               </div>
@@ -333,7 +333,7 @@ function GroupCard({
                 </button>
                 <button
                   onClick={() => { setTargetGroupId(''); setShowDeleteModal(true) }}
-                  className="p-1.5 text-slate-300 hover:text-rose-500 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"
                   title="מחק קבוצה"
                 >
                   <Trash2 className="w-3 h-3" />
@@ -498,7 +498,7 @@ export default function CategoryGroupsGrid({
             value={newGroupName}
             onChange={(e) => setNewGroupName(e.target.value)}
             placeholder="שם הקבוצה..."
-            className="w-full text-sm border-b border-indigo-300 bg-transparent focus:outline-none text-right pb-1"
+            className="w-full text-sm border-b border-indigo-300 bg-transparent focus:outline-none text-right pb-1 text-slate-800 dark:text-white placeholder:text-slate-400"
             autoFocus
             onKeyDown={(e) => { if (e.key === 'Enter') handleCreateGroup(); if (e.key === 'Escape') setShowNewGroup(false) }}
           />
@@ -546,7 +546,7 @@ export default function CategoryGroupsGrid({
             style={{ animationDelay: `${groups.length * 65}ms` }}
           >
             <div className="px-3 py-2 border-b border-slate-100 dark:border-white/[0.06]">
-              <span className="text-sm font-semibold text-slate-400">ללא קבוצה</span>
+              <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">ללא קבוצה</span>
             </div>
             <div className="py-1 px-1">
               {catsByGroup['__ungrouped__'].map((cat) => (
