@@ -49,15 +49,16 @@ export default function CategoryEditDialog({ category, accountId, onClose }: Cat
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
-      <div className="bg-white dark:bg-card rounded-2xl shadow-xl w-full max-w-sm flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-white/[0.06] shrink-0">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/30 backdrop-blur-sm">
+      <div className="flex min-h-full items-center justify-center p-4">
+      <div className="bg-white dark:bg-card rounded-2xl shadow-xl w-full max-w-sm my-8">
+        <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-white/[0.06]">
           <h2 className="font-semibold text-slate-900 dark:text-white">עריכת קטגוריה</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1">
             <X className="w-4 h-4" />
           </button>
         </div>
-        <form onSubmit={handleSave} className="p-5 space-y-4 overflow-y-auto">
+        <form onSubmit={handleSave} className="p-5 space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="catName">שם הקטגוריה</Label>
             <Input id="catName" value={nameInput} onChange={(e) => setNameInput(e.target.value)} required autoFocus />
@@ -158,6 +159,7 @@ export default function CategoryEditDialog({ category, accountId, onClose }: Cat
             )}
           </div>
         </form>
+      </div>
       </div>
     </div>
   )
