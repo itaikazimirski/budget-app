@@ -435,21 +435,29 @@ export default function CategoryGroupsGrid({
 
       {/* Groups grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
-        {groups.map((group) => (
-          <GroupCard
+        {groups.map((group, index) => (
+          <div
             key={group.id}
-            group={group}
-            categories={catsByGroup[group.id] ?? []}
-            accountId={accountId}
-            year={year}
-            month={month}
-            allGroups={groups}
-          />
+            className="animate-fade-slide-in"
+            style={{ animationDelay: `${index * 65}ms` }}
+          >
+            <GroupCard
+              group={group}
+              categories={catsByGroup[group.id] ?? []}
+              accountId={accountId}
+              year={year}
+              month={month}
+              allGroups={groups}
+            />
+          </div>
         ))}
 
         {/* Truly ungrouped — fallback only if fixOrphanCategories hasn't run yet */}
         {(catsByGroup['__ungrouped__'] ?? []).length > 0 && (
-          <div className="bg-white dark:bg-card rounded-2xl border border-dashed border-slate-200 dark:border-white/[0.08] shadow-sm overflow-hidden">
+          <div
+            className="animate-fade-slide-in bg-white dark:bg-card rounded-2xl border border-dashed border-slate-200 dark:border-white/[0.08] shadow-sm overflow-hidden"
+            style={{ animationDelay: `${groups.length * 65}ms` }}
+          >
             <div className="px-3 py-2 border-b border-slate-100 dark:border-white/[0.06]">
               <span className="text-sm font-semibold text-slate-400">ללא קבוצה</span>
             </div>

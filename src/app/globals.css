@@ -4,7 +4,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@keyframes fade-slide-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 @theme inline {
+  --animate-fade-slide-in: fade-slide-in 0.28s ease-out both;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: 'Rubik', sans-serif;
