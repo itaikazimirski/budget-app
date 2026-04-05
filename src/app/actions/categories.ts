@@ -142,6 +142,13 @@ export async function disableHouseholdCategories(accountId: string) {
 
   if (error) return { error: error.message }
 
+  // Also delete the 'משק בית' category group so it doesn't appear empty
+  await supabase
+    .from('category_groups')
+    .delete()
+    .eq('account_id', accountId)
+    .eq('name', 'משק בית')
+
   revalidatePath(`/${accountId}`, 'layout')
   return { success: true }
 }
