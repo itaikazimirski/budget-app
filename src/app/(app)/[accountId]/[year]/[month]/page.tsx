@@ -189,11 +189,6 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
 
       <MonthSummary stats={stats} accountId={accountId} year={year} month={month} />
 
-      {hasMonthOverride && (
-        <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-          ✦ חלק מהקטגוריות קיבלו סכום מותאם לחודש זה.
-        </p>
-      )}
 
       <BucketSummary
         categories={expenseCategories}
