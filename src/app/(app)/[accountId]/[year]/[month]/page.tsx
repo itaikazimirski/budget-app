@@ -8,7 +8,7 @@ import BucketSummary from '@/components/budget/BucketSummary'
 import FixedExpensesButton from '@/components/budget/FixedExpensesButton'
 import HouseholdSection from '@/components/budget/HouseholdSection'
 import AIReportBanner from '@/components/budget/AIReportBanner'
-import { migrateToGroups, fixOrphanCategories } from '@/app/actions/categoryGroups'
+import { migrateToGroups, fixOrphanCategories, reassignMisplacedCategories } from '@/app/actions/categoryGroups'
 import CategoryGroupsGrid from '@/components/budget/CategoryGroupsGrid'
 
 export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[month]'>) {
@@ -35,9 +35,10 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
   const startDate = `${year}-${String(month).padStart(2, '0')}-01`
   const endDate = new Date(year, month, 0).toISOString().split('T')[0]
 
-  // Run migration (no-op if already done), then fix any orphaned categories
+  // Run migration (no-op if already done), then fix group assignments
   await migrateToGroups(accountId)
-  await fixOrphanCategories(accountId)
+  await fixOrphanCategories(accountId)         // assigns null group_id to correct group
+  await reassignMisplacedCategories(accountId) // corrects wrong group assignments
 
   // Fetch all data in parallel
   const [

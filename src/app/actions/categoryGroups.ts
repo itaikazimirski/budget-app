@@ -58,6 +58,62 @@ export async function fixOrphanCategories(accountId: string) {
   }
 }
 
+// Corrects categories that have a category_group value but landed in the wrong group
+// (e.g. old broken fixOrphanCategories dumped 'משק בית' cats into 'הוצאות שוטפות').
+// Idempotent — safe to run on every page load.
+export async function reassignMisplacedCategories(accountId: string) {
+  const supabase = await createClient()
+
+  // Fetch all expense categories that have a category_group set (legacy field)
+  const { data: cats } = await supabase
+    .from('categories')
+    .select('id, category_group, group_id')
+    .eq('account_id', accountId)
+    .eq('type', 'expense')
+    .not('category_group', 'is', null)
+
+  if (!cats || cats.length === 0) return
+
+  // Load existing groups
+  const { data: existingGroups } = await supabase
+    .from('category_groups')
+    .select('id, name, sort_order')
+    .eq('account_id', accountId)
+    .order('sort_order')
+
+  const groupById: Record<string, string> = {}
+  const groupByName: Record<string, string> = {}
+  for (const g of existingGroups ?? []) {
+    groupById[g.id] = g.name
+    groupByName[g.name] = g.id
+  }
+  let nextOrder = Math.max(-1, ...(existingGroups ?? []).map((g) => g.sort_order)) + 1
+
+  async function ensureGroup(name: string): Promise<string | null> {
+    if (groupByName[name]) return groupByName[name]
+    const { data } = await supabase
+      .from('category_groups')
+      .insert({ account_id: accountId, name, sort_order: nextOrder++ })
+      .select('id')
+      .single()
+    if (data) groupByName[name] = data.id
+    return data?.id ?? null
+  }
+
+  for (const cat of cats) {
+    const expectedGroupName = GROUP_MAP[cat.category_group as string]
+    if (!expectedGroupName) continue // no mapping — not our concern
+
+    const currentGroupName = cat.group_id ? groupById[cat.group_id] : null
+    if (currentGroupName === expectedGroupName) continue // already correct
+
+    const groupId = await ensureGroup(expectedGroupName)
+    if (groupId) {
+      await supabase.from('categories').update({ group_id: groupId }).eq('id', cat.id)
+    }
+  }
+}
+
 // Runs once per account — migrates flat categories into groups
 export async function migrateToGroups(accountId: string) {
   const supabase = await createClient()
