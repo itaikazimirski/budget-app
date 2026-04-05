@@ -9,6 +9,52 @@ const GROUP_MAP: Record<string, string> = {
   'משק בית': 'משק בית',
 }
 
+// Assigns any expense categories with group_id = null to the default group (idempotent)
+export async function fixOrphanCategories(accountId: string) {
+  const supabase = await createClient()
+
+  const { data: orphans } = await supabase
+    .from('categories')
+    .select('id')
+    .eq('account_id', accountId)
+    .eq('type', 'expense')
+    .is('group_id', null)
+
+  if (!orphans || orphans.length === 0) return
+
+  // Find or create the default group
+  const { data: groups } = await supabase
+    .from('category_groups')
+    .select('id, name, sort_order')
+    .eq('account_id', accountId)
+    .order('sort_order')
+
+  let defaultGroupId: string | null = null
+
+  if (groups && groups.length > 0) {
+    // Prefer a group named 'הוצאות שוטפות', otherwise use first
+    const preferred = groups.find((g) => g.name === 'הוצאות שוטפות') ?? groups[0]
+    defaultGroupId = preferred.id
+  } else {
+    // No groups at all — create the default
+    const { data: created } = await supabase
+      .from('category_groups')
+      .insert({ account_id: accountId, name: 'הוצאות שוטפות', sort_order: 0 })
+      .select()
+      .single()
+    defaultGroupId = created?.id ?? null
+  }
+
+  if (!defaultGroupId) return
+
+  await supabase
+    .from('categories')
+    .update({ group_id: defaultGroupId })
+    .eq('account_id', accountId)
+    .eq('type', 'expense')
+    .is('group_id', null)
+}
+
 // Runs once per account — migrates flat categories into groups
 export async function migrateToGroups(accountId: string) {
   const supabase = await createClient()

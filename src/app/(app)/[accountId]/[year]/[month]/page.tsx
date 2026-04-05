@@ -8,7 +8,7 @@ import BucketSummary from '@/components/budget/BucketSummary'
 import FixedExpensesButton from '@/components/budget/FixedExpensesButton'
 import HouseholdSection from '@/components/budget/HouseholdSection'
 import AIReportBanner from '@/components/budget/AIReportBanner'
-import { migrateToGroups } from '@/app/actions/categoryGroups'
+import { migrateToGroups, fixOrphanCategories } from '@/app/actions/categoryGroups'
 import CategoryGroupsGrid from '@/components/budget/CategoryGroupsGrid'
 
 export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[month]'>) {
@@ -35,8 +35,9 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
   const startDate = `${year}-${String(month).padStart(2, '0')}-01`
   const endDate = new Date(year, month, 0).toISOString().split('T')[0]
 
-  // Run migration (no-op if already done)
+  // Run migration (no-op if already done), then fix any orphaned categories
   await migrateToGroups(accountId)
+  await fixOrphanCategories(accountId)
 
   // Fetch all data in parallel
   const [
@@ -149,6 +150,20 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
     expenseCategories,
   }
 
+  // Sort groups: group with most is_fixed expense categories comes first (usually 'משק בית')
+  const fixedCountByGroup: Record<string, number> = {}
+  for (const cat of expenseCategories) {
+    if (cat.group_id && cat.is_fixed) {
+      fixedCountByGroup[cat.group_id] = (fixedCountByGroup[cat.group_id] ?? 0) + 1
+    }
+  }
+  const sortedGroups = [...(categoryGroups ?? [])].sort((a, b) => {
+    const aFixed = fixedCountByGroup[a.id] ?? 0
+    const bFixed = fixedCountByGroup[b.id] ?? 0
+    if (aFixed !== bFixed) return bFixed - aFixed
+    return a.sort_order - b.sort_order
+  })
+
   const hasMonthOverride = (monthOverrides ?? []).length > 0
 
   // Check if today is the 1st of the month — show banner for previous month
@@ -183,7 +198,7 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
 
 
       <CategoryGroupsGrid
-        groups={categoryGroups ?? []}
+        groups={sortedGroups}
         expenseCategories={expenseCategories}
         incomeCategories={incomeCategories}
         accountId={accountId}
