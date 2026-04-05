@@ -151,17 +151,10 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
     expenseCategories,
   }
 
-  // Sort groups: group with most is_fixed expense categories comes first (usually 'משק בית')
-  const fixedCountByGroup: Record<string, number> = {}
-  for (const cat of expenseCategories) {
-    if (cat.group_id && cat.is_fixed) {
-      fixedCountByGroup[cat.group_id] = (fixedCountByGroup[cat.group_id] ?? 0) + 1
-    }
-  }
+  // Sort groups: 'משק בית' always first, then by sort_order
   const sortedGroups = [...(categoryGroups ?? [])].sort((a, b) => {
-    const aFixed = fixedCountByGroup[a.id] ?? 0
-    const bFixed = fixedCountByGroup[b.id] ?? 0
-    if (aFixed !== bFixed) return bFixed - aFixed
+    if (a.name === 'משק בית') return -1
+    if (b.name === 'משק בית') return 1
     return a.sort_order - b.sort_order
   })
 
