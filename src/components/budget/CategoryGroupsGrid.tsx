@@ -124,9 +124,9 @@ function CategoryRow({
 
   return (
     <>
-      <div className="group/row flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] rounded-xl transition-colors">
+      <div className="group/row flex items-center gap-2 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] rounded-xl transition-colors">
         <span className="text-base shrink-0 leading-none">{category.icon ?? '📦'}</span>
-        <span className="text-sm font-medium text-slate-800 dark:text-white truncate flex-1 min-w-0">
+        <span className="text-sm font-medium text-slate-100 truncate flex-1 min-w-0">
           {category.name}
         </span>
 
@@ -157,9 +157,9 @@ function CategoryRow({
               className="flex items-baseline gap-1 tabular-nums"
               title="לחץ לעריכת תקציב"
             >
-              <span className={`text-sm font-semibold tabular-nums ${
+              <span className={`text-sm font-bold tabular-nums ${
                 budget_amount === 0
-                  ? 'text-slate-400 dark:text-slate-400'
+                  ? 'text-slate-400'
                   : isOver
                     ? 'text-rose-400'
                     : 'text-emerald-400'
@@ -167,9 +167,12 @@ function CategoryRow({
                 {formatILS(actual_amount)}
               </span>
               {budget_amount > 0 && (
-                <span className="text-xs text-white/80 dark:text-white tabular-nums">
-                  / {formatILS(budget_amount)}
-                </span>
+                <>
+                  <span className="text-slate-500 mx-1">/</span>
+                  <span className="text-sm font-normal text-slate-400 tabular-nums">
+                    {formatILS(budget_amount)}
+                  </span>
+                </>
               )}
             </button>
             <button
