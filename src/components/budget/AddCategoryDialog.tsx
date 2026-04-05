@@ -53,8 +53,8 @@ export default function AddCategoryDialog({ type, accountId, year, month, defaul
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
-      <div className="bg-white dark:bg-card rounded-2xl shadow-xl w-full max-w-sm">
-        <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-white/[0.06]">
+      <div className="bg-white dark:bg-card rounded-2xl shadow-xl w-full max-w-sm flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-white/[0.06] shrink-0">
           <h2 className="font-semibold text-slate-900 dark:text-white">
             הוסף קטגוריית {type === 'income' ? 'הכנסה' : 'הוצאה'}
           </h2>
@@ -63,7 +63,7 @@ export default function AddCategoryDialog({ type, accountId, year, month, defaul
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto">
 
           {/* Recurring vs One-time */}
           <div className="flex gap-2">
