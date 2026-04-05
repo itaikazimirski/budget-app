@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { createPortal } from 'react-dom'
 import { addCategory } from '@/app/actions/categories'
 import { BUCKETS, CategoryGroupRecord } from '@/lib/types'
 import { X } from 'lucide-react'
@@ -51,9 +52,9 @@ export default function AddCategoryDialog({ type, accountId, year, month, defaul
     })
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-white dark:bg-card rounded-2xl shadow-xl w-full max-w-sm overflow-y-auto max-h-[90vh]">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-md overflow-y-auto max-h-[90vh]">
         <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-white/[0.06]">
           <h2 className="font-semibold text-slate-900 dark:text-white">
             הוסף קטגוריית {type === 'income' ? 'הכנסה' : 'הוצאה'}
@@ -207,6 +208,7 @@ export default function AddCategoryDialog({ type, accountId, year, month, defaul
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

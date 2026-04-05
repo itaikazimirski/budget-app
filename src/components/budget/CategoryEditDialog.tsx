@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { createPortal } from 'react-dom'
 import { X, Trash2 } from 'lucide-react'
 import type { CategoryWithStats } from '@/lib/types'
 import { updateCategory, deleteCategory } from '@/app/actions/categories'
@@ -49,8 +50,9 @@ export default function CategoryEditDialog({ category, accountId, onClose }: Cat
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-        <div className="bg-white dark:bg-card rounded-2xl shadow-xl w-full max-w-sm overflow-y-auto max-h-[90vh]">
+    return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-md overflow-y-auto max-h-[90vh]">
           <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-white/[0.06]">
             <h2 className="font-semibold text-slate-900 dark:text-white">עריכת קטגוריה</h2>
             <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1">
@@ -158,7 +160,8 @@ export default function CategoryEditDialog({ category, accountId, onClose }: Cat
               )}
             </div>
           </form>
-        </div>
-    </div>
+      </div>
+    </div>,
+    document.body
   )
 }
