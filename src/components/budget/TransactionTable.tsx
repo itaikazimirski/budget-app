@@ -233,7 +233,7 @@ export default function TransactionTable({ transactions, categories, accountId, 
   }
 
   return (
-    <div className="bg-white dark:bg-card rounded-2xl border border-slate-200 dark:border-white/[0.08] shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-card rounded-2xl border border-slate-200 dark:border-white/[0.08] shadow-sm overflow-visible">
       <div className="max-w-3xl mx-auto px-4 pt-5 pb-4 border-b border-slate-100 dark:border-white/[0.06] flex items-center justify-between">
 
         {/* Right: title + count pill */}
@@ -264,7 +264,7 @@ export default function TransactionTable({ transactions, categories, accountId, 
 
             {/* Dropdown */}
             {showFilterMenu && activeCategories.length > 0 && (
-              <div className="absolute top-full mt-1 left-0 z-30 bg-white dark:bg-card border border-slate-200 dark:border-white/10 rounded-xl shadow-lg p-2 min-w-[160px]">
+              <div className="absolute top-full mt-1 left-0 z-30 bg-white dark:bg-card border border-slate-200 dark:border-white/10 rounded-xl shadow-lg p-2 min-w-[160px] max-h-64 overflow-y-auto">
                 {isFiltered && (
                   <button onClick={clearFilter} className="w-full text-right text-xs text-rose-500 hover:text-rose-700 px-2 py-1.5 rounded-lg hover:bg-rose-50 mb-1">
                     נקה סינון ✕
