@@ -305,8 +305,10 @@ function GroupCard({
                 <ChevronDown className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-300 ${isCollapsed ? '-rotate-90' : ''}`} />
                 <span className="text-sm font-semibold text-slate-800 dark:text-white truncate">{group.name}</span>
                 {totalBudget > 0 && (
-                  <span className={`text-xs tabular-nums shrink-0 ${isOver ? 'text-rose-500 font-medium' : 'text-slate-400'}`}>
-                    {formatILS(totalActual)}/{formatILS(totalBudget)}
+                  <span className="flex items-baseline gap-1 shrink-0 tabular-nums">
+                    <span className="text-xs font-normal text-white">{formatILS(totalBudget)}</span>
+                    <span className="text-xs text-slate-500">/</span>
+                    <span className={`text-xs font-bold ${isOver ? 'text-rose-400' : 'text-emerald-400'}`}>{formatILS(totalActual)}</span>
                   </span>
                 )}
               </div>
