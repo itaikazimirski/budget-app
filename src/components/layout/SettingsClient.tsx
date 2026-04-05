@@ -33,6 +33,7 @@ export default function SettingsClient({ account, members, isOwner, apiKeys, has
   const [inviteSuccess, setInviteSuccess] = useState(false)
   const [newKey, setNewKey] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [confirmDeleteKeyId, setConfirmDeleteKeyId] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   function saveName() {
@@ -68,10 +69,11 @@ export default function SettingsClient({ account, members, isOwner, apiKeys, has
     })
   }
 
-  function handleDeleteKey(keyId: string) {
-    if (!confirm('למחוק את המפתח הזה?')) return
+  function confirmDeleteKey() {
+    if (!confirmDeleteKeyId) return
     startTransition(async () => {
-      await deleteApiKey(keyId, account.id)
+      await deleteApiKey(confirmDeleteKeyId, account.id)
+      setConfirmDeleteKeyId(null)
     })
   }
 
@@ -82,6 +84,7 @@ export default function SettingsClient({ account, members, isOwner, apiKeys, has
   }
 
   return (
+    <>
     <div className="space-y-5">
       {/* Account name */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
@@ -225,7 +228,7 @@ export default function SettingsClient({ account, members, isOwner, apiKeys, has
                   <p className="text-sm text-slate-700 font-medium">{k.name}</p>
                   <p className="text-xs text-slate-400 font-mono">{k.key_value.slice(0, 16)}••••</p>
                 </div>
-                <button onClick={() => handleDeleteKey(k.id)} className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors">
+                <button onClick={() => setConfirmDeleteKeyId(k.id)} className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors">
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -234,5 +237,34 @@ export default function SettingsClient({ account, members, isOwner, apiKeys, has
         </div>
       </div>
     </div>
+
+    {/* Delete API key confirmation modal */}
+
+    {confirmDeleteKeyId && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+        <div className="bg-white dark:bg-card rounded-2xl shadow-xl w-full max-w-sm p-6 text-right">
+          <h3 className="font-semibold text-slate-900 dark:text-white text-base mb-2">מחיקת מפתח API</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+            פעולה זו תמחק את המפתח לצמיתות. קישורי Shortcut שמשתמשים בו יפסיקו לעבוד.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setConfirmDeleteKeyId(null)}
+              className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors"
+            >
+              ביטול
+            </button>
+            <button
+              onClick={confirmDeleteKey}
+              disabled={isPending}
+              className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-sm font-medium text-white transition-colors disabled:opacity-50"
+            >
+              {isPending ? 'מוחק...' : 'מחק מפתח'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   )
 }
