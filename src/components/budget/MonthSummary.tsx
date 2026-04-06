@@ -41,14 +41,14 @@ export default function MonthSummary({ stats, accountId, year, month }: MonthSum
             <span className="text-base font-semibold text-white">הכנסות</span>
           </div>
           {/* Body */}
-          <div className="flex flex-col gap-3 p-4">
-            <div className="flex justify-center items-baseline gap-x-1.5">
-              <span className="text-sm font-semibold text-slate-300">תכנון</span>
-              <span className="text-2xl font-extrabold text-white">{formatILS(plannedIncome)}</span>
+          <div className="flex flex-col gap-2 p-3 md:p-4 md:gap-3">
+            <div className="flex flex-col items-center gap-0.5 md:flex-row md:justify-center md:items-baseline md:gap-x-1.5">
+              <span className="text-xs font-semibold text-slate-300 md:text-sm">תכנון</span>
+              <span className="text-xl font-extrabold text-white md:text-2xl">{formatILS(plannedIncome)}</span>
             </div>
-            <div className="flex justify-center items-baseline gap-x-1.5">
-              <span className="text-sm font-semibold text-slate-400">בפועל</span>
-              <span className="text-xl font-bold text-emerald-400">{formatILS(totalIncome)}</span>
+            <div className="flex flex-col items-center gap-0.5 md:flex-row md:justify-center md:items-baseline md:gap-x-1.5">
+              <span className="text-xs font-semibold text-slate-400 md:text-sm">בפועל</span>
+              <span className="text-base font-bold text-emerald-400 md:text-xl">{formatILS(totalIncome)}</span>
             </div>
           </div>
         </button>
@@ -61,14 +61,14 @@ export default function MonthSummary({ stats, accountId, year, month }: MonthSum
             <span className="text-base font-semibold text-white">הוצאות</span>
           </div>
           {/* Body */}
-          <div className="flex flex-col gap-3 p-4">
-            <div className="flex justify-center items-baseline gap-x-1.5">
-              <span className="text-sm font-semibold text-slate-300">תכנון</span>
-              <span className="text-2xl font-extrabold text-white">{formatILS(plannedExpenses)}</span>
+          <div className="flex flex-col gap-2 p-3 md:p-4 md:gap-3">
+            <div className="flex flex-col items-center gap-0.5 md:flex-row md:justify-center md:items-baseline md:gap-x-1.5">
+              <span className="text-xs font-semibold text-slate-300 md:text-sm">תכנון</span>
+              <span className="text-xl font-extrabold text-white md:text-2xl">{formatILS(plannedExpenses)}</span>
             </div>
-            <div className="flex justify-center items-baseline gap-x-1.5">
-              <span className="text-sm font-semibold text-slate-400">בפועל</span>
-              <span className="text-xl font-bold text-rose-400">{formatILS(totalExpenses)}</span>
+            <div className="flex flex-col items-center gap-0.5 md:flex-row md:justify-center md:items-baseline md:gap-x-1.5">
+              <span className="text-xs font-semibold text-slate-400 md:text-sm">בפועל</span>
+              <span className="text-base font-bold text-rose-400 md:text-xl">{formatILS(totalExpenses)}</span>
             </div>
           </div>
         </div>
@@ -81,14 +81,14 @@ export default function MonthSummary({ stats, accountId, year, month }: MonthSum
             <span className="text-base font-semibold text-white">תזרים</span>
           </div>
           {/* Body */}
-          <div className="flex flex-col gap-3 p-4">
-            <div className="flex justify-center items-baseline gap-x-1.5">
-              <span className="text-sm font-semibold text-slate-300">תכנון</span>
-              <span className="text-2xl font-extrabold text-white">{formatILS(plannedBalance)}</span>
+          <div className="flex flex-col gap-2 p-3 md:p-4 md:gap-3">
+            <div className="flex flex-col items-center gap-0.5 md:flex-row md:justify-center md:items-baseline md:gap-x-1.5">
+              <span className="text-xs font-semibold text-slate-300 md:text-sm">תכנון</span>
+              <span className="text-xl font-extrabold text-white md:text-2xl">{formatILS(plannedBalance)}</span>
             </div>
-            <div className="flex justify-center items-baseline gap-x-1.5">
-              <span className="text-sm font-semibold text-slate-400">בפועל</span>
-              <span className="text-xl font-bold text-amber-400">{formatILS(balance)}</span>
+            <div className="flex flex-col items-center gap-0.5 md:flex-row md:justify-center md:items-baseline md:gap-x-1.5">
+              <span className="text-xs font-semibold text-slate-400 md:text-sm">בפועל</span>
+              <span className="text-base font-bold text-amber-400 md:text-xl">{formatILS(balance)}</span>
             </div>
           </div>
         </div>
