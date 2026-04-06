@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Wallet, ChevronDown, LogOut, Settings, Plus, User, Sun, Moon, Sparkles } from 'lucide-react'
 import { logout } from '@/app/actions/auth'
 import { createSharedAccount } from '@/app/actions/accounts'
@@ -28,6 +28,8 @@ export default function AppNav({ accounts, userEmail }: AppNavProps) {
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [creatingAccount, setCreatingAccount] = useState(false)
   const { resolvedTheme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
 
   // Parse current route: /{accountId}/{year}/{month}
   const pathParts = pathname.split('/').filter(Boolean)
@@ -134,7 +136,7 @@ export default function AppNav({ accounts, userEmail }: AppNavProps) {
             className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
             title="החלף מצב תצוגה"
           >
-            {resolvedTheme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {mounted && (resolvedTheme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />)}
           </button>
 
           {currentAccount && (
