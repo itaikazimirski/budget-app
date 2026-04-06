@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { Plus, Pencil, Trash2, Check, X, FolderPlus, ChevronDown } from 'lucide-react'
 import type { CategoryWithStats, CategoryGroupRecord, Transaction } from '@/lib/types'
 import { BUCKETS } from '@/lib/types'
@@ -242,10 +242,10 @@ function GroupCard({
   month: number
   allGroups: CategoryGroupRecord[]
 }) {
-  const [isCollapsed, setIsCollapsed] = useState(() => {
-    if (typeof window === 'undefined') return false
-    return localStorage.getItem(`collapsed_group_${group.id}`) === 'true'
-  })
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  useEffect(() => {
+    setIsCollapsed(localStorage.getItem(`collapsed_group_${group.id}`) === 'true')
+  }, [group.id])
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState(group.name)
   const [showAddCategory, setShowAddCategory] = useState(false)

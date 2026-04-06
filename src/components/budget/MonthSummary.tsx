@@ -29,46 +29,70 @@ export default function MonthSummary({ stats, accountId, year, month }: MonthSum
   return (
     <>
       <div className="grid grid-cols-3 gap-3">
-        {/* Income card — clickable */}
+
+        {/* ── הכנסות ── */}
         <button
           onClick={() => setIncomeOpen(true)}
-          className="bg-emerald-50 dark:bg-emerald-950/40 rounded-2xl p-4 border border-emerald-200 dark:border-emerald-800/50 shadow-sm text-right hover:shadow-md transition-all"
+          className="bg-white dark:bg-card rounded-2xl border border-emerald-500/50 border-t-4 border-t-emerald-500 shadow-sm overflow-hidden text-right hover:shadow-md transition-all"
         >
-          <div className="flex items-center gap-2 mb-3">
-            <div className="bg-emerald-100 dark:bg-emerald-900/60 rounded-lg p-1.5">
-              <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <span className="text-sm text-emerald-700 dark:text-emerald-400 font-medium">הכנסות</span>
+          {/* Header bar */}
+          <div className="w-full py-3 px-4 flex justify-center items-center gap-2 bg-white/5 border-b border-white/10">
+            <TrendingUp className="w-4 h-4 text-white shrink-0" />
+            <span className="text-base font-semibold text-white">הכנסות</span>
           </div>
-          <p className="text-xl font-bold text-slate-900">{formatILS(totalIncome)}</p>
-          <p className="text-xs text-slate-400 mt-1">תוכנן: {formatILS(plannedIncome)}</p>
+          {/* Body */}
+          <div className="flex flex-col gap-3 p-4">
+            <div className="flex justify-center items-baseline gap-x-1.5">
+              <span className="text-sm font-semibold text-slate-300">תכנון</span>
+              <span className="text-2xl font-extrabold text-white">{formatILS(plannedIncome)}</span>
+            </div>
+            <div className="flex justify-center items-baseline gap-x-1.5">
+              <span className="text-sm font-semibold text-slate-400">בפועל</span>
+              <span className="text-xl font-bold text-emerald-400">{formatILS(totalIncome)}</span>
+            </div>
+          </div>
         </button>
 
-        {/* Expenses card */}
-        <div className="bg-violet-50 dark:bg-violet-950/40 rounded-2xl p-4 border border-violet-200 dark:border-violet-800/50 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="bg-violet-100 dark:bg-violet-900/60 rounded-lg p-1.5">
-              <TrendingDown className="w-4 h-4 text-violet-600 dark:text-violet-400" />
-            </div>
-            <span className="text-sm text-violet-700 dark:text-violet-400 font-medium">הוצאות</span>
+        {/* ── הוצאות ── */}
+        <div className="bg-white dark:bg-card rounded-2xl border border-rose-500/50 border-t-4 border-t-rose-500 shadow-sm overflow-hidden">
+          {/* Header bar */}
+          <div className="w-full py-3 px-4 flex justify-center items-center gap-2 bg-white/5 border-b border-white/10">
+            <TrendingDown className="w-4 h-4 text-white shrink-0" />
+            <span className="text-base font-semibold text-white">הוצאות</span>
           </div>
-          <p className="text-xl font-bold text-slate-900">{formatILS(totalExpenses)}</p>
-          <p className="text-xs text-slate-400 mt-1">תוכנן: {formatILS(plannedExpenses)}</p>
+          {/* Body */}
+          <div className="flex flex-col gap-3 p-4">
+            <div className="flex justify-center items-baseline gap-x-1.5">
+              <span className="text-sm font-semibold text-slate-300">תכנון</span>
+              <span className="text-2xl font-extrabold text-white">{formatILS(plannedExpenses)}</span>
+            </div>
+            <div className="flex justify-center items-baseline gap-x-1.5">
+              <span className="text-sm font-semibold text-slate-400">בפועל</span>
+              <span className="text-xl font-bold text-rose-400">{formatILS(totalExpenses)}</span>
+            </div>
+          </div>
         </div>
 
-        {/* Balance card */}
-        <div className="bg-indigo-50 dark:bg-indigo-950/40 rounded-2xl p-4 border border-indigo-200 dark:border-indigo-800/50 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="bg-indigo-100 dark:bg-indigo-900/60 rounded-lg p-1.5">
-              <Wallet className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-            </div>
-            <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400">תזרים</span>
+        {/* ── תזרים ── */}
+        <div className="bg-white dark:bg-card rounded-2xl border border-amber-500/60 border-t-4 border-t-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)] overflow-hidden">
+          {/* Header bar */}
+          <div className="w-full py-3 px-4 flex justify-center items-center gap-2 bg-white/5 border-b border-white/10">
+            <Wallet className="w-4 h-4 text-white shrink-0" />
+            <span className="text-base font-semibold text-white">תזרים</span>
           </div>
-          <p className={`text-xl font-bold ${balance >= 0 ? 'text-indigo-700 dark:text-indigo-300' : 'text-rose-600 dark:text-rose-400'}`}>
-            {formatILS(balance)}
-          </p>
-          <p className="text-xs text-slate-400 mt-1">תוכנן: {formatILS(plannedBalance)}</p>
+          {/* Body */}
+          <div className="flex flex-col gap-3 p-4">
+            <div className="flex justify-center items-baseline gap-x-1.5">
+              <span className="text-sm font-semibold text-slate-300">תכנון</span>
+              <span className="text-2xl font-extrabold text-white">{formatILS(plannedBalance)}</span>
+            </div>
+            <div className="flex justify-center items-baseline gap-x-1.5">
+              <span className="text-sm font-semibold text-slate-400">בפועל</span>
+              <span className="text-xl font-bold text-amber-400">{formatILS(balance)}</span>
+            </div>
+          </div>
         </div>
+
       </div>
 
       {/* Income popup */}
@@ -95,7 +119,6 @@ export default function MonthSummary({ stats, accountId, year, month }: MonthSum
                 </button>
               </div>
             </div>
-
             <div className="divide-y divide-slate-50">
               {incomeCategories.length === 0 ? (
                 <div className="px-5 py-10 text-center text-slate-400 text-sm">
