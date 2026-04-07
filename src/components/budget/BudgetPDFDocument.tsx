@@ -1,4 +1,4 @@
-import { Document, Page, View, Text, Font, StyleSheet, Svg, Path, Rect, G } from '@react-pdf/renderer'
+import { Document, Page, View, Text, Font, StyleSheet } from '@react-pdf/renderer'
 import type { CategoryWithStats } from '@/lib/types'
 
 Font.register({
@@ -16,40 +16,10 @@ function stripEmoji(str: string): string {
   return str.replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27BF}]|[\uD800-\uDFFF]/gu, '').trim()
 }
 
-const PIE_GROUPS = [
-  { key: 'משק בית', label: 'משק בית', color: '#6366f1' },
-  { key: 'ביטוח',   label: 'ביטוחים',  color: '#f59e0b' },
-  { key: 'מנוי',    label: 'מנויים',   color: '#10b981' },
-  { key: 'שאר',     label: 'שאר',      color: '#94a3b8' },
-]
-
 function formatILS(amount: number) {
   return '₪' + Math.round(amount).toLocaleString('he-IL')
 }
 
-function pieSlicePath(cx: number, cy: number, r: number, startAngle: number, endAngle: number): string {
-  const x1 = cx + r * Math.cos(startAngle)
-  const y1 = cy + r * Math.sin(startAngle)
-  const x2 = cx + r * Math.cos(endAngle)
-  const y2 = cy + r * Math.sin(endAngle)
-  const largeArc = endAngle - startAngle > Math.PI ? 1 : 0
-  return `M ${cx} ${cy} L ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${largeArc} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z`
-}
-
-function buildPieData(categories: CategoryWithStats[]) {
-  const totals: Record<string, number> = { 'משק בית': 0, 'ביטוח': 0, 'מנוי': 0, 'שאר': 0 }
-  for (const cat of categories) {
-    if (cat.actual_amount <= 0) continue
-    const key = cat.category_group ?? 'שאר'
-    if (key in totals) totals[key] += cat.actual_amount
-    else totals['שאר'] += cat.actual_amount
-  }
-  const total = Object.values(totals).reduce((s, v) => s + v, 0)
-  if (total === 0) return []
-  return PIE_GROUPS
-    .filter((g) => totals[g.key] > 0)
-    .map((g) => ({ ...g, value: totals[g.key], pct: totals[g.key] / total }))
-}
 
 const styles = StyleSheet.create({
   page: {
@@ -138,11 +108,6 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
     .sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct))
     .slice(0, 8)
 
-  // Pie chart
-  const pieData = buildPieData(expenseCategories)
-  const CX = 65, CY = 65, R = 55
-  let currentAngle = -Math.PI / 2
-
   // Table — sorted by actual descending
   const tableRows = [...expenseCategories]
     .filter((c) => c.actual_amount > 0 || c.budget_amount > 0)
@@ -187,37 +152,11 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
           </View>
         </View>
 
-        {/* Pie chart + legend */}
-        {pieData.length > 0 && (
+        {/* Per-category budget breakdown */}
+        {expenseCategories.some((c) => c.actual_amount > 0 || c.budget_amount > 0) && (
           <>
-            <Text style={styles.sectionTitle}>חלוקת הוצאות</Text>
-            <View style={styles.pieRow}>
-              <View style={styles.legend}>
-                {pieData.map((g) => (
-                  <View key={g.key} style={styles.legendItem}>
-                    <View style={[styles.legendDot, { backgroundColor: g.color }]} />
-                    <Text style={styles.legendLabel}>{g.label}</Text>
-                    <Text style={styles.legendPct}>{Math.round(g.pct * 100)}%</Text>
-                    <Text style={[styles.legendLabel, { color: '#94a3b8', fontSize: 9 }]}>{formatILS(g.value)}</Text>
-                  </View>
-                ))}
-              </View>
-              <Svg width={130} height={130}>
-                {pieData.map((g) => {
-                  const sweep = g.pct * 2 * Math.PI
-                  const endAngle = currentAngle + sweep
-                  const d = pieSlicePath(CX, CY, R, currentAngle, endAngle)
-                  currentAngle = endAngle
-                  return <Path key={g.key} d={d} fill={g.color} />
-                })}
-                <G>
-                  <Path d={`M ${CX - 25} ${CY} A 25 25 0 1 1 ${CX + 25} ${CY} A 25 25 0 1 1 ${CX - 25} ${CY}`} fill="#ffffff" />
-                </G>
-              </Svg>
-            </View>
-
-            {/* Per-category budget breakdown */}
-            <View style={{ marginBottom: 22, marginTop: 10 }}>
+            <Text style={styles.sectionTitle}>פירוט הוצאות</Text>
+            <View style={{ marginBottom: 22 }}>
               <View style={{ flexDirection: 'row-reverse', backgroundColor: '#f1f5f9', borderRadius: 6, paddingVertical: 5, paddingHorizontal: 10, marginBottom: 3 }}>
                 <Text style={{ flex: 2.5, fontSize: 8, fontWeight: 'bold', color: '#64748b', textAlign: 'right' }}>קטגוריה</Text>
                 <Text style={{ flex: 1, fontSize: 8, fontWeight: 'bold', color: '#64748b', textAlign: 'right' }}>תוכנן</Text>

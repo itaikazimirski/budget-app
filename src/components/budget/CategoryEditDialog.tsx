@@ -20,7 +20,6 @@ interface CategoryEditDialogProps {
 export default function CategoryEditDialog({ category, accountId, onClose }: CategoryEditDialogProps) {
   const [nameInput, setNameInput] = useState(category.name)
   const [selectedIcon, setSelectedIcon] = useState(category.icon ?? '📦')
-  const [selectedGroup, setSelectedGroup] = useState<'מנוי' | 'ביטוח' | 'משק בית' | null>(category.category_group ?? null)
   const [isFixed, setIsFixed] = useState(category.is_fixed ?? false)
   const [isPending, startTransition] = useTransition()
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -42,7 +41,6 @@ export default function CategoryEditDialog({ category, accountId, onClose }: Cat
       fd.set('accountId', accountId)
       fd.set('name', nameInput)
       fd.set('icon', selectedIcon)
-      if (selectedGroup) fd.set('category_group', selectedGroup)
       fd.set('is_fixed', String(isFixed))
       const result = await updateCategory(fd)
       if (result?.error) { toast.error('שגיאה בשמירת הקטגוריה'); return }

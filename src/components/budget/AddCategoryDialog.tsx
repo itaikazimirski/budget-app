@@ -23,7 +23,6 @@ interface AddCategoryDialogProps {
 
 export default function AddCategoryDialog({ type, accountId, year, month, defaultGroupId, groups, onClose }: AddCategoryDialogProps) {
   const [selectedIcon, setSelectedIcon] = useState(type === 'income' ? '💰' : '📦')
-  const [selectedGroup, setSelectedGroup] = useState<'מנוי' | 'ביטוח' | null>(null)
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(defaultGroupId)
   const [isFixed, setIsFixed] = useState(false)
   const [isOneTime, setIsOneTime] = useState(false)
@@ -37,7 +36,6 @@ export default function AddCategoryDialog({ type, accountId, year, month, defaul
     fd.set('accountId', accountId)
     fd.set('type', type)
     fd.set('icon', selectedIcon)
-    if (selectedGroup) fd.set('category_group', selectedGroup)
     if (selectedGroupId) fd.set('group_id', selectedGroupId)
     fd.set('is_fixed', String(isFixed))
     if (isOneTime) {
