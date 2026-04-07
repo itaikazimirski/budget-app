@@ -26,5 +26,7 @@ interface AuditParams {
  * Never throws — a logging failure must never break the actual operation.
  */
 export function logAudit(supabase: SupabaseClient, params: AuditParams): void {
-  supabase.from('audit_logs').insert(params).then(() => {})
+  supabase.from('audit_logs').insert(params).then(({ error }) => {
+    if (error) console.error('[auditLog] failed to insert:', error.message, params)
+  })
 }
