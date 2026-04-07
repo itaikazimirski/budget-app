@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { assertAccountAccess } from '@/lib/assertAccountAccess'
 import { revalidatePath } from 'next/cache'
 
 const GROUP_MAP: Record<string, string> = {
@@ -189,6 +190,9 @@ export async function createCategoryGroup(accountId: string, name: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
+  try { await assertAccountAccess(supabase, user.id, accountId) }
+  catch { return { error: 'Access denied' } }
+
   const { data: existing } = await supabase
     .from('category_groups')
     .select('sort_order')
@@ -213,10 +217,14 @@ export async function updateCategoryGroup(groupId: string, name: string, account
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
+  try { await assertAccountAccess(supabase, user.id, accountId) }
+  catch { return { error: 'Access denied' } }
+
   const { error } = await supabase
     .from('category_groups')
     .update({ name })
     .eq('id', groupId)
+    .eq('account_id', accountId)
 
   if (error) return { error: error.message }
 
@@ -228,6 +236,9 @@ export async function deleteCategoryGroup(groupId: string, accountId: string, ta
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
+
+  try { await assertAccountAccess(supabase, user.id, accountId) }
+  catch { return { error: 'Access denied' } }
 
   if (targetGroupId) {
     // Move categories to target group before deleting
@@ -253,10 +264,14 @@ export async function moveCategoryToGroup(categoryId: string, groupId: string | 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
+  try { await assertAccountAccess(supabase, user.id, accountId) }
+  catch { return { error: 'Access denied' } }
+
   const { error } = await supabase
     .from('categories')
     .update({ group_id: groupId })
     .eq('id', categoryId)
+    .eq('account_id', accountId)
 
   if (error) return { error: error.message }
 

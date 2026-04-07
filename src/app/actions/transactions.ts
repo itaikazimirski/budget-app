@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { assertAccountAccess } from '@/lib/assertAccountAccess'
 
 export async function addTransaction(formData: FormData) {
   const supabase = await createClient()
@@ -16,6 +17,9 @@ export async function addTransaction(formData: FormData) {
   const notes = formData.get('notes') as string || null
 
   if (isNaN(amount) || amount <= 0) return { error: 'Invalid amount' }
+
+  try { await assertAccountAccess(supabase, user.id, accountId) }
+  catch { return { error: 'Access denied' } }
 
   const { data: newTx, error } = await supabase.from('transactions').insert({
     account_id: accountId,
@@ -49,10 +53,14 @@ export async function updateTransaction(formData: FormData) {
 
   if (isNaN(amount) || amount <= 0) return { error: 'Invalid amount' }
 
+  try { await assertAccountAccess(supabase, user.id, accountId) }
+  catch { return { error: 'Access denied' } }
+
   const { error } = await supabase
     .from('transactions')
     .update({ category_id: categoryId, amount, type, date, notes })
     .eq('id', transactionId)
+    .eq('account_id', accountId) // extra guard
 
   if (error) return { error: error.message }
 
@@ -66,7 +74,14 @@ export async function deleteTransaction(transactionId: string, accountId: string
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  const { error } = await supabase.from('transactions').delete().eq('id', transactionId)
+  try { await assertAccountAccess(supabase, user.id, accountId) }
+  catch { return { error: 'Access denied' } }
+
+  const { error } = await supabase
+    .from('transactions')
+    .delete()
+    .eq('id', transactionId)
+    .eq('account_id', accountId) // extra guard
 
   if (error) return { error: error.message }
 

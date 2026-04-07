@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { CategoryType } from '@/lib/types'
+import { assertAccountAccess } from '@/lib/assertAccountAccess'
 
 export async function addCategory(formData: FormData) {
   const supabase = await createClient()
@@ -10,6 +11,8 @@ export async function addCategory(formData: FormData) {
   if (!user) return { error: 'Not authenticated' }
 
   const accountId = formData.get('accountId') as string
+  try { await assertAccountAccess(supabase, user.id, accountId) }
+  catch { return { error: 'Access denied' } }
   const name = formData.get('name') as string
   const type = formData.get('type') as CategoryType
   const icon = formData.get('icon') as string || '📦'
@@ -59,6 +62,8 @@ export async function updateCategory(formData: FormData) {
 
   const categoryId = formData.get('categoryId') as string
   const accountId = formData.get('accountId') as string
+  try { await assertAccountAccess(supabase, user.id, accountId) }
+  catch { return { error: 'Access denied' } }
   const name = formData.get('name') as string
   const icon = formData.get('icon') as string || '📦'
   const bucket = formData.get('bucket') as string || null
@@ -158,7 +163,10 @@ export async function deleteCategory(categoryId: string, accountId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  const { error } = await supabase.from('categories').delete().eq('id', categoryId)
+  try { await assertAccountAccess(supabase, user.id, accountId) }
+  catch { return { error: 'Access denied' } }
+
+  const { error } = await supabase.from('categories').delete().eq('id', categoryId).eq('account_id', accountId)
 
   if (error) return { error: error.message }
 
