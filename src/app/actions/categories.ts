@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import type { CategoryType } from '@/lib/types'
 import { assertAccountAccess } from '@/lib/assertAccountAccess'
 import { validateName, validateAmount, validateYear, validateMonth, validateEnum, validateUuid } from '@/lib/validate'
+import { logAudit } from '@/lib/auditLog'
 
 export async function addCategory(formData: FormData) {
   const supabase = await createClient()
@@ -63,6 +64,12 @@ export async function addCategory(formData: FormData) {
       monthly_amount: monthlyAmount,
     })
   }
+
+  logAudit(supabase, {
+    account_id: accountId, user_id: user.id, action: 'category.create',
+    entity_id: category.id,
+    metadata: { name, type },
+  })
 
   revalidatePath(`/${accountId}`)
   return { success: true }
@@ -197,6 +204,11 @@ export async function deleteCategory(categoryId: string, accountId: string) {
 
   if (error) return { error: error.message }
 
+  logAudit(supabase, {
+    account_id: accountId, user_id: user.id, action: 'category.delete',
+    entity_id: categoryId,
+  })
+
   revalidatePath(`/${accountId}`)
   return { success: true }
 }
@@ -223,6 +235,11 @@ export async function updateBudgetTemplate(formData: FormData) {
     )
 
   if (error) return { error: error.message }
+
+  logAudit(supabase, {
+    account_id: accountId, user_id: user.id, action: 'budget.update_template',
+    entity_id: categoryId, metadata: { amount: monthlyAmount },
+  })
 
   revalidatePath(`/${accountId}`)
   return { success: true }
@@ -255,6 +272,11 @@ export async function updateMonthBudget(formData: FormData) {
     )
 
   if (error) return { error: error.message }
+
+  logAudit(supabase, {
+    account_id: accountId, user_id: user.id, action: 'budget.update_month',
+    entity_id: categoryId, metadata: { amount: monthlyAmount, year, month },
+  })
 
   revalidatePath(`/${accountId}/${year}/${month}`)
   return { success: true }

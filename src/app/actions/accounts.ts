@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { assertAccountAccess } from '@/lib/assertAccountAccess'
 import { validateName, validateEmail, validateUuid } from '@/lib/validate'
+import { logAudit } from '@/lib/auditLog'
 
 export async function createSharedAccount(formData: FormData) {
   const supabase = await createClient()
@@ -66,6 +67,10 @@ export async function inviteMember(formData: FormData) {
     return { error: error.message }
   }
 
+  logAudit(supabase, {
+    account_id: accountId, user_id: user.id, action: 'member.invite',
+  })
+
   revalidatePath(`/${accountId}/settings`)
   return { success: true }
 }
@@ -123,6 +128,11 @@ export async function updateAccountName(formData: FormData) {
     .eq('created_by', user.id)
 
   if (error) return { error: error.message }
+
+  logAudit(supabase, {
+    account_id: accountId, user_id: user.id, action: 'account.rename',
+    metadata: { name },
+  })
 
   revalidatePath(`/${accountId}/settings`)
   return { success: true }

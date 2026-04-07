@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { assertAccountAccess } from '@/lib/assertAccountAccess'
 import { validateAmount, validateEnum, validateUuid } from '@/lib/validate'
+import { logAudit } from '@/lib/auditLog'
 
 export async function addTransaction(formData: FormData) {
   const supabase = await createClient()
@@ -42,6 +43,12 @@ export async function addTransaction(formData: FormData) {
   }).select('*').single()
 
   if (error) return { error: error.message }
+
+  logAudit(supabase, {
+    account_id: accountId, user_id: user.id, action: 'transaction.create',
+    entity_id: newTx.id,
+    metadata: { amount, type, date, category_id: categoryId },
+  })
 
   const [year, month] = date.split('-')
   revalidatePath(`/${accountId}/${year}/${parseInt(month)}`)
@@ -83,6 +90,12 @@ export async function updateTransaction(formData: FormData) {
 
   if (error) return { error: error.message }
 
+  logAudit(supabase, {
+    account_id: accountId, user_id: user.id, action: 'transaction.update',
+    entity_id: transactionId,
+    metadata: { amount, type, date, category_id: categoryId },
+  })
+
   const [year, month] = date.split('-')
   revalidatePath(`/${accountId}/${year}/${parseInt(month)}`)
   return { success: true }
@@ -105,6 +118,11 @@ export async function deleteTransaction(transactionId: string, accountId: string
     .eq('account_id', accountId)
 
   if (error) return { error: error.message }
+
+  logAudit(supabase, {
+    account_id: accountId, user_id: user.id, action: 'transaction.delete',
+    entity_id: transactionId,
+  })
 
   revalidatePath(`/${accountId}/${year}/${month}`)
   return { success: true }
