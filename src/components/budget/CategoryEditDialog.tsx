@@ -6,7 +6,6 @@ import { X, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { CategoryWithStats } from '@/lib/types'
 import { updateCategory, deleteCategory } from '@/app/actions/categories'
-import { BUCKETS } from '@/lib/types'
 import EmojiPickerButton from './EmojiPickerButton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,7 +20,6 @@ interface CategoryEditDialogProps {
 export default function CategoryEditDialog({ category, accountId, onClose }: CategoryEditDialogProps) {
   const [nameInput, setNameInput] = useState(category.name)
   const [selectedIcon, setSelectedIcon] = useState(category.icon ?? '📦')
-  const [selectedBucket, setSelectedBucket] = useState(category.bucket ?? 'מחיה')
   const [selectedGroup, setSelectedGroup] = useState<'מנוי' | 'ביטוח' | 'משק בית' | null>(category.category_group ?? null)
   const [isFixed, setIsFixed] = useState(category.is_fixed ?? false)
   const [isPending, startTransition] = useTransition()
@@ -44,7 +42,6 @@ export default function CategoryEditDialog({ category, accountId, onClose }: Cat
       fd.set('accountId', accountId)
       fd.set('name', nameInput)
       fd.set('icon', selectedIcon)
-      fd.set('bucket', selectedBucket)
       if (selectedGroup) fd.set('category_group', selectedGroup)
       fd.set('is_fixed', String(isFixed))
       const result = await updateCategory(fd)
@@ -69,47 +66,6 @@ export default function CategoryEditDialog({ category, accountId, onClose }: Cat
               <Input id="catName" value={nameInput} onChange={(e) => setNameInput(e.target.value)} required autoFocus />
             </div>
 
-            <div className="space-y-1.5">
-              <Label>סיווג</Label>
-              <div className="flex gap-2">
-                {BUCKETS.map((b) => (
-                  <button
-                    key={b}
-                    type="button"
-                    onClick={() => setSelectedBucket(b)}
-                    className={`flex-1 py-1.5 text-sm rounded-lg font-medium transition-colors ${
-                      selectedBucket === b
-                        ? 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-300'
-                        : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                    }`}
-                  >
-                    {b}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {category.type === 'expense' && (
-              <div className="space-y-1.5">
-                <Label>סוג מיוחד (אופציונלי)</Label>
-                <div className="flex gap-2">
-                  {(['מנוי', 'ביטוח'] as const).map((g) => (
-                    <button
-                      key={g}
-                      type="button"
-                      onClick={() => setSelectedGroup(selectedGroup === g ? null : g)}
-                      className={`flex-1 py-1.5 text-sm rounded-lg font-medium transition-colors flex items-center justify-center gap-1.5 ${
-                        selectedGroup === g
-                          ? 'bg-violet-100 text-violet-700 ring-1 ring-violet-300'
-                          : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                      }`}
-                    >
-                      {g === 'מנוי' ? '📺' : '🛡️'} {g}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {category.type === 'expense' && (
               <button

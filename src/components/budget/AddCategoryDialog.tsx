@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
 import { addCategory } from '@/app/actions/categories'
-import { BUCKETS, CategoryGroupRecord } from '@/lib/types'
+import { CategoryGroupRecord } from '@/lib/types'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -23,7 +23,6 @@ interface AddCategoryDialogProps {
 
 export default function AddCategoryDialog({ type, accountId, year, month, defaultGroupId, groups, onClose }: AddCategoryDialogProps) {
   const [selectedIcon, setSelectedIcon] = useState(type === 'income' ? '💰' : '📦')
-  const [selectedBucket, setSelectedBucket] = useState<string>('מחיה')
   const [selectedGroup, setSelectedGroup] = useState<'מנוי' | 'ביטוח' | null>(null)
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(defaultGroupId)
   const [isFixed, setIsFixed] = useState(false)
@@ -38,7 +37,6 @@ export default function AddCategoryDialog({ type, accountId, year, month, defaul
     fd.set('accountId', accountId)
     fd.set('type', type)
     fd.set('icon', selectedIcon)
-    fd.set('bucket', selectedBucket)
     if (selectedGroup) fd.set('category_group', selectedGroup)
     if (selectedGroupId) fd.set('group_id', selectedGroupId)
     fd.set('is_fixed', String(isFixed))
@@ -133,49 +131,6 @@ export default function AddCategoryDialog({ type, accountId, year, month, defaul
             </div>
           )}
 
-          {type === 'expense' && (
-            <>
-              <div className="space-y-1.5">
-                <Label>סיווג</Label>
-                <div className="flex gap-2">
-                  {BUCKETS.map((b) => (
-                    <button
-                      key={b}
-                      type="button"
-                      onClick={() => setSelectedBucket(b)}
-                      className={`flex-1 py-1.5 text-sm rounded-lg font-medium transition-colors ${
-                        selectedBucket === b
-                          ? 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-300'
-                          : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                      }`}
-                    >
-                      {b}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>סוג מיוחד (אופציונלי)</Label>
-                <div className="flex gap-2">
-                  {(['מנוי', 'ביטוח'] as const).map((g) => (
-                    <button
-                      key={g}
-                      type="button"
-                      onClick={() => setSelectedGroup(selectedGroup === g ? null : g)}
-                      className={`flex-1 py-1.5 text-sm rounded-lg font-medium transition-colors flex items-center justify-center gap-1.5 ${
-                        selectedGroup === g
-                          ? 'bg-violet-100 text-violet-700 ring-1 ring-violet-300'
-                          : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                      }`}
-                    >
-                      {g === 'מנוי' ? '📺' : '🛡️'} {g}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
 
           {type === 'expense' && !isOneTime && (
             <button

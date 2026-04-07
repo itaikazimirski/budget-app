@@ -4,7 +4,6 @@ import { useState, useTransition, useEffect } from 'react'
 import { toast } from 'sonner'
 import { Plus, Pencil, Trash2, Check, X, FolderPlus, ChevronDown } from 'lucide-react'
 import type { CategoryWithStats, CategoryGroupRecord, Transaction } from '@/lib/types'
-import { BUCKETS } from '@/lib/types'
 import { createCategoryGroup, updateCategoryGroup, deleteCategoryGroup } from '@/app/actions/categoryGroups'
 import { updateMonthBudget, updateTemplateBudget } from '@/app/actions/categories'
 import { formatILS } from '@/lib/budget-utils'
@@ -20,61 +19,6 @@ interface Props {
   year: number
   month: number
   transactions: (Transaction & { entered_by?: string | null })[]
-}
-
-// ─── Bucket summary bar ───────────────────────────────────────────────────────
-
-const BUCKET_STYLES = {
-  'מחיה':   { bar: 'bg-blue-500',    pill: 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300' },
-  'מותרות': { bar: 'bg-violet-500',  pill: 'bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300' },
-  'חסכון':  { bar: 'bg-emerald-500', pill: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' },
-}
-
-function BucketBar({ categories }: { categories: CategoryWithStats[] }) {
-  const totalBudget = categories.reduce((s, c) => s + c.budget_amount, 0)
-
-  const bucketData = BUCKETS.map((bucket) => {
-    const cats = categories.filter((c) => c.bucket === bucket)
-    const budget = cats.reduce((s, c) => s + c.budget_amount, 0)
-    const actual = cats.reduce((s, c) => s + c.actual_amount, 0)
-    const pct = totalBudget > 0 ? (budget / totalBudget) * 100 : 0
-    return { bucket, budget, actual, pct }
-  })
-
-  if (totalBudget === 0) return null
-
-  return (
-    <div className="bg-white dark:bg-card rounded-2xl border border-slate-200 dark:border-white/[0.08] shadow-sm px-4 py-3">
-      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 text-right">פילוח הוצאות</p>
-      {/* Horizontal bar */}
-      <div className="flex h-2 rounded-full overflow-hidden gap-0.5 mb-3">
-        {bucketData.map(({ bucket, pct }) =>
-          pct > 0 ? (
-            <div
-              key={bucket}
-              className={`${BUCKET_STYLES[bucket as keyof typeof BUCKET_STYLES].bar} h-full rounded-full`}
-              style={{ width: `${pct}%` }}
-            />
-          ) : null
-        )}
-      </div>
-      {/* Pill badges */}
-      <div className="flex gap-2 justify-end flex-wrap">
-        {bucketData.map(({ bucket, actual, budget, pct }) =>
-          pct > 0 ? (
-            <div
-              key={bucket}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${BUCKET_STYLES[bucket as keyof typeof BUCKET_STYLES].pill}`}
-            >
-              <span className="opacity-70">{bucket}</span>
-              <span className="font-bold tabular-nums">{formatILS(actual)}</span>
-              <span className="opacity-50 tabular-nums">/ {formatILS(budget)}</span>
-            </div>
-          ) : null
-        )}
-      </div>
-    </div>
-  )
 }
 
 // ─── Category row ─────────────────────────────────────────────────────────────
@@ -484,9 +428,6 @@ export default function CategoryGroupsGrid({
 
   return (
     <div className="space-y-4">
-      {/* Bucket summary bar */}
-      <BucketBar categories={expenseCategories} />
-
       {/* Section title + new group button */}
       <div className="flex items-center justify-between px-1">
         <button
