@@ -5,7 +5,8 @@ import { Home, Plus, ChevronDown, ChevronUp } from 'lucide-react'
 import type { CategoryWithStats, Transaction } from '@/lib/types'
 import HouseholdCardCompact from './HouseholdCardCompact'
 import HouseholdRentCard from './HouseholdRentCard'
-import AddCategoryDialog from './AddCategoryDialog'
+import dynamic from 'next/dynamic'
+const AddCategoryDialog = dynamic(() => import('./AddCategoryDialog'), { ssr: false })
 import { formatILS } from '@/lib/budget-utils'
 
 interface HouseholdSectionProps {

@@ -5,7 +5,8 @@ import { useState } from 'react'
 import type { CategoryWithStats, Transaction } from '@/lib/types'
 import CategoryCard from './CategoryCard'
 import GroupRow from './GroupRow'
-import AddCategoryDialog from './AddCategoryDialog'
+import dynamic from 'next/dynamic'
+const AddCategoryDialog = dynamic(() => import('./AddCategoryDialog'), { ssr: false })
 import { Plus } from 'lucide-react'
 
 interface CategorySectionProps {

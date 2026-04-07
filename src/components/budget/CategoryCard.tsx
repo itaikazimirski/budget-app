@@ -6,7 +6,8 @@ import { updateMonthBudget, updateTemplateBudget } from '@/app/actions/categorie
 import { Edit2, Check, X, Settings2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { formatILS } from '@/lib/budget-utils'
-import CategoryEditDialog from './CategoryEditDialog'
+import dynamic from 'next/dynamic'
+const CategoryEditDialog = dynamic(() => import('./CategoryEditDialog'), { ssr: false })
 
 interface CategoryCardProps {
   category: CategoryWithStats

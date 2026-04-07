@@ -8,8 +8,9 @@ import { BUCKETS } from '@/lib/types'
 import { createCategoryGroup, updateCategoryGroup, deleteCategoryGroup } from '@/app/actions/categoryGroups'
 import { updateMonthBudget, updateTemplateBudget } from '@/app/actions/categories'
 import { formatILS } from '@/lib/budget-utils'
-import AddCategoryDialog from './AddCategoryDialog'
-import CategoryEditDialog from './CategoryEditDialog'
+import dynamic from 'next/dynamic'
+const AddCategoryDialog = dynamic(() => import('./AddCategoryDialog'), { ssr: false })
+const CategoryEditDialog = dynamic(() => import('./CategoryEditDialog'), { ssr: false })
 
 interface Props {
   groups: CategoryGroupRecord[]

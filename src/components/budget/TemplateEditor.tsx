@@ -3,7 +3,8 @@
 import { useState, useTransition } from 'react'
 import type { Category } from '@/lib/types'
 import { updateBudgetTemplate, deleteCategory } from '@/app/actions/categories'
-import AddCategoryDialog from './AddCategoryDialog'
+import dynamic from 'next/dynamic'
+const AddCategoryDialog = dynamic(() => import('./AddCategoryDialog'), { ssr: false })
 import { Plus, Edit2, Trash2, Check, X } from 'lucide-react'
 
 interface CatWithAmount extends Category {

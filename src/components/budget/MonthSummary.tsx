@@ -5,7 +5,8 @@ import { useState } from 'react'
 import { TrendingUp, TrendingDown, Wallet, X, Plus } from 'lucide-react'
 import type { MonthlyStats } from '@/lib/types'
 import CategoryCard from './CategoryCard'
-import AddCategoryDialog from './AddCategoryDialog'
+import dynamic from 'next/dynamic'
+const AddCategoryDialog = dynamic(() => import('./AddCategoryDialog'), { ssr: false })
 
 
 interface MonthSummaryProps {
