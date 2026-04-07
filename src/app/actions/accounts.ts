@@ -86,7 +86,8 @@ export async function deleteApiKey(keyId: string, accountId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  await supabase.from('api_keys').delete().eq('id', keyId)
+  // Delete only if the key belongs to this account and was created by this user
+  await supabase.from('api_keys').delete().eq('id', keyId).eq('account_id', accountId).eq('user_id', user.id)
 
   revalidatePath(`/${accountId}/settings`)
   return { success: true }
