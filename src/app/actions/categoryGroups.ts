@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { assertAccountAccess } from '@/lib/assertAccountAccess'
 import { revalidatePath } from 'next/cache'
+import { validateName, validateUuid } from '@/lib/validate'
 
 const GROUP_MAP: Record<string, string> = {
   'מנוי': 'מנויים',
@@ -45,7 +46,6 @@ export async function fixOrphanCategories(accountId: string) {
     return data?.id ?? null
   }
 
-  // Bucket orphans by target group name
   const byTarget: Record<string, string[]> = {}
   for (const cat of orphans) {
     const targetName = cat.category_group && GROUP_MAP[cat.category_group as string]
@@ -55,7 +55,6 @@ export async function fixOrphanCategories(accountId: string) {
     byTarget[targetName].push(cat.id)
   }
 
-  // One update per group instead of one per category
   for (const [targetName, ids] of Object.entries(byTarget)) {
     const groupId = await ensureGroup(targetName)
     if (groupId) {
@@ -64,13 +63,11 @@ export async function fixOrphanCategories(accountId: string) {
   }
 }
 
-// Corrects categories that have a category_group value but landed in the wrong group
-// (e.g. old broken fixOrphanCategories dumped 'משק בית' cats into 'הוצאות שוטפות').
+// Corrects categories that have a category_group value but landed in the wrong group.
 // Idempotent — safe to run on every page load.
 export async function reassignMisplacedCategories(accountId: string) {
   const supabase = await createClient()
 
-  // Fetch all expense categories that have a category_group set (legacy field)
   const { data: cats } = await supabase
     .from('categories')
     .select('id, category_group, group_id')
@@ -80,7 +77,6 @@ export async function reassignMisplacedCategories(accountId: string) {
 
   if (!cats || cats.length === 0) return
 
-  // Load existing groups
   const { data: existingGroups } = await supabase
     .from('category_groups')
     .select('id, name, sort_order')
@@ -106,20 +102,18 @@ export async function reassignMisplacedCategories(accountId: string) {
     return data?.id ?? null
   }
 
-  // Bucket misplaced categories by target group name
   const byTarget: Record<string, string[]> = {}
   for (const cat of cats) {
     const expectedGroupName = GROUP_MAP[cat.category_group as string]
     if (!expectedGroupName) continue
     const currentGroupName = cat.group_id ? groupById[cat.group_id] : null
-    if (currentGroupName === expectedGroupName) continue // already correct
+    if (currentGroupName === expectedGroupName) continue
     if (!byTarget[expectedGroupName]) byTarget[expectedGroupName] = []
     byTarget[expectedGroupName].push(cat.id)
   }
 
-  if (Object.keys(byTarget).length === 0) return // nothing to fix
+  if (Object.keys(byTarget).length === 0) return
 
-  // One update per target group instead of one per category
   for (const [targetName, ids] of Object.entries(byTarget)) {
     const groupId = await ensureGroup(targetName)
     if (groupId) {
@@ -132,16 +126,14 @@ export async function reassignMisplacedCategories(accountId: string) {
 export async function migrateToGroups(accountId: string) {
   const supabase = await createClient()
 
-  // Check if already migrated
   const { data: existing } = await supabase
     .from('category_groups')
     .select('id')
     .eq('account_id', accountId)
     .limit(1)
 
-  if (existing && existing.length > 0) return // already done
+  if (existing && existing.length > 0) return
 
-  // Fetch all categories for this account
   const { data: categories } = await supabase
     .from('categories')
     .select('id, category_group')
@@ -149,7 +141,6 @@ export async function migrateToGroups(accountId: string) {
 
   if (!categories || categories.length === 0) return
 
-  // Determine which named groups are needed
   const neededGroups = new Set<string>()
   let hasDefault = false
   for (const cat of categories) {
@@ -160,7 +151,6 @@ export async function migrateToGroups(accountId: string) {
     }
   }
 
-  // Create groups in order: default first, then named ones
   const groupsToCreate: { name: string; sort_order: number }[] = []
   if (hasDefault) groupsToCreate.push({ name: 'הוצאות שוטפות', sort_order: 0 })
   Array.from(neededGroups).forEach((name, i) => groupsToCreate.push({ name, sort_order: i + 1 }))
@@ -174,7 +164,6 @@ export async function migrateToGroups(accountId: string) {
 
   const groupByName = Object.fromEntries(createdGroups.map((g) => [g.name, g.id]))
 
-  // Assign each category to its group
   await Promise.all(categories.map((cat) => {
     const mappedName = cat.category_group ? GROUP_MAP[cat.category_group] : null
     const group_id = mappedName ? groupByName[mappedName] : groupByName['הוצאות שוטפות']
@@ -190,6 +179,10 @@ export async function createCategoryGroup(accountId: string, name: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
+  if (!validateUuid(accountId)) return { error: 'Invalid account' }
+  const validName = validateName(name)
+  if (!validName) return { error: 'Invalid group name' }
+
   try { await assertAccountAccess(supabase, user.id, accountId) }
   catch { return { error: 'Access denied' } }
 
@@ -204,7 +197,7 @@ export async function createCategoryGroup(accountId: string, name: string) {
 
   const { error } = await supabase
     .from('category_groups')
-    .insert({ account_id: accountId, name, sort_order })
+    .insert({ account_id: accountId, name: validName, sort_order })
 
   if (error) return { error: error.message }
 
@@ -217,12 +210,16 @@ export async function updateCategoryGroup(groupId: string, name: string, account
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
+  if (!validateUuid(groupId) || !validateUuid(accountId)) return { error: 'Invalid input' }
+  const validName = validateName(name)
+  if (!validName) return { error: 'Invalid group name' }
+
   try { await assertAccountAccess(supabase, user.id, accountId) }
   catch { return { error: 'Access denied' } }
 
   const { error } = await supabase
     .from('category_groups')
-    .update({ name })
+    .update({ name: validName })
     .eq('id', groupId)
     .eq('account_id', accountId)
 
@@ -237,14 +234,15 @@ export async function deleteCategoryGroup(groupId: string, accountId: string, ta
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
+  if (!validateUuid(groupId) || !validateUuid(accountId)) return { error: 'Invalid input' }
+  if (targetGroupId && !validateUuid(targetGroupId)) return { error: 'Invalid target group' }
+
   try { await assertAccountAccess(supabase, user.id, accountId) }
   catch { return { error: 'Access denied' } }
 
   if (targetGroupId) {
-    // Move categories to target group before deleting
     await supabase.from('categories').update({ group_id: targetGroupId }).eq('group_id', groupId)
   } else {
-    // Empty group — just unlink (safety fallback)
     await supabase.from('categories').update({ group_id: null }).eq('group_id', groupId)
   }
 
@@ -263,6 +261,9 @@ export async function moveCategoryToGroup(categoryId: string, groupId: string | 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
+
+  if (!validateUuid(categoryId) || !validateUuid(accountId)) return { error: 'Invalid input' }
+  if (groupId && !validateUuid(groupId)) return { error: 'Invalid group' }
 
   try { await assertAccountAccess(supabase, user.id, accountId) }
   catch { return { error: 'Access denied' } }

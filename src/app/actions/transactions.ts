@@ -3,20 +3,30 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { assertAccountAccess } from '@/lib/assertAccountAccess'
+import { validateAmount, validateEnum, validateUuid } from '@/lib/validate'
 
 export async function addTransaction(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  const accountId = formData.get('accountId') as string
-  const categoryId = formData.get('categoryId') as string || null
-  const amount = parseFloat(formData.get('amount') as string)
-  const type = formData.get('type') as 'income' | 'expense'
-  const date = formData.get('date') as string
-  const notes = formData.get('notes') as string || null
+  const accountId = validateUuid(formData.get('accountId'))
+  if (!accountId) return { error: 'Invalid account' }
 
-  if (isNaN(amount) || amount <= 0) return { error: 'Invalid amount' }
+  const categoryId = validateUuid(formData.get('categoryId')) ?? null
+  const amount = validateAmount(formData.get('amount'))
+  if (amount === null || amount <= 0) return { error: 'Invalid amount' }
+
+  const type = validateEnum<'income' | 'expense'>(formData.get('type'), ['income', 'expense'])
+  if (!type) return { error: 'Invalid type' }
+
+  const date = formData.get('date') as string
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: 'Invalid date' }
+
+  const rawNotes = formData.get('notes')
+  const notes = typeof rawNotes === 'string' && rawNotes.trim().length > 0
+    ? rawNotes.trim().slice(0, 500)
+    : null
 
   try { await assertAccountAccess(supabase, user.id, accountId) }
   catch { return { error: 'Access denied' } }
@@ -43,15 +53,24 @@ export async function updateTransaction(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  const transactionId = formData.get('transactionId') as string
-  const accountId = formData.get('accountId') as string
-  const categoryId = formData.get('categoryId') as string || null
-  const amount = parseFloat(formData.get('amount') as string)
-  const type = formData.get('type') as 'income' | 'expense'
-  const date = formData.get('date') as string
-  const notes = formData.get('notes') as string || null
+  const transactionId = validateUuid(formData.get('transactionId'))
+  const accountId = validateUuid(formData.get('accountId'))
+  if (!transactionId || !accountId) return { error: 'Invalid input' }
 
-  if (isNaN(amount) || amount <= 0) return { error: 'Invalid amount' }
+  const categoryId = validateUuid(formData.get('categoryId')) ?? null
+  const amount = validateAmount(formData.get('amount'))
+  if (amount === null || amount <= 0) return { error: 'Invalid amount' }
+
+  const type = validateEnum<'income' | 'expense'>(formData.get('type'), ['income', 'expense'])
+  if (!type) return { error: 'Invalid type' }
+
+  const date = formData.get('date') as string
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: 'Invalid date' }
+
+  const rawNotes = formData.get('notes')
+  const notes = typeof rawNotes === 'string' && rawNotes.trim().length > 0
+    ? rawNotes.trim().slice(0, 500)
+    : null
 
   try { await assertAccountAccess(supabase, user.id, accountId) }
   catch { return { error: 'Access denied' } }
@@ -60,7 +79,7 @@ export async function updateTransaction(formData: FormData) {
     .from('transactions')
     .update({ category_id: categoryId, amount, type, date, notes })
     .eq('id', transactionId)
-    .eq('account_id', accountId) // extra guard
+    .eq('account_id', accountId)
 
   if (error) return { error: error.message }
 
@@ -74,6 +93,8 @@ export async function deleteTransaction(transactionId: string, accountId: string
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
+  if (!validateUuid(transactionId) || !validateUuid(accountId)) return { error: 'Invalid input' }
+
   try { await assertAccountAccess(supabase, user.id, accountId) }
   catch { return { error: 'Access denied' } }
 
@@ -81,7 +102,7 @@ export async function deleteTransaction(transactionId: string, accountId: string
     .from('transactions')
     .delete()
     .eq('id', transactionId)
-    .eq('account_id', accountId) // extra guard
+    .eq('account_id', accountId)
 
   if (error) return { error: error.message }
 

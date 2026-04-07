@@ -2,18 +2,23 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { validateEmail, validateName } from '@/lib/validate'
 
 export async function login(_: unknown, formData: FormData) {
   const supabase = await createClient()
 
-  const email = formData.get('email') as string
+  const email = validateEmail(formData.get('email'))
+  if (!email) return { error: 'Invalid email address' }
+
   const password = formData.get('password') as string
+  if (typeof password !== 'string' || password.length < 6 || password.length > 256) {
+    return { error: 'Invalid password' }
+  }
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
   if (error) return { error: error.message }
 
-  // If user has no account yet (e.g. signed up before schema was ready), create one now
   if (data.user) {
     const { data: memberships } = await supabase
       .from('account_members')
@@ -38,9 +43,15 @@ export async function login(_: unknown, formData: FormData) {
 export async function signup(_: unknown, formData: FormData) {
   const supabase = await createClient()
 
-  const email = formData.get('email') as string
+  const email = validateEmail(formData.get('email'))
+  if (!email) return { error: 'Invalid email address' }
+
   const password = formData.get('password') as string
-  const displayName = formData.get('displayName') as string
+  if (typeof password !== 'string' || password.length < 6 || password.length > 256) {
+    return { error: 'Password must be at least 6 characters' }
+  }
+
+  const displayName = validateName(formData.get('displayName'), 60) ?? email.split('@')[0]
 
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -51,7 +62,6 @@ export async function signup(_: unknown, formData: FormData) {
   if (error) return { error: error.message }
 
   if (data.user) {
-    // Create personal account automatically
     await supabase.rpc('create_initial_account', {
       p_user_id: data.user.id,
       p_display_name: displayName,

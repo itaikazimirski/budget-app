@@ -4,26 +4,41 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { CategoryType } from '@/lib/types'
 import { assertAccountAccess } from '@/lib/assertAccountAccess'
+import { validateName, validateAmount, validateYear, validateMonth, validateEnum, validateUuid } from '@/lib/validate'
 
 export async function addCategory(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  const accountId = formData.get('accountId') as string
+  const accountId = validateUuid(formData.get('accountId'))
+  if (!accountId) return { error: 'Invalid account' }
+
   try { await assertAccountAccess(supabase, user.id, accountId) }
   catch { return { error: 'Access denied' } }
-  const name = formData.get('name') as string
-  const type = formData.get('type') as CategoryType
-  const icon = formData.get('icon') as string || '📦'
-  const bucket = formData.get('bucket') as string || null
-  const category_group = formData.get('category_group') as string || null
+
+  const name = validateName(formData.get('name'))
+  if (!name) return { error: 'Invalid name' }
+
+  const type = validateEnum<CategoryType>(formData.get('type'), ['income', 'expense'])
+  if (!type) return { error: 'Invalid type' }
+
+  const icon = validateName(formData.get('icon'), 10) ?? '📦'
+  const bucket = validateName(formData.get('bucket'), 100) ?? null
+  const category_group = validateName(formData.get('category_group'), 100) ?? null
   const is_fixed = formData.get('is_fixed') === 'true'
-  const monthlyAmount = parseFloat(formData.get('monthlyAmount') as string) || 0
-  const one_time_year = formData.get('one_time_year') ? parseInt(formData.get('one_time_year') as string) : null
-  const one_time_month = formData.get('one_time_month') ? parseInt(formData.get('one_time_month') as string) : null
+  const monthlyAmount = validateAmount(formData.get('monthlyAmount')) ?? 0
+  const group_id = validateUuid(formData.get('group_id')) ?? null
+
+  const rawYear = formData.get('one_time_year')
+  const rawMonth = formData.get('one_time_month')
+  const one_time_year = rawYear ? validateYear(rawYear) : null
+  const one_time_month = rawMonth ? validateMonth(rawMonth) : null
+
+  if (rawYear && one_time_year === null) return { error: 'Invalid year' }
+  if (rawMonth && one_time_month === null) return { error: 'Invalid month' }
+
   const isOneTime = one_time_year !== null && one_time_month !== null
-  const group_id = formData.get('group_id') as string || null
 
   const { data: category, error } = await supabase
     .from('categories')
@@ -34,7 +49,6 @@ export async function addCategory(formData: FormData) {
   if (error) return { error: error.message }
 
   if (isOneTime) {
-    // One-time: only create a month override, no template
     await supabase.from('month_budgets').insert({
       account_id: accountId,
       category_id: category.id,
@@ -43,7 +57,6 @@ export async function addCategory(formData: FormData) {
       monthly_amount: monthlyAmount,
     })
   } else {
-    // Recurring: add to budget template
     await supabase.from('budget_templates').insert({
       account_id: accountId,
       category_id: category.id,
@@ -60,20 +73,26 @@ export async function updateCategory(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  const categoryId = formData.get('categoryId') as string
-  const accountId = formData.get('accountId') as string
+  const accountId = validateUuid(formData.get('accountId'))
+  const categoryId = validateUuid(formData.get('categoryId'))
+  if (!accountId || !categoryId) return { error: 'Invalid input' }
+
   try { await assertAccountAccess(supabase, user.id, accountId) }
   catch { return { error: 'Access denied' } }
-  const name = formData.get('name') as string
-  const icon = formData.get('icon') as string || '📦'
-  const bucket = formData.get('bucket') as string || null
-  const category_group = formData.get('category_group') as string || null
+
+  const name = validateName(formData.get('name'))
+  if (!name) return { error: 'Invalid name' }
+
+  const icon = validateName(formData.get('icon'), 10) ?? '📦'
+  const bucket = validateName(formData.get('bucket'), 100) ?? null
+  const category_group = validateName(formData.get('category_group'), 100) ?? null
   const is_fixed = formData.get('is_fixed') === 'true'
 
   const { error } = await supabase
     .from('categories')
     .update({ name, icon, bucket, category_group, is_fixed })
     .eq('id', categoryId)
+    .eq('account_id', accountId)
 
   if (error) return { error: error.message }
 
@@ -96,6 +115,10 @@ export async function setupHouseholdCategories(accountId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
+
+  if (!validateUuid(accountId)) return { error: 'Invalid account' }
+  try { await assertAccountAccess(supabase, user.id, accountId) }
+  catch { return { error: 'Access denied' } }
 
   const { data: existing } = await supabase
     .from('categories')
@@ -139,6 +162,10 @@ export async function disableHouseholdCategories(accountId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
+  if (!validateUuid(accountId)) return { error: 'Invalid account' }
+  try { await assertAccountAccess(supabase, user.id, accountId) }
+  catch { return { error: 'Access denied' } }
+
   const { error } = await supabase
     .from('categories')
     .delete()
@@ -147,7 +174,6 @@ export async function disableHouseholdCategories(accountId: string) {
 
   if (error) return { error: error.message }
 
-  // Also delete the 'משק בית' category group so it doesn't appear empty
   await supabase
     .from('category_groups')
     .delete()
@@ -163,6 +189,7 @@ export async function deleteCategory(categoryId: string, accountId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
+  if (!validateUuid(categoryId) || !validateUuid(accountId)) return { error: 'Invalid input' }
   try { await assertAccountAccess(supabase, user.id, accountId) }
   catch { return { error: 'Access denied' } }
 
@@ -179,9 +206,14 @@ export async function updateBudgetTemplate(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  const accountId = formData.get('accountId') as string
-  const categoryId = formData.get('categoryId') as string
-  const monthlyAmount = parseFloat(formData.get('monthlyAmount') as string) || 0
+  const accountId = validateUuid(formData.get('accountId'))
+  const categoryId = validateUuid(formData.get('categoryId'))
+  if (!accountId || !categoryId) return { error: 'Invalid input' }
+
+  try { await assertAccountAccess(supabase, user.id, accountId) }
+  catch { return { error: 'Access denied' } }
+
+  const monthlyAmount = validateAmount(formData.get('monthlyAmount')) ?? 0
 
   const { error } = await supabase
     .from('budget_templates')
@@ -202,11 +234,18 @@ export async function updateMonthBudget(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  const accountId = formData.get('accountId') as string
-  const categoryId = formData.get('categoryId') as string
-  const year = parseInt(formData.get('year') as string)
-  const month = parseInt(formData.get('month') as string)
-  const monthlyAmount = parseFloat(formData.get('monthlyAmount') as string) || 0
+  const accountId = validateUuid(formData.get('accountId'))
+  const categoryId = validateUuid(formData.get('categoryId'))
+  if (!accountId || !categoryId) return { error: 'Invalid input' }
+
+  try { await assertAccountAccess(supabase, user.id, accountId) }
+  catch { return { error: 'Access denied' } }
+
+  const year = validateYear(formData.get('year'))
+  const month = validateMonth(formData.get('month'))
+  if (year === null || month === null) return { error: 'Invalid date' }
+
+  const monthlyAmount = validateAmount(formData.get('monthlyAmount')) ?? 0
 
   const { error } = await supabase
     .from('month_budgets')
@@ -227,11 +266,18 @@ export async function updateTemplateBudget(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  const accountId = formData.get('accountId') as string
-  const categoryId = formData.get('categoryId') as string
-  const year = parseInt(formData.get('year') as string)
-  const month = parseInt(formData.get('month') as string)
-  const monthlyAmount = parseFloat(formData.get('monthlyAmount') as string) || 0
+  const accountId = validateUuid(formData.get('accountId'))
+  const categoryId = validateUuid(formData.get('categoryId'))
+  if (!accountId || !categoryId) return { error: 'Invalid input' }
+
+  try { await assertAccountAccess(supabase, user.id, accountId) }
+  catch { return { error: 'Access denied' } }
+
+  const year = validateYear(formData.get('year'))
+  const month = validateMonth(formData.get('month'))
+  if (year === null || month === null) return { error: 'Invalid date' }
+
+  const monthlyAmount = validateAmount(formData.get('monthlyAmount')) ?? 0
 
   const { error } = await supabase
     .from('budget_templates')

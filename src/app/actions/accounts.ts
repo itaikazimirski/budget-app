@@ -2,13 +2,16 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { assertAccountAccess } from '@/lib/assertAccountAccess'
+import { validateName, validateEmail, validateUuid } from '@/lib/validate'
 
 export async function createSharedAccount(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  const name = formData.get('name') as string
+  const name = validateName(formData.get('name'))
+  if (!name) return { error: 'Invalid account name' }
 
   const { data: member } = await supabase
     .from('account_members')
@@ -36,11 +39,15 @@ export async function inviteMember(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  const accountId = formData.get('accountId') as string
-  const email = formData.get('email') as string
+  const accountId = validateUuid(formData.get('accountId'))
+  if (!accountId) return { error: 'Invalid account' }
 
-  // Find user by email - requires a function or admin access
-  // For simplicity, we look up the user in auth.users via RPC
+  try { await assertAccountAccess(supabase, user.id, accountId) }
+  catch { return { error: 'Access denied' } }
+
+  const email = validateEmail(formData.get('email'))
+  if (!email) return { error: 'Invalid email address' }
+
   const { data: targetUser, error: lookupError } = await supabase
     .rpc('get_user_id_by_email', { user_email: email })
 
@@ -68,7 +75,11 @@ export async function generateApiKey(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  const accountId = formData.get('accountId') as string
+  const accountId = validateUuid(formData.get('accountId'))
+  if (!accountId) return { error: 'Invalid account' }
+
+  try { await assertAccountAccess(supabase, user.id, accountId) }
+  catch { return { error: 'Access denied' } }
 
   const { data: key, error } = await supabase.rpc('generate_api_key', {
     p_user_id: user.id,
@@ -86,7 +97,8 @@ export async function deleteApiKey(keyId: string, accountId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  // Delete only if the key belongs to this account and was created by this user
+  if (!validateUuid(keyId) || !validateUuid(accountId)) return { error: 'Invalid input' }
+
   await supabase.from('api_keys').delete().eq('id', keyId).eq('account_id', accountId).eq('user_id', user.id)
 
   revalidatePath(`/${accountId}/settings`)
@@ -98,8 +110,11 @@ export async function updateAccountName(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  const accountId = formData.get('accountId') as string
-  const name = formData.get('name') as string
+  const accountId = validateUuid(formData.get('accountId'))
+  if (!accountId) return { error: 'Invalid account' }
+
+  const name = validateName(formData.get('name'))
+  if (!name) return { error: 'Invalid account name' }
 
   const { error } = await supabase
     .from('accounts')
