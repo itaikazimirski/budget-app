@@ -40,7 +40,7 @@ export async function addTransaction(formData: FormData) {
     type,
     date,
     notes,
-  }).select('*').single()
+  }).select('id, account_id, category_id, user_id, amount, type, date, notes, created_at').single()
 
   if (error) return { error: error.message }
 

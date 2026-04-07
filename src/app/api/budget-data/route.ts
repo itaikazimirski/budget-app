@@ -21,9 +21,9 @@ export async function GET(req: NextRequest) {
     { data: monthOverrides },
     { data: transactions },
   ] = await Promise.all([
-    supabase.from('categories').select('*').eq('account_id', accountId),
-    supabase.from('budget_templates').select('*').eq('account_id', accountId),
-    supabase.from('month_budgets').select('*').eq('account_id', accountId).eq('year', year).eq('month', month),
+    supabase.from('categories').select('id, name, type, icon, bucket, one_time_year, one_time_month, group_id').eq('account_id', accountId),
+    supabase.from('budget_templates').select('category_id, monthly_amount').eq('account_id', accountId),
+    supabase.from('month_budgets').select('category_id, monthly_amount').eq('account_id', accountId).eq('year', year).eq('month', month),
     supabase.from('transactions').select('amount, type, category_id').eq('account_id', accountId).gte('date', startDate).lte('date', endDate),
   ])
 

@@ -42,19 +42,19 @@ export async function POST(req: NextRequest) {
   // Fetch categories
   const { data: categories } = await supabase
     .from('categories')
-    .select('*')
+    .select('id, name, type, icon')
     .eq('account_id', accountId)
 
   // Fetch budget templates
   const { data: templates } = await supabase
     .from('budget_templates')
-    .select('*')
+    .select('category_id, monthly_amount')
     .eq('account_id', accountId)
 
   // Fetch monthly overrides
   const { data: monthOverrides } = await supabase
     .from('month_budgets')
-    .select('*')
+    .select('category_id, monthly_amount')
     .eq('account_id', accountId)
     .eq('year', year)
     .eq('month', month)

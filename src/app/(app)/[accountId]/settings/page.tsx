@@ -10,7 +10,7 @@ export default async function SettingsPage(props: PageProps<'/[accountId]/settin
 
   const { data: account } = await supabase
     .from('accounts')
-    .select('*')
+    .select('id, name, type, created_by, created_at')
     .eq('id', accountId)
     .single()
 

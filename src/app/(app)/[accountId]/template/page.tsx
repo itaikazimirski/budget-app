@@ -19,13 +19,13 @@ export default async function TemplatePage(props: PageProps<'/[accountId]/templa
 
   const { data: categories } = await supabase
     .from('categories')
-    .select('*')
+    .select('id, account_id, name, type, icon, bucket, category_group, is_fixed, one_time_year, one_time_month, group_id')
     .eq('account_id', accountId)
     .order('name')
 
   const { data: templates } = await supabase
     .from('budget_templates')
-    .select('*')
+    .select('id, account_id, category_id, monthly_amount')
     .eq('account_id', accountId)
 
   const templateMap = Object.fromEntries((templates ?? []).map((t) => [t.category_id, t.monthly_amount]))
