@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
   // Fetch categories
   const { data: categories } = await supabase
     .from('categories')
-    .select('id, name, type, icon')
+    .select('id, name, type, icon, bucket')
     .eq('account_id', accountId)
 
   // Fetch budget templates

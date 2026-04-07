@@ -45,8 +45,15 @@ export async function GET(request: Request) {
   const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId: SHEET_ID })
   const existingTabs = spreadsheet.data.sheets?.map(s => s.properties?.title) ?? []
 
+  // Transactions: only last 12 months to avoid timeouts on large accounts
+  const cutoff = new Date()
+  cutoff.setMonth(cutoff.getMonth() - 12)
+  const cutoffDate = cutoff.toISOString().split('T')[0]
+
   for (const [table, columns] of Object.entries(BACKUP_COLUMNS)) {
-    const { data, error } = await supabase.from(table).select(columns)
+    let query = supabase.from(table).select(columns)
+    if (table === 'transactions') query = query.gte('date', cutoffDate).order('date', { ascending: false })
+    const { data, error } = await query
     if (error || !data || data.length === 0) continue
 
     const headers = Object.keys(data[0])

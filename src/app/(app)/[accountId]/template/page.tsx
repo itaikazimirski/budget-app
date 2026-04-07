@@ -19,7 +19,7 @@ export default async function TemplatePage(props: PageProps<'/[accountId]/templa
 
   const { data: categories } = await supabase
     .from('categories')
-    .select('id, account_id, name, type, icon, bucket, category_group, is_fixed, one_time_year, one_time_month, group_id')
+    .select('id, account_id, name, type, icon, bucket, category_group, is_fixed, one_time_year, one_time_month, group_id, created_at')
     .eq('account_id', accountId)
     .order('name')
 
