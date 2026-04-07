@@ -35,15 +35,8 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
   const startDate = `${year}-${String(month).padStart(2, '0')}-01`
   const endDate = new Date(year, month, 0).toISOString().split('T')[0]
 
-  // Run migration (no-op if already done), then fix group assignments in parallel
-  await migrateToGroups(accountId)
-  await Promise.all([
-    fixOrphanCategories(accountId),        // assigns null group_id to correct group
-    reassignMisplacedCategories(accountId) // corrects wrong group assignments
-  ])
-
-  // Fetch all data in parallel
-  const [
+  // Fetch all data in parallel — migrations run conditionally after, using this data as guards
+  let [
     { data: categories },
     { data: templates },
     { data: monthOverrides },
@@ -58,6 +51,25 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
     supabase.from('account_members').select('user_id, display_name').eq('account_id', accountId),
     supabase.from('category_groups').select('*').eq('account_id', accountId).order('sort_order'),
   ])
+
+  // Check if any migration is needed — zero extra DB queries on normal loads
+  const needsMigration = (categoryGroups ?? []).length === 0
+  const hasOrphans = (categories ?? []).some(c => c.type === 'expense' && !c.group_id)
+
+  if (needsMigration || hasOrphans) {
+    if (needsMigration) await migrateToGroups(accountId)
+    await Promise.all([
+      hasOrphans ? fixOrphanCategories(accountId) : Promise.resolve(),
+      reassignMisplacedCategories(accountId),
+    ])
+    // Re-fetch only the affected tables
+    const [{ data: updatedCategories }, { data: updatedGroups }] = await Promise.all([
+      supabase.from('categories').select('*').eq('account_id', accountId).order('name'),
+      supabase.from('category_groups').select('*').eq('account_id', accountId).order('sort_order'),
+    ])
+    categories = updatedCategories
+    categoryGroups = updatedGroups
+  }
 
   // Auto-insert fixed expense transactions — only run in the first 5 days of the current month
   const today = new Date()
