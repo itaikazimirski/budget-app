@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState } from 'react'
 import { Edit2 } from 'lucide-react'
 import type { CategoryWithStats, Transaction } from '@/lib/types'
-import { updateMonthBudget } from '@/app/actions/categories'
 import { formatILS } from '@/lib/budget-utils'
+import { useHouseholdBudget } from '@/hooks/useHouseholdBudget'
 import TransactionPopup from './TransactionPopup'
 
 interface HouseholdRentCardProps {
@@ -16,31 +16,15 @@ interface HouseholdRentCardProps {
 }
 
 export default function HouseholdRentCard({ category, accountId, year, month, transactions }: HouseholdRentCardProps) {
-  const [editing, setEditing] = useState(false)
-  const [budgetInput, setBudgetInput] = useState(String(category.budget_amount))
   const [showTxPopup, setShowTxPopup] = useState(false)
-  const [isPending, startTransition] = useTransition()
+  const { editing, budgetInput, setBudgetInput, isPending, startEditing, cancelEditing, handleSaveBudget } =
+    useHouseholdBudget(category, accountId, year, month)
 
   const { actual_amount, budget_amount, percentage } = category
   const isOver = actual_amount > budget_amount && budget_amount > 0
   const catTransactions = (transactions ?? []).filter((tx) => tx.category_id === category.id)
 
   const barColor = isOver ? 'bg-rose-400' : percentage > 80 ? 'bg-amber-400' : 'bg-indigo-400'
-
-  function handleSaveBudget() {
-    const amount = parseFloat(budgetInput)
-    if (isNaN(amount) || amount < 0) return
-    startTransition(async () => {
-      const fd = new FormData()
-      fd.set('accountId', accountId)
-      fd.set('categoryId', category.id)
-      fd.set('year', String(year))
-      fd.set('month', String(month))
-      fd.set('monthlyAmount', String(amount))
-      await updateMonthBudget(fd)
-      setEditing(false)
-    })
-  }
 
   return (
     <>
@@ -53,7 +37,7 @@ export default function HouseholdRentCard({ category, accountId, year, month, tr
         onClick={() => catTransactions.length > 0 && !editing && setShowTxPopup(true)}
       >
         <button
-          onClick={(e) => { e.stopPropagation(); setBudgetInput(String(budget_amount)); setEditing(true) }}
+          onClick={(e) => { e.stopPropagation(); startEditing(budget_amount) }}
           className="absolute top-2 left-2 p-1 text-indigo-300 hover:text-indigo-600 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity rounded"
         >
           <Edit2 className="w-3 h-3" />
@@ -84,7 +68,7 @@ export default function HouseholdRentCard({ category, accountId, year, month, tr
           </div>
         ) : (
           <div
-            onClick={(e) => { e.stopPropagation(); setBudgetInput('0'); setEditing(true) }}
+            onClick={(e) => { e.stopPropagation(); startEditing(0) }}
             className="text-xs text-indigo-400 hover:text-indigo-600 cursor-pointer text-right leading-none"
           >
             + תקציב
@@ -105,14 +89,14 @@ export default function HouseholdRentCard({ category, accountId, year, month, tr
                 onChange={(e) => setBudgetInput(e.target.value)}
                 className="w-16 text-center text-sm border border-indigo-300 rounded-lg px-1.5 py-1 focus:outline-none focus:border-indigo-500 bg-white dark:bg-indigo-900"
                 autoFocus
-                onKeyDown={(e) => { if (e.key === 'Enter') handleSaveBudget(); if (e.key === 'Escape') setEditing(false) }}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSaveBudget(); if (e.key === 'Escape') cancelEditing() }}
               />
             </div>
             <div className="flex gap-1.5">
               <button onClick={handleSaveBudget} disabled={isPending} className="px-2.5 py-1 bg-indigo-600 text-white text-xs rounded-lg">
                 {isPending ? '...' : 'שמור'}
               </button>
-              <button onClick={() => setEditing(false)} className="px-2 py-1 text-indigo-400 text-xs">ביטול</button>
+              <button onClick={cancelEditing} className="px-2 py-1 text-indigo-400 text-xs">ביטול</button>
             </div>
           </div>
         )}

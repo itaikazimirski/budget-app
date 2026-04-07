@@ -1,4 +1,5 @@
 'use client'
+import { formatILS } from '@/lib/budget-utils'
 
 import { useState, useTransition, useRef, useEffect, useOptimistic } from 'react'
 import type { Transaction, Category } from '@/lib/types'
@@ -16,9 +17,6 @@ interface TransactionTableProps {
   month: number
 }
 
-function formatILS(amount: number) {
-  return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(amount)
-}
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr + 'T00:00:00')

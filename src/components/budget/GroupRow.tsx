@@ -1,4 +1,5 @@
 'use client'
+import { formatILS } from '@/lib/budget-utils'
 
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
@@ -19,9 +20,6 @@ const GROUP_CONFIG = {
   'ביטוח': { label: 'ביטוחים', icon: '🛡️' },
 }
 
-function formatILS(amount: number) {
-  return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(amount)
-}
 
 export default function GroupRow({ groupName, categories, accountId, year, month, transactions }: GroupRowProps) {
   const [open, setOpen] = useState(false)

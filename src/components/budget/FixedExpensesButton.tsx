@@ -1,4 +1,5 @@
 'use client'
+import { formatILS } from '@/lib/budget-utils'
 
 import { useState } from 'react'
 import { X, Lock } from 'lucide-react'
@@ -8,9 +9,6 @@ interface FixedExpensesButtonProps {
   categories: CategoryWithStats[]
 }
 
-function formatILS(amount: number) {
-  return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(amount)
-}
 
 export default function FixedExpensesButton({ categories }: FixedExpensesButtonProps) {
   const [open, setOpen] = useState(false)

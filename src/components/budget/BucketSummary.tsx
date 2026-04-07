@@ -1,4 +1,5 @@
 'use client'
+import { formatILS } from '@/lib/budget-utils'
 
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
@@ -14,9 +15,6 @@ interface BucketSummaryProps {
   transactions?: Transaction[]
 }
 
-function formatILS(amount: number) {
-  return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(amount)
-}
 
 const BUCKET_COLORS = {
   'מחיה':   { bg: 'bg-blue-50 dark:bg-blue-950/50',   border: 'border-blue-200 dark:border-blue-800/50',   text: 'text-blue-700 dark:text-blue-300',   bar: 'bg-blue-500' },

@@ -1,4 +1,5 @@
 'use client'
+import { formatILS } from '@/lib/budget-utils'
 
 import { useState } from 'react'
 import type { CategoryWithStats, Transaction } from '@/lib/types'
@@ -17,9 +18,6 @@ interface CategorySectionProps {
   transactions?: Transaction[]
 }
 
-function formatILS(amount: number) {
-  return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(amount)
-}
 
 export default function CategorySection({ title, categories, type, accountId, year, month, transactions }: CategorySectionProps) {
   const [showAdd, setShowAdd] = useState(false)

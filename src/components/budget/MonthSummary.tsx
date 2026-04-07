@@ -1,4 +1,5 @@
 'use client'
+import { formatILS } from '@/lib/budget-utils'
 
 import { useState } from 'react'
 import { TrendingUp, TrendingDown, Wallet, X, Plus } from 'lucide-react'
@@ -6,9 +7,6 @@ import type { MonthlyStats } from '@/lib/types'
 import CategoryCard from './CategoryCard'
 import AddCategoryDialog from './AddCategoryDialog'
 
-function formatILS(amount: number) {
-  return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(amount)
-}
 
 interface MonthSummaryProps {
   stats: MonthlyStats
