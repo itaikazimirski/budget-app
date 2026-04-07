@@ -4,6 +4,7 @@ import { useState, useTransition, useRef, useEffect, useOptimistic } from 'react
 import type { Transaction, Category } from '@/lib/types'
 import { addTransaction, updateTransaction, deleteTransaction } from '@/app/actions/transactions'
 import { Plus, Trash2, Edit2, Check, X, Filter } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -228,7 +229,9 @@ export default function TransactionTable({ transactions, categories, accountId, 
   function handleDelete(id: string) {
     if (!confirm('למחוק את הפעולה הזו?')) return
     startTransition(async () => {
-      await deleteTransaction(id, accountId, year, month)
+      const result = await deleteTransaction(id, accountId, year, month)
+      if (result?.error) toast.error('שגיאה במחיקת הפעולה')
+      else toast.success('הפעולה נמחקה')
     })
   }
 

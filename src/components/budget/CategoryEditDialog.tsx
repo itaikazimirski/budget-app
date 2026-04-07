@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import type { CategoryWithStats } from '@/lib/types'
 import { updateCategory, deleteCategory } from '@/app/actions/categories'
 import { BUCKETS } from '@/lib/types'
@@ -28,7 +29,9 @@ export default function CategoryEditDialog({ category, accountId, onClose }: Cat
 
   function handleDelete() {
     startTransition(async () => {
-      await deleteCategory(category.id, accountId)
+      const result = await deleteCategory(category.id, accountId)
+      if (result?.error) { toast.error('שגיאה במחיקת הקטגוריה'); return }
+      toast.success('הקטגוריה נמחקה')
       onClose()
     })
   }
@@ -44,7 +47,9 @@ export default function CategoryEditDialog({ category, accountId, onClose }: Cat
       fd.set('bucket', selectedBucket)
       if (selectedGroup) fd.set('category_group', selectedGroup)
       fd.set('is_fixed', String(isFixed))
-      await updateCategory(fd)
+      const result = await updateCategory(fd)
+      if (result?.error) { toast.error('שגיאה בשמירת הקטגוריה'); return }
+      toast.success('הקטגוריה עודכנה')
       onClose()
     })
   }

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { createPortal } from 'react-dom'
+import { toast } from 'sonner'
 import { addCategory } from '@/app/actions/categories'
 import { BUCKETS, CategoryGroupRecord } from '@/lib/types'
 import { X } from 'lucide-react'
@@ -47,8 +48,9 @@ export default function AddCategoryDialog({ type, accountId, year, month, defaul
     }
     startTransition(async () => {
       const result = await addCategory(fd)
-      if (result?.error) setError(result.error)
-      else onClose()
+      if (result?.error) { toast.error('שגיאה בהוספת הקטגוריה'); setError(result.error); return }
+      toast.success('הקטגוריה נוספה')
+      onClose()
     })
   }
 

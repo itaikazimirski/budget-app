@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition, useEffect } from 'react'
+import { toast } from 'sonner'
 import { Plus, Pencil, Trash2, Check, X, FolderPlus, ChevronDown } from 'lucide-react'
 import type { CategoryWithStats, CategoryGroupRecord, Transaction } from '@/lib/types'
 import { BUCKETS } from '@/lib/types'
@@ -115,8 +116,9 @@ function CategoryRow({
       fd.set('year', String(year))
       fd.set('month', String(month))
       fd.set('monthlyAmount', String(amount))
-      if (scope === 'month') await updateMonthBudget(fd)
-      else await updateTemplateBudget(fd)
+      const result = scope === 'month' ? await updateMonthBudget(fd) : await updateTemplateBudget(fd)
+      if (result?.error) { toast.error('שגיאה בשמירת התקציב'); return }
+      toast.success('התקציב עודכן')
       setEditing(false)
       setShowScopeModal(false)
     })
@@ -266,14 +268,18 @@ function GroupCard({
   function handleRename() {
     if (!nameInput.trim() || nameInput === group.name) { setEditingName(false); return }
     startTransition(async () => {
-      await updateCategoryGroup(group.id, nameInput.trim(), accountId)
+      const result = await updateCategoryGroup(group.id, nameInput.trim(), accountId)
+      if (result?.error) { toast.error('שגיאה בשינוי השם'); return }
+      toast.success('שם הקבוצה עודכן')
       setEditingName(false)
     })
   }
 
   function handleDelete() {
     startTransition(async () => {
-      await deleteCategoryGroup(group.id, accountId, categories.length > 0 ? targetGroupId : undefined)
+      const result = await deleteCategoryGroup(group.id, accountId, categories.length > 0 ? targetGroupId : undefined)
+      if (result?.error) { toast.error('שגיאה במחיקת הקבוצה'); return }
+      toast.success('הקבוצה נמחקה')
       setShowDeleteModal(false)
     })
   }
@@ -460,7 +466,9 @@ export default function CategoryGroupsGrid({
   function handleCreateGroup() {
     if (!newGroupName.trim()) return
     startTransition(async () => {
-      await createCategoryGroup(accountId, newGroupName.trim())
+      const result = await createCategoryGroup(accountId, newGroupName.trim())
+      if (result?.error) { toast.error('שגיאה ביצירת הקבוצה'); return }
+      toast.success('הקבוצה נוצרה')
       setNewGroupName('')
       setShowNewGroup(false)
     })
