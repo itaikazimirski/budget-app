@@ -33,62 +33,62 @@ export default function MonthSummary({ stats, accountId, year, month }: MonthSum
         {/* ── הכנסות ── */}
         <button
           onClick={() => setIncomeOpen(true)}
-          className="bg-white dark:bg-card rounded-2xl border border-emerald-500/50 border-t-4 border-t-emerald-500 shadow-sm overflow-hidden text-right hover:shadow-md transition-all"
+          className="bg-white dark:bg-card rounded-2xl border border-emerald-600/50 dark:border-emerald-500/50 border-t-4 border-t-emerald-500 shadow-sm overflow-hidden text-right hover:shadow-md transition-all"
         >
           {/* Header bar */}
-          <div className="w-full py-3 px-4 flex justify-center items-center gap-2 bg-white/5 border-b border-white/10">
-            <TrendingUp className="w-4 h-4 text-white shrink-0" />
-            <span className="text-base font-semibold text-white">הכנסות</span>
+          <div className="w-full py-3 px-4 flex justify-center items-center gap-2 bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10">
+            <TrendingUp className="w-4 h-4 text-slate-700 dark:text-white shrink-0" />
+            <span className="text-base font-semibold text-slate-900 dark:text-white">הכנסות</span>
           </div>
           {/* Body */}
           <div className="flex flex-col gap-2 p-3 md:p-4 md:gap-3">
             <div className="flex flex-col items-center gap-0.5 md:flex-row md:justify-center md:items-baseline md:gap-x-1.5">
-              <span className="text-xs font-semibold text-slate-300 md:text-sm">תכנון</span>
-              <span className="text-xl font-extrabold text-white md:text-2xl">{formatILS(plannedIncome)}</span>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-300 md:text-sm">תכנון</span>
+              <span className="text-xl font-extrabold text-slate-900 dark:text-white md:text-2xl">{formatILS(plannedIncome)}</span>
             </div>
             <div className="flex flex-col items-center gap-0.5 md:flex-row md:justify-center md:items-baseline md:gap-x-1.5">
-              <span className="text-xs font-semibold text-slate-400 md:text-sm">בפועל</span>
-              <span className="text-base font-bold text-emerald-400 md:text-xl">{formatILS(totalIncome)}</span>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 md:text-sm">בפועל</span>
+              <span className="text-base font-bold text-emerald-600 dark:text-emerald-400 md:text-xl">{formatILS(totalIncome)}</span>
             </div>
           </div>
         </button>
 
         {/* ── הוצאות ── */}
-        <div className="bg-white dark:bg-card rounded-2xl border border-rose-500/50 border-t-4 border-t-rose-500 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-card rounded-2xl border border-rose-600/50 dark:border-rose-500/50 border-t-4 border-t-rose-500 shadow-sm overflow-hidden">
           {/* Header bar */}
-          <div className="w-full py-3 px-4 flex justify-center items-center gap-2 bg-white/5 border-b border-white/10">
-            <TrendingDown className="w-4 h-4 text-white shrink-0" />
-            <span className="text-base font-semibold text-white">הוצאות</span>
+          <div className="w-full py-3 px-4 flex justify-center items-center gap-2 bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10">
+            <TrendingDown className="w-4 h-4 text-slate-700 dark:text-white shrink-0" />
+            <span className="text-base font-semibold text-slate-900 dark:text-white">הוצאות</span>
           </div>
           {/* Body */}
           <div className="flex flex-col gap-2 p-3 md:p-4 md:gap-3">
             <div className="flex flex-col items-center gap-0.5 md:flex-row md:justify-center md:items-baseline md:gap-x-1.5">
-              <span className="text-xs font-semibold text-slate-300 md:text-sm">תכנון</span>
-              <span className="text-xl font-extrabold text-white md:text-2xl">{formatILS(plannedExpenses)}</span>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-300 md:text-sm">תכנון</span>
+              <span className="text-xl font-extrabold text-slate-900 dark:text-white md:text-2xl">{formatILS(plannedExpenses)}</span>
             </div>
             <div className="flex flex-col items-center gap-0.5 md:flex-row md:justify-center md:items-baseline md:gap-x-1.5">
-              <span className="text-xs font-semibold text-slate-400 md:text-sm">בפועל</span>
-              <span className="text-base font-bold text-rose-400 md:text-xl">{formatILS(totalExpenses)}</span>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 md:text-sm">בפועל</span>
+              <span className="text-base font-bold text-rose-600 dark:text-rose-400 md:text-xl">{formatILS(totalExpenses)}</span>
             </div>
           </div>
         </div>
 
         {/* ── תזרים ── */}
-        <div className="bg-white dark:bg-card rounded-2xl border border-amber-500/60 border-t-4 border-t-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)] overflow-hidden">
+        <div className="bg-white dark:bg-card rounded-2xl border border-amber-600/60 dark:border-amber-500/60 border-t-4 border-t-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)] overflow-hidden">
           {/* Header bar */}
-          <div className="w-full py-3 px-4 flex justify-center items-center gap-2 bg-white/5 border-b border-white/10">
-            <Wallet className="w-4 h-4 text-white shrink-0" />
-            <span className="text-base font-semibold text-white">תזרים</span>
+          <div className="w-full py-3 px-4 flex justify-center items-center gap-2 bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10">
+            <Wallet className="w-4 h-4 text-slate-700 dark:text-white shrink-0" />
+            <span className="text-base font-semibold text-slate-900 dark:text-white">תזרים</span>
           </div>
           {/* Body */}
           <div className="flex flex-col gap-2 p-3 md:p-4 md:gap-3">
             <div className="flex flex-col items-center gap-0.5 md:flex-row md:justify-center md:items-baseline md:gap-x-1.5">
-              <span className="text-xs font-semibold text-slate-300 md:text-sm">תכנון</span>
-              <span className="text-xl font-extrabold text-white md:text-2xl">{formatILS(plannedBalance)}</span>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-300 md:text-sm">תכנון</span>
+              <span className="text-xl font-extrabold text-slate-900 dark:text-white md:text-2xl">{formatILS(plannedBalance)}</span>
             </div>
             <div className="flex flex-col items-center gap-0.5 md:flex-row md:justify-center md:items-baseline md:gap-x-1.5">
-              <span className="text-xs font-semibold text-slate-400 md:text-sm">בפועל</span>
-              <span className="text-base font-bold text-amber-400 md:text-xl">{formatILS(balance)}</span>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 md:text-sm">בפועל</span>
+              <span className="text-base font-bold text-amber-600 dark:text-amber-400 md:text-xl">{formatILS(balance)}</span>
             </div>
           </div>
         </div>
