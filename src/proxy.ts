@@ -1,9 +1,59 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { Ratelimit } from '@upstash/ratelimit'
+import { Redis } from '@upstash/redis'
+
+// Only initialize if env vars are present (skips in local dev without Redis)
+const redis =
+  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+    ? new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      })
+    : null
+
+// Login: max 10 attempts per minute per IP
+const loginLimiter = redis
+  ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(10, '1 m'), prefix: 'rl:login' })
+  : null
+
+// API shortcuts: max 60 requests per minute per IP
+const apiLimiter = redis
+  ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(60, '1 m'), prefix: 'rl:api' })
+  : null
+
+function getIp(request: NextRequest): string {
+  return (
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    request.headers.get('x-real-ip') ??
+    'anonymous'
+  )
+}
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
   const path = request.nextUrl.pathname
+  const ip = getIp(request)
+
+  // Rate limit login attempts
+  if (path.startsWith('/api/auth') || (path.startsWith('/login') && request.method === 'POST')) {
+    if (loginLimiter) {
+      const { success } = await loginLimiter.limit(ip)
+      if (!success) {
+        return new NextResponse('Too many requests', { status: 429 })
+      }
+    }
+  }
+
+  // Rate limit API shortcuts
+  if (path.startsWith('/api/shortcuts')) {
+    if (apiLimiter) {
+      const { success } = await apiLimiter.limit(ip)
+      if (!success) {
+        return new NextResponse('Too many requests', { status: 429 })
+      }
+    }
+  }
 
   const isPublic =
     path.startsWith('/login') ||
