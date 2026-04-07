@@ -8,7 +8,8 @@ export async function proxy(request: NextRequest) {
   const isPublic =
     path.startsWith('/login') ||
     path.startsWith('/api/auth') ||
-    path.startsWith('/api/shortcuts')
+    path.startsWith('/api/shortcuts') ||
+    path.startsWith('/api/backup')
 
   // If Supabase env vars are missing, just allow everything through
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
