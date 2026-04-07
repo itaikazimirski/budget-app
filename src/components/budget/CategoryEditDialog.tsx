@@ -76,8 +76,7 @@ export default function CategoryEditDialog({ category, accountId, onClose }: Cat
                 }`}
               >
                 <div className="text-right">
-                  <p className="font-medium text-sm">הוצאה קבועה</p>
-                  <p className="text-xs opacity-70 mt-0.5">לא תופיע באוטומציית השורטקאט</p>
+                  <p className="font-medium text-sm text-slate-900 dark:text-white">הוראת קבע</p>
                 </div>
                 <span className="text-2xl">{isFixed ? '🔒' : '🔓'}</span>
               </button>
