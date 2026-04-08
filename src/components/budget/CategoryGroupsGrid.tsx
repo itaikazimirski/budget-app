@@ -255,20 +255,20 @@ function GroupCard({
             </div>
           ) : (
             <>
-              {/* Left: chevron + name (flex-1) + pct */}
+              {/* Right (RTL): chevron + name */}
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
                 <ChevronDown className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-300 ${isCollapsed ? '-rotate-90' : ''}`} />
-                <span className="text-sm font-semibold text-slate-800 dark:text-white truncate flex-1">{group.name}</span>
-                {totalActualAllGroups > 0 && pct > 0 && (
-                  <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0 whitespace-nowrap">• {pct}%</span>
-                )}
+                <span className="text-sm font-semibold text-slate-800 dark:text-white">{group.name}</span>
               </div>
 
-              {/* Right: money + action buttons */}
+              {/* Left (RTL): pct + money + action buttons */}
               <div
-                className="flex items-center gap-2 shrink-0"
+                className="flex items-center gap-3 shrink-0"
                 onClick={(e) => e.stopPropagation()}
               >
+                {totalActualAllGroups > 0 && pct > 0 && (
+                  <span className="text-xs text-slate-400 dark:text-slate-500">{pct}%</span>
+                )}
                 {totalBudget > 0 && (
                   <span className="flex items-baseline gap-1 tabular-nums">
                     <span className="text-xs font-normal text-slate-600 dark:text-white">{formatILS(totalBudget)}</span>
