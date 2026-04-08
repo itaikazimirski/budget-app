@@ -180,7 +180,7 @@ function CategoryRow({
 // ─── Group card ───────────────────────────────────────────────────────────────
 
 function GroupCard({
-  group, categories, accountId, year, month, allGroups,
+  group, categories, accountId, year, month, allGroups, totalActualAllGroups,
 }: {
   group: CategoryGroupRecord
   categories: CategoryWithStats[]
@@ -188,6 +188,7 @@ function GroupCard({
   year: number
   month: number
   allGroups: CategoryGroupRecord[]
+  totalActualAllGroups: number
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   useEffect(() => {
@@ -210,6 +211,7 @@ function GroupCard({
   const totalBudget = categories.reduce((s, c) => s + c.budget_amount, 0)
   const totalActual = categories.reduce((s, c) => s + c.actual_amount, 0)
   const isOver = totalActual > totalBudget && totalBudget > 0
+  const pct = totalActualAllGroups > 0 ? Math.round((totalActual / totalActualAllGroups) * 100) : 0
 
   function handleRename() {
     if (!nameInput.trim() || nameInput === group.name) { setEditingName(false); return }
@@ -256,6 +258,9 @@ function GroupCard({
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
                 <ChevronDown className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-300 ${isCollapsed ? '-rotate-90' : ''}`} />
                 <span className="text-sm font-semibold text-slate-800 dark:text-white truncate">{group.name}</span>
+                {totalActualAllGroups > 0 && (
+                  <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">• {pct}%</span>
+                )}
                 {totalBudget > 0 && (
                   <span className="flex items-baseline gap-1 shrink-0 tabular-nums">
                     <span className="text-xs font-normal text-slate-600 dark:text-white">{formatILS(totalBudget)}</span>
@@ -450,6 +455,8 @@ export default function CategoryGroupsGrid({
     catsByGroup[key].push(cat)
   }
 
+  const totalActualAllGroups = expenseCategories.reduce((s, c) => s + c.actual_amount, 0)
+
   return (
     <div className="space-y-4">
       {/* Section title + new group button */}
@@ -523,6 +530,7 @@ export default function CategoryGroupsGrid({
               year={year}
               month={month}
               allGroups={groups}
+              totalActualAllGroups={totalActualAllGroups}
             />
           </div>
         ))}
