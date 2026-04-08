@@ -30,7 +30,7 @@ export default function EmojiPickerButton({ value, onChange }: EmojiPickerButton
         className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors"
       >
         <span className="text-2xl">{value}</span>
-        <span className="text-sm text-slate-500">שנה אימוג'י</span>
+        <span className="text-sm text-slate-500">{'שנה אימוג\'י'}</span>
       </button>
 
       {open && (

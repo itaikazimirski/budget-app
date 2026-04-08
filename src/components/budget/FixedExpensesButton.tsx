@@ -39,7 +39,7 @@ export default function FixedExpensesButton({ categories }: FixedExpensesButtonP
               <div className="text-right">
                 <h2 className="font-bold text-slate-900 text-base">🔒 הוצאות קבועות</h2>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  סה"כ: {formatILS(totalFixed)} · {percentage}% מהתקציב הכולל
+                  {'סה"כ'}: {formatILS(totalFixed)} · {percentage}% מהתקציב הכולל
                 </p>
               </div>
               <button onClick={() => setOpen(false)} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg">
@@ -60,7 +60,7 @@ export default function FixedExpensesButton({ categories }: FixedExpensesButtonP
             <div className="px-5 py-3 border-t border-slate-100 dark:border-white/[0.06] bg-slate-50 dark:bg-secondary rounded-b-2xl">
               <div className="flex justify-between text-sm font-semibold text-slate-800">
                 <span>{percentage}% מהתקציב</span>
-                <span>סה"כ: {formatILS(totalFixed)}</span>
+                <span>{'סה"כ'}: {formatILS(totalFixed)}</span>
               </div>
             </div>
           </div>

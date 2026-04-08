@@ -191,6 +191,7 @@ function GroupCard({
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsCollapsed(localStorage.getItem(`collapsed_group_${group.id}`) === 'true')
   }, [group.id])
   const [editingName, setEditingName] = useState(false)

@@ -106,7 +106,7 @@ export default function CategoryEditDialog({ category, accountId, onClose }: Cat
                 </button>
               ) : (
                 <div className="flex items-center justify-between bg-rose-50 rounded-xl px-4 py-2.5">
-                  <p className="text-xs text-rose-600 font-medium">למחוק את "{category.name}"?</p>
+                  <p className="text-xs text-rose-600 font-medium">למחוק את &quot;{category.name}&quot;?</p>
                   <div className="flex gap-2">
                     <button type="button" onClick={() => setConfirmDelete(false)} className="text-xs text-slate-400 hover:text-slate-600">ביטול</button>
                     <button type="button" onClick={handleDelete} disabled={isPending} className="text-xs text-rose-600 font-bold hover:text-rose-700">

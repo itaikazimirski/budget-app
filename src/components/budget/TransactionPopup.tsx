@@ -18,7 +18,7 @@ export default function TransactionPopup({ title, totalAmount, transactions, onC
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-white/[0.06]">
           <div className="text-right">
             <h2 className="font-bold text-slate-900 dark:text-white text-base">{title}</h2>
-            <p className="text-xs text-slate-400 mt-0.5">סה"כ: {formatILS(totalAmount)}</p>
+            <p className="text-xs text-slate-400 mt-0.5">{'סה"כ'}: {formatILS(totalAmount)}</p>
           </div>
           <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg">
             <X className="w-4 h-4" />

@@ -29,6 +29,7 @@ export default function AppNav({ accounts, userEmail }: AppNavProps) {
   const [creatingAccount, setCreatingAccount] = useState(false)
   const { resolvedTheme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), [])
 
   // Parse current route: /{accountId}/{year}/{month}

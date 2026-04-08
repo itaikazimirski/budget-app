@@ -220,7 +220,7 @@ export default function SettingsClient({ account, members, isOwner, apiKeys, has
 
         <div className="divide-y divide-slate-50">
           {apiKeys.length === 0 && !newKey ? (
-            <p className="px-4 py-6 text-center text-xs text-slate-400">אין מפתחות עדיין. לחץ "צור מפתח" כדי להתחיל.</p>
+            <p className="px-4 py-6 text-center text-xs text-slate-400">אין מפתחות עדיין. לחץ &quot;צור מפתח&quot; כדי להתחיל.</p>
           ) : (
             apiKeys.map((k) => (
               <div key={k.id} className="flex items-center justify-between px-4 py-3">

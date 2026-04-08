@@ -34,7 +34,7 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
   const endDate = new Date(year, month, 0).toISOString().split('T')[0]
 
   // Fetch all data in parallel — migrations run conditionally after, using this data as guards
-  let [
+  const [
     { data: categories },
     { data: templates },
     { data: monthOverrides },
