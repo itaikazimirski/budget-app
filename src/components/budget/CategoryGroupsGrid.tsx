@@ -355,6 +355,29 @@ function GroupCard({
                   </button>
                 </div>
               </>
+            ) : allGroups.filter((g) => g.id !== group.id).length === 0 ? (
+              /* Last group with categories — no target to move to */
+              <>
+                <h3 className="font-semibold text-slate-900 dark:text-white text-base mb-2">מחיקת הקבוצה האחרונה</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                  זו הקבוצה האחרונה. הקטגוריות שבה יישארו ויועברו לקבוצת ברירת מחדל בפעם הבאה שתיצור קבוצה חדשה.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowDeleteModal(false)}
+                    className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors"
+                  >
+                    ביטול
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={isPending}
+                    className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-sm font-medium text-white transition-colors disabled:opacity-50"
+                  >
+                    {isPending ? 'מוחק...' : 'מחק קבוצה'}
+                  </button>
+                </div>
+              </>
             ) : (
               /* Group has categories — require target selection */
               <>
@@ -468,6 +491,20 @@ export default function CategoryGroupsGrid({
               ביטול
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {groups.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <p className="text-slate-400 text-sm mb-4">לא הוגדרו קבוצות עדיין</p>
+          <button
+            onClick={() => setShowNewGroup(true)}
+            className="flex items-center gap-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl px-4 py-2.5 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            הוסף קבוצה ראשונה
+          </button>
         </div>
       )}
 
