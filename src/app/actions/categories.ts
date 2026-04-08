@@ -127,6 +127,33 @@ export async function setupHouseholdCategories(accountId: string) {
   try { await assertAccountAccess(supabase, user.id, accountId) }
   catch { return { error: 'Access denied' } }
 
+  // Find or create the 'משק בית' group so categories get a group_id immediately
+  let groupId: string | null = null
+  const { data: existingGroup } = await supabase
+    .from('category_groups')
+    .select('id')
+    .eq('account_id', accountId)
+    .eq('name', 'משק בית')
+    .single()
+
+  if (existingGroup) {
+    groupId = existingGroup.id
+  } else {
+    const { data: maxOrder } = await supabase
+      .from('category_groups')
+      .select('sort_order')
+      .eq('account_id', accountId)
+      .order('sort_order', { ascending: false })
+      .limit(1)
+    const sort_order = maxOrder && maxOrder.length > 0 ? maxOrder[0].sort_order + 1 : 0
+    const { data: newGroup } = await supabase
+      .from('category_groups')
+      .insert({ account_id: accountId, name: 'משק בית', sort_order })
+      .select('id')
+      .single()
+    groupId = newGroup?.id ?? null
+  }
+
   const { data: existing } = await supabase
     .from('categories')
     .select('name')
@@ -147,6 +174,7 @@ export async function setupHouseholdCategories(accountId: string) {
         bucket: 'מחיה',
         category_group: 'משק בית',
         is_fixed: cat.is_fixed,
+        ...(groupId ? { group_id: groupId } : {}),
       })
       .select()
       .single()
