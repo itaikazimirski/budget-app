@@ -256,14 +256,14 @@ function GroupCard({
           ) : (
             <>
               {/* Right (RTL): chevron + name */}
-              <div className="flex flex-row items-center gap-1.5 min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 min-w-0 flex-1">
                 <ChevronDown className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-300 ${isCollapsed ? '-rotate-90' : ''}`} />
-                <span className="text-sm font-semibold text-slate-800 dark:text-white whitespace-nowrap shrink-0">{group.name}</span>
+                <span className="text-sm font-semibold text-slate-800 dark:text-white truncate">{group.name}</span>
               </div>
 
               {/* Left (RTL): pct + money + action buttons */}
               <div
-                className="flex flex-row items-center gap-3 shrink-0 whitespace-nowrap"
+                className="flex items-center gap-3 shrink-0"
                 onClick={(e) => e.stopPropagation()}
               >
                 {totalActualAllGroups > 0 && pct > 0 && (
