@@ -25,10 +25,10 @@ export default function MonthNav({ accountId, year, month, compact = false }: Mo
   const now = new Date()
   const isCurrentMonth = now.getFullYear() === year && now.getMonth() + 1 === month
 
-  // Reset picker year when opening
+  // Toggle picker — reset year only when opening
   function handleOpen() {
-    setPickerYear(year)
-    setOpen(true)
+    if (!open) setPickerYear(year)
+    setOpen((prev) => !prev)
   }
 
   // Close on outside click
