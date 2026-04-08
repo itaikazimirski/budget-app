@@ -258,7 +258,7 @@ function GroupCard({
               {/* Right (RTL): chevron + name */}
               <div className="flex flex-row items-center gap-1.5 min-w-0 flex-1">
                 <ChevronDown className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-300 ${isCollapsed ? '-rotate-90' : ''}`} />
-                <span className="text-sm font-semibold text-slate-800 dark:text-white whitespace-nowrap overflow-hidden text-ellipsis">{group.name}</span>
+                <span className="text-sm font-semibold text-slate-800 dark:text-white whitespace-nowrap shrink-0">{group.name}</span>
               </div>
 
               {/* Left (RTL): pct + money + action buttons */}
