@@ -4,11 +4,10 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateAccountName, inviteMember, generateApiKey, deleteApiKey } from '@/app/actions/accounts'
 import { setupHouseholdCategories, disableHouseholdCategories } from '@/app/actions/categories'
-import { User, Edit2, Check, X, UserPlus, Key, Copy, Trash2, Plus, Home, Clock } from 'lucide-react'
+import { User, Edit2, Check, X, UserPlus, Key, Copy, Trash2, Plus, Home } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { Account, AccountMember } from '@/lib/types'
-import type { AuditAction } from '@/lib/auditLog'
 
 interface ApiKey {
   id: string
@@ -17,68 +16,15 @@ interface ApiKey {
   created_at: string
 }
 
-interface AuditLog {
-  id: string
-  action: string
-  entity_id: string | null
-  metadata: Record<string, unknown> | null
-  created_at: string
-  user_id: string | null
-}
-
-const ACTION_LABELS: Record<AuditAction, string> = {
-  'transaction.create':      'הוספת עסקה',
-  'transaction.update':      'עדכון עסקה',
-  'transaction.delete':      'מחיקת עסקה',
-  'category.create':         'יצירת קטגוריה',
-  'category.delete':         'מחיקת קטגוריה',
-  'budget.update_month':     'עדכון תקציב חודשי',
-  'budget.update_template':  'עדכון תקציב קבוע',
-  'account.rename':          'שינוי שם חשבון',
-  'member.invite':           'הזמנת משתתף',
-  'category_group.create':   'יצירת קבוצה',
-  'category_group.delete':   'מחיקת קבוצה',
-}
-
-function formatTimeAgo(dateStr: string): string {
-  const diff = (Date.now() - new Date(dateStr).getTime()) / 1000
-  if (diff < 60)    return 'עכשיו'
-  if (diff < 3600)  return `לפני ${Math.floor(diff / 60)} דק׳`
-  if (diff < 86400) return `לפני ${Math.floor(diff / 3600)} שע׳`
-  if (diff < 86400 * 7) return `לפני ${Math.floor(diff / 86400)} ימים`
-  return new Date(dateStr).toLocaleDateString('he-IL', { day: 'numeric', month: 'short' })
-}
-
-function auditDescription(log: AuditLog): string {
-  const m = log.metadata ?? {}
-  switch (log.action as AuditAction) {
-    case 'transaction.create':
-    case 'transaction.update': {
-      const type = m.type === 'income' ? 'הכנסה' : 'הוצאה'
-      const amount = m.amount != null ? ` · ₪${Number(m.amount).toLocaleString('he-IL')}` : ''
-      return `${type}${amount}`
-    }
-    case 'budget.update_month':
-    case 'budget.update_template':
-      return m.amount != null ? `₪${Number(m.amount).toLocaleString('he-IL')}` : ''
-    case 'category.create':
-      return typeof m.name === 'string' ? m.name : ''
-    case 'account.rename':
-      return typeof m.name === 'string' ? `→ "${m.name}"` : ''
-    default: return ''
-  }
-}
-
 interface SettingsClientProps {
   account: Account
   members: AccountMember[]
   isOwner: boolean
   apiKeys: ApiKey[]
   hasHousehold: boolean
-  auditLogs: AuditLog[]
 }
 
-export default function SettingsClient({ account, members, isOwner, apiKeys, hasHousehold, auditLogs }: SettingsClientProps) {
+export default function SettingsClient({ account, members, isOwner, apiKeys, hasHousehold }: SettingsClientProps) {
   const router = useRouter()
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState(account.name)
@@ -289,32 +235,6 @@ export default function SettingsClient({ account, members, isOwner, apiKeys, has
             ))
           )}
         </div>
-      </div>
-      {/* Audit Log */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
-          <Clock className="w-3.5 h-3.5 text-slate-400" />
-          <h2 className="font-semibold text-slate-900 text-sm">היסטוריית פעולות</h2>
-        </div>
-        {auditLogs.length === 0 ? (
-          <p className="px-4 py-6 text-center text-xs text-slate-400">אין פעולות עדיין.</p>
-        ) : (
-          <div className="divide-y divide-slate-50">
-            {auditLogs.map((log) => {
-              const label = ACTION_LABELS[log.action as AuditAction] ?? log.action
-              const detail = auditDescription(log)
-              return (
-                <div key={log.id} className="flex items-center justify-between px-4 py-2.5 gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm text-slate-700 font-medium">{label}</p>
-                    {detail && <p className="text-xs text-slate-400 truncate">{detail}</p>}
-                  </div>
-                  <span className="text-xs text-slate-400 shrink-0">{formatTimeAgo(log.created_at)}</span>
-                </div>
-              )
-            })}
-          </div>
-        )}
       </div>
     </div>
 
