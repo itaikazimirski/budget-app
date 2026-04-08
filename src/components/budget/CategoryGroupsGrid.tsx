@@ -238,7 +238,7 @@ function GroupCard({
 
         {/* Header */}
         <div
-          className="flex items-center justify-between px-3 py-2 border-b border-slate-100 dark:border-white/[0.06] bg-slate-50/60 dark:bg-white/[0.02] cursor-pointer select-none"
+          className="flex flex-row items-center justify-between w-full px-3 py-2 border-b border-slate-100 dark:border-white/[0.06] bg-slate-50/60 dark:bg-white/[0.02] cursor-pointer select-none"
           onClick={toggleCollapse}
         >
           {editingName ? (
@@ -256,14 +256,14 @@ function GroupCard({
           ) : (
             <>
               {/* Right (RTL): chevron + name */}
-              <div className="flex items-center gap-1.5 min-w-0 flex-1">
+              <div className="flex flex-row items-center gap-1.5 min-w-0 flex-1">
                 <ChevronDown className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-300 ${isCollapsed ? '-rotate-90' : ''}`} />
-                <span className="text-sm font-semibold text-slate-800 dark:text-white">{group.name}</span>
+                <span className="text-sm font-semibold text-slate-800 dark:text-white whitespace-nowrap overflow-hidden text-ellipsis">{group.name}</span>
               </div>
 
               {/* Left (RTL): pct + money + action buttons */}
               <div
-                className="flex items-center gap-3 shrink-0"
+                className="flex flex-row items-center gap-3 shrink-0 whitespace-nowrap"
                 onClick={(e) => e.stopPropagation()}
               >
                 {totalActualAllGroups > 0 && pct > 0 && (
