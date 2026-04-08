@@ -34,7 +34,9 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
   const endDate = new Date(year, month, 0).toISOString().split('T')[0]
 
   // Fetch all data in parallel — migrations run conditionally after, using this data as guards
-  const [
+  // categories and categoryGroups may be reassigned below after migration
+  /* eslint-disable prefer-const */
+  let [
     { data: categories },
     { data: templates },
     { data: monthOverrides },
@@ -49,6 +51,7 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
     supabase.from('account_members').select('user_id, display_name').eq('account_id', accountId),
     supabase.from('category_groups').select('id, account_id, name, sort_order, created_at').eq('account_id', accountId).order('sort_order'),
   ])
+  /* eslint-enable prefer-const */
 
   // Check if any migration is needed — zero extra DB queries on normal loads
   const needsMigration = (categoryGroups ?? []).length === 0
