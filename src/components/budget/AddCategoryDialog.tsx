@@ -136,8 +136,8 @@ export default function AddCategoryDialog({ type, accountId, year, month, defaul
               onClick={() => setIsFixed(!isFixed)}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all ${
                 isFixed
-                  ? 'border-amber-400 bg-amber-50 text-amber-700'
-                  : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300'
+                  ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400'
+                  : 'border-slate-200 dark:border-white/[0.1] bg-slate-50 dark:bg-white/[0.04] text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-white/[0.2]'
               }`}
             >
               <div className="text-right">
