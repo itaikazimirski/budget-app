@@ -35,8 +35,8 @@ export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
   const ip = getIp(request)
 
-  // Rate limit login attempts
-  if (path.startsWith('/api/auth') || (path.startsWith('/login') && request.method === 'POST')) {
+  // Rate limit login attempts — only the login page POST, not the OAuth callback (/api/auth)
+  if (path.startsWith('/login') && request.method === 'POST') {
     if (loginLimiter) {
       const { success } = await loginLimiter.limit(ip)
       if (!success) {
