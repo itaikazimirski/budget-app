@@ -188,7 +188,7 @@ function GroupCard({
   year: number
   month: number
   allGroups: CategoryGroupRecord[]
-  totalActualAllGroups: number
+  totalActualAllGroups: number // actually total budget, kept for compat
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   useEffect(() => {
@@ -211,7 +211,7 @@ function GroupCard({
   const totalBudget = categories.reduce((s, c) => s + c.budget_amount, 0)
   const totalActual = categories.reduce((s, c) => s + c.actual_amount, 0)
   const isOver = totalActual > totalBudget && totalBudget > 0
-  const pct = totalActualAllGroups > 0 ? Math.round((totalActual / totalActualAllGroups) * 100) : 0
+  const pct = totalActualAllGroups > 0 ? Math.round((totalBudget / totalActualAllGroups) * 100) : 0
 
   function handleRename() {
     if (!nameInput.trim() || nameInput === group.name) { setEditingName(false); return }
@@ -255,46 +255,50 @@ function GroupCard({
             </div>
           ) : (
             <>
+              {/* Left: chevron + name (flex-1) + pct */}
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
                 <ChevronDown className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-300 ${isCollapsed ? '-rotate-90' : ''}`} />
-                <span className="text-sm font-semibold text-slate-800 dark:text-white truncate">{group.name}</span>
-                {totalActualAllGroups > 0 && (
-                  <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">• {pct}%</span>
+                <span className="text-sm font-semibold text-slate-800 dark:text-white truncate flex-1">{group.name}</span>
+                {totalActualAllGroups > 0 && pct > 0 && (
+                  <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0 whitespace-nowrap">• {pct}%</span>
                 )}
+              </div>
+
+              {/* Right: money + action buttons */}
+              <div
+                className="flex items-center gap-2 shrink-0"
+                onClick={(e) => e.stopPropagation()}
+              >
                 {totalBudget > 0 && (
-                  <span className="flex items-baseline gap-1 shrink-0 tabular-nums">
+                  <span className="flex items-baseline gap-1 tabular-nums">
                     <span className="text-xs font-normal text-slate-600 dark:text-white">{formatILS(totalBudget)}</span>
                     <span className="text-xs text-slate-400 dark:text-slate-500">/</span>
                     <span className={`text-xs font-bold ${isOver ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>{formatILS(totalActual)}</span>
                   </span>
                 )}
-              </div>
-
-              <div
-                className="flex items-center gap-0.5 shrink-0 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/card:opacity-100 transition-opacity"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button
-                  onClick={() => setShowAddCategory(true)}
-                  className="p-1.5 text-slate-400 hover:text-indigo-500 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
-                  title="הוסף קטגוריה"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => { setNameInput(group.name); setEditingName(true) }}
-                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors"
-                  title="שנה שם"
-                >
-                  <Pencil className="w-3 h-3" />
-                </button>
-                <button
-                  onClick={() => { setTargetGroupId(''); setShowDeleteModal(true) }}
-                  className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"
-                  title="מחק קבוצה"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
+                <div className="flex items-center gap-0.5 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/card:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => setShowAddCategory(true)}
+                    className="p-1.5 text-slate-400 hover:text-indigo-500 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
+                    title="הוסף קטגוריה"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => { setNameInput(group.name); setEditingName(true) }}
+                    className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors"
+                    title="שנה שם"
+                  >
+                    <Pencil className="w-3 h-3" />
+                  </button>
+                  <button
+                    onClick={() => { setTargetGroupId(''); setShowDeleteModal(true) }}
+                    className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"
+                    title="מחק קבוצה"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
               </div>
             </>
           )}
@@ -455,7 +459,7 @@ export default function CategoryGroupsGrid({
     catsByGroup[key].push(cat)
   }
 
-  const totalActualAllGroups = expenseCategories.reduce((s, c) => s + c.actual_amount, 0)
+  const totalBudgetAllGroups = expenseCategories.reduce((s, c) => s + c.budget_amount, 0)
 
   return (
     <div className="space-y-4">
@@ -530,7 +534,7 @@ export default function CategoryGroupsGrid({
               year={year}
               month={month}
               allGroups={groups}
-              totalActualAllGroups={totalActualAllGroups}
+              totalActualAllGroups={totalBudgetAllGroups}
             />
           </div>
         ))}
