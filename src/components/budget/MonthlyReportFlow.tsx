@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Loader2, FileDown, X } from 'lucide-react'
 import type { AIReportData } from '@/lib/types'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
@@ -9,7 +9,10 @@ interface MonthlyReportFlowProps {
   accountId: string
   year: number
   month: number
-  hasExistingReport: boolean
+  /** If not provided the component fetches it on mount (used when rendered in the navbar) */
+  hasExistingReport?: boolean
+  /** Compact mode for navbar: smaller buttons, no full-width layout */
+  compact?: boolean
 }
 
 const SCORE_COLOR: Record<string, string> = {
@@ -33,7 +36,7 @@ const IMPACT_LABEL: Record<string, string> = {
 const TOTAL_SLIDES = 4
 
 export default function MonthlyReportFlow({
-  accountId, year, month, hasExistingReport,
+  accountId, year, month, hasExistingReport, compact = false,
 }: MonthlyReportFlowProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -41,13 +44,30 @@ export default function MonthlyReportFlow({
   const [open, setOpen] = useState(false)
   const [slide, setSlide] = useState(0)
 
-  // Determine if the viewed month has fully ended
-  const now = new Date()
-  const lastDayOfMonth = new Date(year, month, 0) // day-0 trick: last day of `month`
-  const monthHasEnded = now > lastDayOfMonth
+  // When hasExistingReport is not provided (nav usage), resolve it via GET
+  const [resolvedHasReport, setResolvedHasReport] = useState<boolean | null>(
+    hasExistingReport !== undefined ? hasExistingReport : null
+  )
 
-  const showGolden = monthHasEnded && !hasExistingReport
-  const showStandard = hasExistingReport
+  useEffect(() => {
+    if (hasExistingReport !== undefined) return
+    fetch(`/api/ai-report?accountId=${accountId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        const reports: { year: number; month: number }[] = data.reports ?? []
+        setResolvedHasReport(reports.some((r) => r.year === year && r.month === month))
+      })
+      .catch(() => setResolvedHasReport(false))
+  }, [accountId, year, month, hasExistingReport])
+
+  const now = new Date()
+  const monthHasEnded = now > new Date(year, month, 0)
+
+  // Still resolving — render nothing to avoid layout shift
+  if (resolvedHasReport === null) return null
+
+  const showGolden = monthHasEnded && !resolvedHasReport
+  const showStandard = resolvedHasReport
 
   if (!showGolden && !showStandard) return null
 
@@ -98,42 +118,60 @@ export default function MonthlyReportFlow({
 
   return (
     <>
+      {/* ── Trigger button ── */}
       {showGolden ? (
-        <div className="flex flex-col items-stretch gap-2">
+        <div className={compact ? undefined : 'flex flex-col items-stretch gap-2'}>
           <button
             onClick={handleGoldenClick}
             disabled={loading}
-            className="relative overflow-hidden w-full rounded-2xl px-6 py-4
-              font-semibold text-base text-slate-900
-              bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200
-              bg-[length:200%_100%] animate-shimmer
-              shadow-lg shadow-amber-300/40 dark:shadow-amber-400/20
-              disabled:opacity-70 transition-opacity active:scale-[0.98]"
+            className={
+              compact
+                ? `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold text-slate-900
+                   bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200
+                   bg-[length:200%_100%] animate-shimmer shadow-sm shadow-amber-300/40
+                   disabled:opacity-70 transition-opacity`
+                : `relative overflow-hidden w-full rounded-2xl px-6 py-4
+                   font-semibold text-base text-slate-900
+                   bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200
+                   bg-[length:200%_100%] animate-shimmer
+                   shadow-lg shadow-amber-300/40 dark:shadow-amber-400/20
+                   disabled:opacity-70 transition-opacity active:scale-[0.98]`
+            }
           >
             {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                טוען...
+              <span className="flex items-center gap-1.5">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                {!compact && 'טוען...'}
               </span>
+            ) : compact ? (
+              '✨ דוח'
             ) : (
               '✨ הסיכום החודשי מוכן'
             )}
           </button>
-          {error && <p className="text-xs text-rose-500 text-center">{error}</p>}
+          {error && !compact && <p className="text-xs text-rose-500 text-center">{error}</p>}
         </div>
       ) : (
         <button
           onClick={handleStandardClick}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium
-            bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-slate-400
-            border border-slate-200 dark:border-white/[0.08]
-            hover:bg-slate-200 dark:hover:bg-white/[0.08] transition-colors"
+          className={
+            compact
+              ? `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium
+                 border border-indigo-200 text-indigo-600
+                 hover:bg-indigo-50 hover:border-indigo-300 dark:hover:bg-indigo-950/30
+                 transition-colors`
+              : `flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium
+                 bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-slate-400
+                 border border-slate-200 dark:border-white/[0.08]
+                 hover:bg-slate-200 dark:hover:bg-white/[0.08] transition-colors`
+          }
         >
-          <FileDown className="w-4 h-4" />
-          הורד דוח PDF
+          <FileDown className="w-3.5 h-3.5" />
+          {compact ? <span className="hidden sm:inline">PDF</span> : 'הורד דוח PDF'}
         </button>
       )}
 
+      {/* ── Story dialog ── */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
           showCloseButton={false}
@@ -161,7 +199,7 @@ export default function MonthlyReportFlow({
                 ))}
               </div>
 
-              {/* Close button — stop propagation so it doesn't count as a tap */}
+              {/* Close */}
               <button
                 onClick={(e) => { e.stopPropagation(); setOpen(false) }}
                 className="absolute top-3 left-3 z-20 p-1.5 rounded-full transition-colors"
@@ -174,7 +212,7 @@ export default function MonthlyReportFlow({
               {slide === 0 && (
                 <div
                   className="flex flex-col items-center justify-center px-8 pt-16 pb-10 min-h-[480px]
-                    bg-gradient-to-b from-slate-900 to-indigo-950 text-right"
+                    bg-gradient-to-b from-slate-900 to-indigo-950"
                   key="slide-0"
                 >
                   <div className="animate-fade-slide-in flex flex-col items-center gap-6 w-full">

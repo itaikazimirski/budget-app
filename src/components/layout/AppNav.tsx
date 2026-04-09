@@ -3,12 +3,12 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { Wallet, ChevronDown, LogOut, Settings, Plus, User, Sun, Moon, Sparkles } from 'lucide-react'
+import { Wallet, ChevronDown, LogOut, Settings, Plus, User, Sun, Moon } from 'lucide-react'
 import { logout } from '@/app/actions/auth'
 import { createSharedAccount } from '@/app/actions/accounts'
 import { useTheme } from 'next-themes'
 import MonthNav from '@/components/budget/MonthNav'
-import PDFDownloadButton from '@/components/budget/PDFDownloadButton'
+import MonthlyReportFlow from '@/components/budget/MonthlyReportFlow'
 
 interface Account {
   id: string
@@ -126,10 +126,15 @@ export default function AppNav({ accounts, userEmail }: AppNavProps) {
           )}
         </div>
 
-        {/* Left: PDF + icons */}
+        {/* Left: report flow + icons */}
         <div className="flex items-center gap-1 shrink-0">
           {isMonthPage && currentAccount && (
-            <PDFDownloadButton accountId={currentAccount.id} year={routeYear!} month={routeMonth!} />
+            <MonthlyReportFlow
+              compact
+              accountId={currentAccount.id}
+              year={routeYear!}
+              month={routeMonth!}
+            />
           )}
 
           <button
@@ -139,12 +144,6 @@ export default function AppNav({ accounts, userEmail }: AppNavProps) {
           >
             {mounted && (resolvedTheme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />)}
           </button>
-
-          {currentAccount && (
-            <Link href={`/${currentAccount.id}/reports`} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-lg transition-colors" title="דוחות AI">
-              <Sparkles className="w-4 h-4" />
-            </Link>
-          )}
 
           {currentAccount && (
             <Link href={`/${currentAccount.id}/settings`} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/[0.07] rounded-lg transition-colors" title="הגדרות">
