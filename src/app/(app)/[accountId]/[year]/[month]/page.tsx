@@ -44,7 +44,7 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
     { data: members },
     { data: categoryGroups },
   ] = await Promise.all([
-    supabase.from('categories').select('id, account_id, name, type, icon, bucket, category_group, is_fixed, one_time_year, one_time_month, group_id, created_at').eq('account_id', accountId).order('name'),
+    supabase.from('categories').select('id, account_id, name, type, icon, bucket, category_group, is_fixed, is_archived, one_time_year, one_time_month, group_id, created_at').eq('account_id', accountId).eq('is_archived', false).order('name'),
     supabase.from('budget_templates').select('id, account_id, category_id, monthly_amount').eq('account_id', accountId),
     supabase.from('month_budgets').select('id, account_id, category_id, year, month, monthly_amount').eq('account_id', accountId).eq('year', year).eq('month', month),
     supabase.from('transactions').select('*, category:categories(*)').eq('account_id', accountId).gte('date', startDate).lte('date', endDate).order('date', { ascending: false }),
@@ -65,7 +65,7 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
     ])
     // Re-fetch only the affected tables
     const [{ data: updatedCategories }, { data: updatedGroups }] = await Promise.all([
-      supabase.from('categories').select('id, account_id, name, type, icon, bucket, category_group, is_fixed, one_time_year, one_time_month, group_id, created_at').eq('account_id', accountId).order('name'),
+      supabase.from('categories').select('id, account_id, name, type, icon, bucket, category_group, is_fixed, is_archived, one_time_year, one_time_month, group_id, created_at').eq('account_id', accountId).eq('is_archived', false).order('name'),
       supabase.from('category_groups').select('id, account_id, name, sort_order, created_at').eq('account_id', accountId).order('sort_order'),
     ])
     categories = updatedCategories

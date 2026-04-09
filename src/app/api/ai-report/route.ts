@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
     .from('categories')
     .select('id, name, type, icon, bucket')
     .eq('account_id', accountId)
+    .eq('is_archived', false)
 
   // Fetch budget templates
   const { data: templates } = await supabase

@@ -159,6 +159,7 @@ export async function setupHouseholdCategories(accountId: string) {
     .select('name')
     .eq('account_id', accountId)
     .eq('category_group', 'משק בית')
+    .eq('is_archived', false)
 
   const existingNames = new Set((existing ?? []).map((c) => c.name))
 
@@ -203,7 +204,7 @@ export async function disableHouseholdCategories(accountId: string) {
 
   const { error } = await supabase
     .from('categories')
-    .delete()
+    .update({ is_archived: true })
     .eq('account_id', accountId)
     .eq('category_group', 'משק בית')
 
@@ -228,7 +229,7 @@ export async function deleteCategory(categoryId: string, accountId: string) {
   try { await assertAccountAccess(supabase, user.id, accountId) }
   catch { return { error: 'Access denied' } }
 
-  const { error } = await supabase.from('categories').delete().eq('id', categoryId).eq('account_id', accountId)
+  const { error } = await supabase.from('categories').update({ is_archived: true }).eq('id', categoryId).eq('account_id', accountId)
 
   if (error) return { error: error.message }
 

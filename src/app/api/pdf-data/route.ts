@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
   ] = await Promise.all([
     supabase.from('ai_reports').select('content').eq('account_id', accountId).eq('year', year).eq('month', month).single(),
     supabase.from('transactions').select('category_id, amount, type').eq('account_id', accountId).gte('date', prevStart).lte('date', prevEnd),
-    supabase.from('categories').select('id, account_id, name, type, icon, bucket, category_group, is_fixed, one_time_year, one_time_month, group_id').eq('account_id', accountId),
+    supabase.from('categories').select('id, account_id, name, type, icon, bucket, category_group, is_fixed, one_time_year, one_time_month, group_id').eq('account_id', accountId).eq('is_archived', false),
     supabase.from('budget_templates').select('id, account_id, category_id, monthly_amount').eq('account_id', accountId),
     supabase.from('month_budgets').select('id, account_id, category_id, year, month, monthly_amount').eq('account_id', accountId).eq('year', year).eq('month', month),
     supabase.from('transactions').select('*, category:categories(*)').eq('account_id', accountId).gte('date', startDate).lte('date', endDate),

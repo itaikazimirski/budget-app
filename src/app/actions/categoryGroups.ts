@@ -21,6 +21,7 @@ export async function fixOrphanCategories(accountId: string) {
     .select('id, category_group')
     .eq('account_id', accountId)
     .eq('type', 'expense')
+    .eq('is_archived', false)
     .is('group_id', null)
 
   if (!orphans || orphans.length === 0) return
@@ -73,6 +74,7 @@ export async function reassignMisplacedCategories(accountId: string) {
     .select('id, category_group, group_id')
     .eq('account_id', accountId)
     .eq('type', 'expense')
+    .eq('is_archived', false)
     .not('category_group', 'is', null)
 
   if (!cats || cats.length === 0) return
@@ -138,6 +140,7 @@ export async function migrateToGroups(accountId: string) {
     .from('categories')
     .select('id, category_group')
     .eq('account_id', accountId)
+    .eq('is_archived', false)
 
   if (!categories || categories.length === 0) return
 

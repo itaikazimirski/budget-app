@@ -42,6 +42,7 @@ export default async function SettingsPage(props: PageProps<'/[accountId]/settin
     .select('id')
     .eq('account_id', accountId)
     .eq('category_group', 'משק בית')
+    .eq('is_archived', false)
     .limit(1)
 
   const now = new Date()
