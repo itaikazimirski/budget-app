@@ -89,6 +89,14 @@ export interface MonthlyStats {
   expenseCategories: CategoryWithStats[]
 }
 
+export interface AIReportData {
+  score: "A" | "B" | "C" | "D" | "F";
+  tldr: string;
+  highlights: { title: string; description: string; emoji: string }[];
+  warnings: { category: string; issue: string; impact: "high" | "medium" | "low" }[];
+  actionItem: string;
+}
+
 export const CATEGORY_ICONS = [
   '🛒', '🍕', '🍔', '☕', '🍷', '🍼', '🌿',
   '🚗', '⛽', '🚌', '✈️', '🚂', '🛵', '🚕',

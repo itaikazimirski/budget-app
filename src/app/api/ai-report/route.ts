@@ -1,15 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import type { AIReportData } from '@/lib/types'
 
-const SYSTEM_PROMPT = `אתה יועץ פיננסי אישי, חד וחכם. המשתמש מולך מבין בפיננסים, אז דבר אליו ישירות, בגובה העיניים ובלי קלישאות. המטרה שלך היא לנתח את תקציב החודש החולף. אל תחזור סתם על מספרים, אלא הפק תובנות:
+const SYSTEM_PROMPT = `You are a personal finance advisor analyzing a monthly budget for an Israeli household.
+Analyze the budget data and return a JSON object with the following structure:
 
-חפש מגמות או חריגות נקודתיות (למשל: "ההוצאות על פובי קפצו החודש משמעותית", או "יש חריגה קבועה בתקציב המסעדות").
+{
+  "score": one of "A", "B", "C", "D", or "F" — overall monthly financial grade,
+  "tldr": a 1-2 sentence plain Hebrew summary of the month (direct, no fluff),
+  "highlights": array of up to 3 positive observations, each with:
+    - "title": short Hebrew label (3-5 words)
+    - "description": one Hebrew sentence explaining the highlight
+    - "emoji": a single relevant emoji
+  "warnings": array of up to 3 concerns, each with:
+    - "category": the category name in Hebrew
+    - "issue": one Hebrew sentence describing the problem
+    - "impact": one of "high", "medium", or "low"
+  "actionItem": a single concrete Hebrew recommendation for next month
+}
 
-עקוב והתייחס להתקדמות ביעדי חיסכון גדולים (למשל: "בקצב הנוכחי, עמדת ביעד החיסכון החודשי לקראת מעבר דירה למרכז").
-
-תן חיזוקים חיוביים על ניהול תזרים נכון והצעות חכמות מה לעשות עם עודפים שנוצרו.
-
-כתוב את הדוח בעברית, בפסקאות קצרות וקריאות. אל תשתמש בכותרות גדולות — כתוב כמו שיחה עם יועץ, לא כמו מצגת.`
+Rules:
+- Write all text fields in Hebrew
+- Be direct and specific — reference actual category names and amounts from the data
+- Score reflects overall savings rate and budget adherence: A = excellent, B = good, C = acceptable, D = concerning, F = critical
+- Return ONLY the JSON object, no markdown, no explanation`
 
 function formatILS(amount: number) {
   return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(amount)
@@ -139,24 +153,30 @@ ${expenseCats.map((c) => {
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) return NextResponse.json({ error: 'GEMINI_API_KEY not set' }, { status: 500 })
 
-  let content: string
+  let reportData: AIReportData
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: `${SYSTEM_PROMPT}\n\nהנה נתוני החודש:\n${dataText}` }] }],
+          generationConfig: {
+            responseMimeType: 'application/json',
+          },
         }),
       }
     )
     const json = await res.json()
     if (!res.ok) return NextResponse.json({ error: 'שגיאת ג\'מיני: ' + JSON.stringify(json) }, { status: 500 })
-    content = json.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+    const raw = json.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+    reportData = JSON.parse(raw) as AIReportData
   } catch (err) {
     return NextResponse.json({ error: 'שגיאת ג\'מיני: ' + String(err) }, { status: 500 })
   }
+
+  const content = JSON.stringify(reportData)
 
   // Save to DB
   await supabase.from('ai_reports').insert({
