@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Loader2, FileDown, X } from 'lucide-react'
+import { toast } from 'sonner'
 import type { AIReportData } from '@/lib/types'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 
@@ -48,7 +49,6 @@ export default function MonthlyReportFlow({
 }: MonthlyReportFlowProps) {
   const [loading, setLoading] = useState(false)
   const [pdfLoading, setPdfLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [reportData, setReportData] = useState<AIReportData | null>(null)
   const [open, setOpen] = useState(false)
   const [slide, setSlide] = useState(0)
@@ -80,7 +80,6 @@ export default function MonthlyReportFlow({
   // ── Fetch + open story ──────────────────────────────────────────────────
   async function handleGoldenClick() {
     setLoading(true)
-    setError(null)
     try {
       const res = await fetch('/api/ai-report', {
         method: 'POST',
@@ -89,7 +88,7 @@ export default function MonthlyReportFlow({
       })
       const data = await res.json()
       if (!res.ok || data.error) {
-        setError(data.error ?? 'שגיאה בטעינת הדוח')
+        toast.error('השרתים עמוסים כרגע בהפקת דוחות 🤖 אנא נסה שוב בעוד כמה דקות.')
         return
       }
       const parsed: AIReportData =
@@ -97,8 +96,8 @@ export default function MonthlyReportFlow({
       setReportData(parsed)
       setSlide(0)
       setOpen(true)
-    } catch (err) {
-      setError('שגיאה: ' + String(err))
+    } catch {
+      toast.error('השרתים עמוסים כרגע בהפקת דוחות 🤖 אנא נסה שוב בעוד כמה דקות.')
     } finally {
       setLoading(false)
     }
@@ -107,7 +106,6 @@ export default function MonthlyReportFlow({
   // ── PDF generation ──────────────────────────────────────────────────────
   async function downloadPDF(aiData?: AIReportData | null) {
     setPdfLoading(true)
-    setError(null)
     try {
       // If no AI data provided, fetch it (standard-state button path)
       let resolvedAiData = aiData ?? reportData
@@ -118,7 +116,10 @@ export default function MonthlyReportFlow({
           body: JSON.stringify({ accountId, year: prevYear, month: prevMonth }),
         })
         const aiJson = await aiRes.json()
-        if (!aiRes.ok || aiJson.error) throw new Error(aiJson.error ?? 'שגיאה בטעינת הדוח')
+        if (!aiRes.ok || aiJson.error) {
+          toast.error('השרתים עמוסים כרגע בהפקת דוחות 🤖 אנא נסה שוב בעוד כמה דקות.')
+          return
+        }
         resolvedAiData =
           typeof aiJson.content === 'string' ? JSON.parse(aiJson.content) : aiJson.content
       }
@@ -168,8 +169,8 @@ export default function MonthlyReportFlow({
       a.download = `תקציב-לי_${MONTHS[prevMonth - 1]}_${prevYear}.pdf`
       a.click()
       URL.revokeObjectURL(url)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'שגיאה ביצירת ה-PDF')
+    } catch {
+      toast.error('שגיאה ביצירת ה-PDF. אנא נסה שוב.')
     } finally {
       setPdfLoading(false)
     }
@@ -236,29 +237,25 @@ export default function MonthlyReportFlow({
               '✨ הסיכום החודשי מוכן'
             )}
           </button>
-          {error && !compact && <p className="text-xs text-rose-500 text-center">{error}</p>}
         </div>
       ) : showStandard ? (
-        <div className={compact ? undefined : 'flex flex-col items-stretch gap-2'}>
-          <button
-            onClick={() => downloadPDF()}
-            disabled={pdfLoading}
-            className={compact ? standardCompact : standardFull}
-          >
-            {pdfLoading ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                {!compact && 'מכין...'}
-              </>
-            ) : (
-              <>
-                <FileDown className="w-3.5 h-3.5" />
-                {compact ? <span className="hidden sm:inline">PDF</span> : 'הורד דוח PDF'}
-              </>
-            )}
-          </button>
-          {error && !compact && <p className="text-xs text-rose-500 text-center">{error}</p>}
-        </div>
+        <button
+          onClick={() => downloadPDF()}
+          disabled={pdfLoading}
+          className={compact ? standardCompact : standardFull}
+        >
+          {pdfLoading ? (
+            <>
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              {!compact && 'מכין...'}
+            </>
+          ) : (
+            <>
+              <FileDown className="w-3.5 h-3.5" />
+              {compact ? <span className="hidden sm:inline">PDF</span> : 'הורד דוח PDF'}
+            </>
+          )}
+        </button>
       ) : null}
 
       {/* ── Story dialog ── */}
@@ -422,9 +419,6 @@ export default function MonthlyReportFlow({
                       </>
                     )}
                   </button>
-                  {error && (
-                    <p className="text-xs text-rose-300 text-center mt-2">{error}</p>
-                  )}
                 </div>
               )}
             </div>
