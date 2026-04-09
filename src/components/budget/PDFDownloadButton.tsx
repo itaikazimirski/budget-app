@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { FileDown, Loader2 } from 'lucide-react'
+import type { AIReportData } from '@/lib/types'
 
 interface PDFDownloadButtonProps {
   accountId: string
@@ -22,9 +23,13 @@ export default function PDFDownloadButton({ accountId, year, month }: PDFDownloa
     setLoading(true)
     setError(null)
     try {
-      // 1. Fetch budget data + AI report in parallel
-      const [budgetRes, aiRes] = await Promise.all([
+      const [budgetRes, aiRes, pdfRes] = await Promise.all([
         fetch(`/api/budget-data?accountId=${accountId}&year=${year}&month=${month}`),
+        fetch('/api/ai-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountId, year, month }),
+        }),
         fetch('/api/pdf-data', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -32,27 +37,35 @@ export default function PDFDownloadButton({ accountId, year, month }: PDFDownloa
         }),
       ])
       const budgetJson = await budgetRes.json()
-      const aiJson = await aiRes.json()
+      const aiJson     = await aiRes.json()
+      const pdfJson    = await pdfRes.json()
       if (!budgetRes.ok) throw new Error(budgetJson.error ?? 'שגיאה בטעינת נתונים')
-      if (!aiRes.ok) throw new Error(aiJson.error ?? 'שגיאה בהכנת הדוח')
 
       const { totalIncome, totalExpenses, balance, expenseCategories } = budgetJson
-      const { aiContent, prevActuals, prevTotalExpenses } = aiJson
+      const { prevActuals, prevTotalExpenses } = pdfJson
 
-      // 2. Dynamically import PDF renderer (browser only)
+      let aiReportData: AIReportData | null = null
+      if (aiJson.content) {
+        try {
+          aiReportData = typeof aiJson.content === 'string'
+            ? JSON.parse(aiJson.content)
+            : aiJson.content
+        } catch {
+          aiReportData = null
+        }
+      }
+
       const [{ pdf }, { default: BudgetPDFDocument }] = await Promise.all([
         import('@react-pdf/renderer'),
         import('./BudgetPDFDocument'),
       ])
 
-      // 3. Generate PDF blob
       const blob = await pdf(
         BudgetPDFDocument({
-          data: { year, month, totalIncome, totalExpenses, balance, prevTotalExpenses, prevActuals, expenseCategories, aiContent },
+          data: { year, month, totalIncome, totalExpenses, balance, prevTotalExpenses, prevActuals, expenseCategories, aiReportData },
         })
       ).toBlob()
 
-      // 4. Trigger download
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url

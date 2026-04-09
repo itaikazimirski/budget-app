@@ -1,5 +1,5 @@
 import { Document, Page, View, Text, Font, StyleSheet } from '@react-pdf/renderer'
-import type { CategoryWithStats } from '@/lib/types'
+import type { CategoryWithStats, AIReportData } from '@/lib/types'
 
 Font.register({
   family: 'Heebo',
@@ -11,7 +11,7 @@ Font.register({
 
 const MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר']
 
-// Strip emoji characters — Heebo font doesn't support them
+// Heebo font does not support emoji glyphs — strip them to avoid rendering artifacts
 function stripEmoji(str: string): string {
   return str.replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27BF}]|[\uD800-\uDFFF]/gu, '').trim()
 }
@@ -20,6 +20,13 @@ function formatILS(amount: number) {
   return '₪' + Math.round(amount).toLocaleString('he-IL')
 }
 
+const SCORE_COLOR: Record<string, string> = {
+  A: '#16a34a', B: '#22c55e', C: '#ca8a04', D: '#ea580c', F: '#dc2626',
+}
+
+const IMPACT_LABEL: Record<string, string> = {
+  high: 'גבוה', medium: 'בינוני', low: 'נמוך',
+}
 
 const styles = StyleSheet.create({
   page: {
@@ -44,16 +51,29 @@ const styles = StyleSheet.create({
   summaryMoM: { fontSize: 8, marginTop: 4, textAlign: 'right' },
   // Section title
   sectionTitle: { fontSize: 12, fontWeight: 'bold', color: '#1e293b', marginBottom: 10, textAlign: 'right', borderBottom: '1 solid #e2e8f0', paddingBottom: 6 },
-  // Pie + legend
-  pieRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 20, marginBottom: 22 },
-  legend: { flex: 1, gap: 7 },
-  legendItem: { flexDirection: 'row-reverse', alignItems: 'center', gap: 6 },
-  legendDot: { width: 9, height: 9, borderRadius: 4 },
-  legendLabel: { fontSize: 10, color: '#374151', textAlign: 'right' },
-  legendPct: { fontSize: 9, color: '#94a3b8', marginRight: 3 },
-  // AI section
-  aiBox: { backgroundColor: '#f8fafc', borderRadius: 10, padding: 14, marginBottom: 22, borderLeft: '3 solid #6366f1' },
-  aiText: { fontSize: 9.5, color: '#334155', lineHeight: 1.7, textAlign: 'right' },
+  // AI insights — outer wrapper
+  aiSection: { marginBottom: 22 },
+  // Score row
+  scoreRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 12, marginBottom: 10, backgroundColor: '#f8fafc', borderRadius: 8, padding: 12 },
+  scoreBadge: { borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4, alignItems: 'center', justifyContent: 'center' },
+  scoreLetter: { fontSize: 22, fontWeight: 'bold' },
+  tldrText: { flex: 1, fontSize: 9.5, color: '#334155', lineHeight: 1.6, textAlign: 'right' },
+  // Highlights
+  highlightCard: { backgroundColor: '#f0fdf4', borderRadius: 8, padding: 10, marginBottom: 6, borderLeft: '3 solid #16a34a' },
+  highlightTitle: { fontSize: 9.5, fontWeight: 'bold', color: '#15803d', textAlign: 'right', marginBottom: 3 },
+  highlightDesc: { fontSize: 9, color: '#374151', textAlign: 'right', lineHeight: 1.5 },
+  // Warnings
+  warningCard: { backgroundColor: '#fef2f2', borderRadius: 8, padding: 10, marginBottom: 6, borderLeft: '3 solid #dc2626' },
+  warningHeader: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 },
+  warningCategory: { fontSize: 9.5, fontWeight: 'bold', color: '#991b1b', textAlign: 'right' },
+  warningImpact: { fontSize: 7.5, color: '#dc2626', backgroundColor: '#fecaca', borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2 },
+  warningIssue: { fontSize: 9, color: '#374151', textAlign: 'right', lineHeight: 1.5 },
+  // Action item
+  actionCard: { backgroundColor: '#eff6ff', borderRadius: 8, padding: 10, marginTop: 4, borderLeft: '3 solid #3b82f6' },
+  actionLabel: { fontSize: 9, fontWeight: 'bold', color: '#1d4ed8', textAlign: 'right', marginBottom: 4 },
+  actionText: { fontSize: 9.5, color: '#1e3a5f', textAlign: 'right', lineHeight: 1.6 },
+  // Sub-section headers inside AI block
+  aiSubTitle: { fontSize: 10, fontWeight: 'bold', color: '#1e293b', textAlign: 'right', marginBottom: 6, marginTop: 10 },
   // MoM changes
   momRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', paddingVertical: 5, borderBottom: '0.5 solid #f1f5f9' },
   momName: { fontSize: 9.5, color: '#374151', textAlign: 'right' },
@@ -83,11 +103,11 @@ export interface PDFData {
   prevTotalExpenses: number
   prevActuals: Record<string, number>
   expenseCategories: CategoryWithStats[]
-  aiContent: string
+  aiReportData: AIReportData | null
 }
 
 export default function BudgetPDFDocument({ data }: { data: PDFData }) {
-  const { year, month, totalIncome, totalExpenses, balance, prevTotalExpenses, prevActuals, expenseCategories, aiContent } = data
+  const { year, month, totalIncome, totalExpenses, balance, prevTotalExpenses, prevActuals, expenseCategories, aiReportData } = data
 
   // MoM overall
   const momOverall = prevTotalExpenses > 0 ? ((totalExpenses - prevTotalExpenses) / prevTotalExpenses) * 100 : null
@@ -98,7 +118,6 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
     .filter((c) => c.actual_amount > 0 && (prevActuals[c.id] ?? 0) > 0)
     .map((c) => ({
       name: c.name,
-      icon: c.icon,
       actual: c.actual_amount,
       prev: prevActuals[c.id] ?? 0,
       diff: c.actual_amount - (prevActuals[c.id] ?? 0),
@@ -108,19 +127,15 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
     .sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct))
     .slice(0, 8)
 
-  // Table — sorted by actual descending
-  const tableRows = [...expenseCategories]
-    .filter((c) => c.actual_amount > 0 || c.budget_amount > 0)
-    .sort((a, b) => b.actual_amount - a.actual_amount)
-
   const momSign = momOverall !== null ? (momOverall > 0 ? '+' : '') : ''
   const balanceIsPositive = balance >= 0
+  const scoreColor = aiReportData ? (SCORE_COLOR[aiReportData.score] ?? '#64748b') : '#64748b'
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
 
-        {/* Header */}
+        {/* ── Header ── */}
         <View style={styles.header}>
           <View>
             <Text style={styles.headerTitle}>תקציב-לי</Text>
@@ -131,7 +146,7 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
           </View>
         </View>
 
-        {/* Summary boxes */}
+        {/* ── Summary boxes ── */}
         <View style={styles.summaryRow}>
           <View style={[styles.summaryBox, { backgroundColor: '#f0fdf4' }]}>
             <Text style={styles.summaryLabel}>סך הכנסות</Text>
@@ -152,7 +167,57 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
           </View>
         </View>
 
-        {/* Per-category budget breakdown */}
+        {/* ── AI Insights ── */}
+        {aiReportData && (
+          <View style={styles.aiSection}>
+            <Text style={styles.sectionTitle}>תובנות AI</Text>
+
+            {/* Score + TLDR */}
+            <View style={styles.scoreRow}>
+              <View style={[styles.scoreBadge, { backgroundColor: scoreColor + '22' }]}>
+                <Text style={[styles.scoreLetter, { color: scoreColor }]}>{aiReportData.score}</Text>
+              </View>
+              <Text style={styles.tldrText}>{aiReportData.tldr}</Text>
+            </View>
+
+            {/* Highlights */}
+            {aiReportData.highlights.length > 0 && (
+              <View>
+                <Text style={styles.aiSubTitle}>מה עבד טוב</Text>
+                {aiReportData.highlights.map((h, i) => (
+                  <View key={i} style={styles.highlightCard}>
+                    <Text style={styles.highlightTitle}>{stripEmoji(h.title)}</Text>
+                    <Text style={styles.highlightDesc}>{h.description}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Warnings */}
+            {aiReportData.warnings.length > 0 && (
+              <View>
+                <Text style={styles.aiSubTitle}>נקודות לשיפור</Text>
+                {aiReportData.warnings.map((w, i) => (
+                  <View key={i} style={styles.warningCard}>
+                    <View style={styles.warningHeader}>
+                      <Text style={styles.warningCategory}>{w.category}</Text>
+                      <Text style={styles.warningImpact}>{IMPACT_LABEL[w.impact] ?? w.impact}</Text>
+                    </View>
+                    <Text style={styles.warningIssue}>{w.issue}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Action Item */}
+            <View style={styles.actionCard}>
+              <Text style={styles.actionLabel}>הצעד הבא לחודש הבא</Text>
+              <Text style={styles.actionText}>{aiReportData.actionItem}</Text>
+            </View>
+          </View>
+        )}
+
+        {/* ── Per-category budget breakdown ── */}
         {expenseCategories.some((c) => c.actual_amount > 0 || c.budget_amount > 0) && (
           <>
             <Text style={styles.sectionTitle}>פירוט הוצאות</Text>
@@ -188,17 +253,7 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
           </>
         )}
 
-        {/* AI Report */}
-        {aiContent ? (
-          <>
-            <Text style={styles.sectionTitle}>ניתוח AI</Text>
-            <View style={styles.aiBox}>
-              <Text style={styles.aiText}>{aiContent}</Text>
-            </View>
-          </>
-        ) : null}
-
-        {/* MoM changes */}
+        {/* ── MoM changes ── */}
         {catChanges.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>שינויים מול חודש קודם</Text>
@@ -216,38 +271,7 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
           </>
         )}
 
-        {/* Category table */}
-        {tableRows.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>פירוט קטגוריות</Text>
-            <View style={styles.tableHeader}>
-              <Text style={[styles.tableHeaderText, { flex: 2.5 }]}>קטגוריה</Text>
-              <Text style={[styles.tableHeaderText, { flex: 1 }]}>תקציב</Text>
-              <Text style={[styles.tableHeaderText, { flex: 1 }]}>בפועל</Text>
-              <Text style={[styles.tableHeaderText, { flex: 1 }]}>נותר</Text>
-            </View>
-            {tableRows.map((cat) => {
-              const remaining = cat.budget_amount - cat.actual_amount
-              const isOver = remaining < 0
-              return (
-                <View key={cat.id} style={styles.tableRow}>
-                  <Text style={styles.tableCellName}>{stripEmoji(cat.name)}</Text>
-                  <Text style={styles.tableCellNum}>{cat.budget_amount > 0 ? formatILS(cat.budget_amount) : '—'}</Text>
-                  <Text style={styles.tableCellNum}>{formatILS(cat.actual_amount)}</Text>
-                  {cat.budget_amount > 0 ? (
-                    <Text style={isOver ? styles.tableCellOver : styles.tableCellOk}>
-                      {isOver ? '-' : ''}{formatILS(Math.abs(remaining))}
-                    </Text>
-                  ) : (
-                    <Text style={styles.tableCellNum}>—</Text>
-                  )}
-                </View>
-              )
-            })}
-          </>
-        )}
-
-        {/* Footer */}
+        {/* ── Footer ── */}
         <View style={styles.footer} fixed>
           <Text style={styles.footerText}>תקציב-לי — {MONTHS[month - 1]} {year}</Text>
           <Text style={styles.footerText} render={({ pageNumber, totalPages }) => `עמוד ${pageNumber} מתוך ${totalPages}`} />

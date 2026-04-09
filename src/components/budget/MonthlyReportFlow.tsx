@@ -13,6 +13,8 @@ interface MonthlyReportFlowProps {
   compact?: boolean
 }
 
+const MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר']
+
 const SCORE_COLOR: Record<string, string> = {
   A: 'text-emerald-400',
   B: 'text-green-400',
@@ -45,6 +47,7 @@ export default function MonthlyReportFlow({
   accountId, hasExistingReport, compact = false,
 }: MonthlyReportFlowProps) {
   const [loading, setLoading] = useState(false)
+  const [pdfLoading, setPdfLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [reportData, setReportData] = useState<AIReportData | null>(null)
   const [open, setOpen] = useState(false)
@@ -71,10 +74,10 @@ export default function MonthlyReportFlow({
   // Still resolving — render nothing to avoid layout shift
   if (resolvedHasReport === null) return null
 
-  // Previous month always has ended by definition — just check report status
   const showGolden   = !resolvedHasReport
   const showStandard = resolvedHasReport
 
+  // ── Fetch + open story ──────────────────────────────────────────────────
   async function handleGoldenClick() {
     setLoading(true)
     setError(null)
@@ -101,9 +104,75 @@ export default function MonthlyReportFlow({
     }
   }
 
-  function handleStandardClick() {
-    // TODO: trigger PDF download
-    console.log('PDF download — placeholder')
+  // ── PDF generation ──────────────────────────────────────────────────────
+  async function downloadPDF(aiData?: AIReportData | null) {
+    setPdfLoading(true)
+    setError(null)
+    try {
+      // If no AI data provided, fetch it (standard-state button path)
+      let resolvedAiData = aiData ?? reportData
+      if (!resolvedAiData) {
+        const aiRes = await fetch('/api/ai-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountId, year: prevYear, month: prevMonth }),
+        })
+        const aiJson = await aiRes.json()
+        if (!aiRes.ok || aiJson.error) throw new Error(aiJson.error ?? 'שגיאה בטעינת הדוח')
+        resolvedAiData =
+          typeof aiJson.content === 'string' ? JSON.parse(aiJson.content) : aiJson.content
+      }
+
+      // Fetch budget data (current month totals) + prev month data in parallel
+      const [budgetRes, pdfRes] = await Promise.all([
+        fetch(`/api/budget-data?accountId=${accountId}&year=${prevYear}&month=${prevMonth}`),
+        fetch('/api/pdf-data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountId, year: prevYear, month: prevMonth }),
+        }),
+      ])
+      const budgetJson = await budgetRes.json()
+      const pdfJson    = await pdfRes.json()
+      if (!budgetRes.ok) throw new Error(budgetJson.error ?? 'שגיאה בטעינת נתוני תקציב')
+      if (!pdfRes.ok)    throw new Error(pdfJson.error    ?? 'שגיאה בטעינת נתוני חודש קודם')
+
+      const { totalIncome, totalExpenses, balance, expenseCategories } = budgetJson
+      const { prevActuals, prevTotalExpenses } = pdfJson
+
+      // Dynamically import renderer (browser-only)
+      const [{ pdf }, { default: BudgetPDFDocument }] = await Promise.all([
+        import('@react-pdf/renderer'),
+        import('./BudgetPDFDocument'),
+      ])
+
+      const blob = await pdf(
+        BudgetPDFDocument({
+          data: {
+            year: prevYear,
+            month: prevMonth,
+            totalIncome,
+            totalExpenses,
+            balance,
+            prevTotalExpenses,
+            prevActuals,
+            expenseCategories,
+            aiReportData: resolvedAiData,
+          },
+        })
+      ).toBlob()
+
+      const url = URL.createObjectURL(blob)
+      const a   = document.createElement('a')
+      a.href     = url
+      a.download = `תקציב-לי_${MONTHS[prevMonth - 1]}_${prevYear}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'שגיאה ביצירת ה-PDF')
+    } finally {
+      setPdfLoading(false)
+    }
   }
 
   function handleTap(e: React.MouseEvent<HTMLDivElement>) {
@@ -120,7 +189,7 @@ export default function MonthlyReportFlow({
     }
   }
 
-  // ── Golden button classes ──────────────────────────────────────────────────
+  // ── Golden button classes ──────────────────────────────────────────────
   const goldenBase = [
     'bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-200',
     'dark:from-yellow-700 dark:via-amber-500 dark:to-yellow-700',
@@ -133,17 +202,17 @@ export default function MonthlyReportFlow({
   const goldenFull    = `relative overflow-hidden w-full rounded-2xl px-6 py-4 font-semibold text-base active:scale-[0.98] ${goldenBase}`
   const goldenCompact = `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold ${goldenBase}`
 
-  // ── Standard (PDF) button classes ─────────────────────────────────────────
+  // ── Standard (PDF) button classes ────────────────────────────────────
   const standardFull = [
     'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium',
     'bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-slate-400',
     'border border-slate-200 dark:border-white/[0.08]',
-    'hover:bg-slate-200 dark:hover:bg-white/[0.08] transition-colors',
+    'hover:bg-slate-200 dark:hover:bg-white/[0.08] transition-colors disabled:opacity-60',
   ].join(' ')
   const standardCompact = [
     'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium',
     'border border-indigo-200 text-indigo-600',
-    'hover:bg-indigo-50 hover:border-indigo-300 dark:hover:bg-indigo-950/30 transition-colors',
+    'hover:bg-indigo-50 hover:border-indigo-300 dark:hover:bg-indigo-950/30 transition-colors disabled:opacity-60',
   ].join(' ')
 
   return (
@@ -170,13 +239,26 @@ export default function MonthlyReportFlow({
           {error && !compact && <p className="text-xs text-rose-500 text-center">{error}</p>}
         </div>
       ) : showStandard ? (
-        <button
-          onClick={handleStandardClick}
-          className={compact ? standardCompact : standardFull}
-        >
-          <FileDown className="w-3.5 h-3.5" />
-          {compact ? <span className="hidden sm:inline">PDF</span> : 'הורד דוח PDF'}
-        </button>
+        <div className={compact ? undefined : 'flex flex-col items-stretch gap-2'}>
+          <button
+            onClick={() => downloadPDF()}
+            disabled={pdfLoading}
+            className={compact ? standardCompact : standardFull}
+          >
+            {pdfLoading ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                {!compact && 'מכין...'}
+              </>
+            ) : (
+              <>
+                <FileDown className="w-3.5 h-3.5" />
+                {compact ? <span className="hidden sm:inline">PDF</span> : 'הורד דוח PDF'}
+              </>
+            )}
+          </button>
+          {error && !compact && <p className="text-xs text-rose-500 text-center">{error}</p>}
+        </div>
       ) : null}
 
       {/* ── Story dialog ── */}
@@ -322,18 +404,27 @@ export default function MonthlyReportFlow({
                     </div>
                   </div>
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      // TODO: trigger PDF download
-                      console.log('PDF download — placeholder')
-                    }}
+                    onClick={(e) => { e.stopPropagation(); downloadPDF(reportData) }}
+                    disabled={pdfLoading}
                     className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold
                       bg-white/10 hover:bg-white/20 text-white border border-white/20
-                      transition-colors w-full justify-center mt-6"
+                      transition-colors w-full justify-center mt-6 disabled:opacity-60"
                   >
-                    <FileDown className="w-4 h-4" />
-                    הורד דוח מסכם (PDF)
+                    {pdfLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        מכין PDF...
+                      </>
+                    ) : (
+                      <>
+                        <FileDown className="w-4 h-4" />
+                        הורד דוח מסכם (PDF)
+                      </>
+                    )}
                   </button>
+                  {error && (
+                    <p className="text-xs text-rose-300 text-center mt-2">{error}</p>
+                  )}
                 </div>
               )}
             </div>
