@@ -7,11 +7,9 @@ import { Dialog, DialogContent } from '@/components/ui/dialog'
 
 interface MonthlyReportFlowProps {
   accountId: string
-  year: number
-  month: number
-  /** If not provided the component fetches it on mount (used when rendered in the navbar) */
+  /** Pre-resolved on the server when available — skips the client-side GET if provided */
   hasExistingReport?: boolean
-  /** Compact mode for navbar: smaller buttons, no full-width layout */
+  /** Compact mode for navbar usage */
   compact?: boolean
 }
 
@@ -35,8 +33,16 @@ const IMPACT_LABEL: Record<string, string> = {
 
 const TOTAL_SLIDES = 4
 
+/** Returns the previous calendar month relative to today as { year, month } (month is 1-indexed). */
+function getPrevMonth(): { year: number; month: number } {
+  const today = new Date()
+  const month = today.getMonth() === 0 ? 12 : today.getMonth() // getMonth() is 0-indexed
+  const year  = today.getMonth() === 0 ? today.getFullYear() - 1 : today.getFullYear()
+  return { year, month }
+}
+
 export default function MonthlyReportFlow({
-  accountId, year, month, hasExistingReport, compact = false,
+  accountId, hasExistingReport, compact = false,
 }: MonthlyReportFlowProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -44,10 +50,12 @@ export default function MonthlyReportFlow({
   const [open, setOpen] = useState(false)
   const [slide, setSlide] = useState(0)
 
-  // When hasExistingReport is not provided (nav usage), resolve it via GET
+  // When hasExistingReport is not provided (e.g. AppNav), resolve via GET
   const [resolvedHasReport, setResolvedHasReport] = useState<boolean | null>(
     hasExistingReport !== undefined ? hasExistingReport : null
   )
+
+  const { year: prevYear, month: prevMonth } = getPrevMonth()
 
   useEffect(() => {
     if (hasExistingReport !== undefined) return
@@ -55,21 +63,17 @@ export default function MonthlyReportFlow({
       .then((r) => r.json())
       .then((data) => {
         const reports: { year: number; month: number }[] = data.reports ?? []
-        setResolvedHasReport(reports.some((r) => r.year === year && r.month === month))
+        setResolvedHasReport(reports.some((r) => r.year === prevYear && r.month === prevMonth))
       })
       .catch(() => setResolvedHasReport(false))
-  }, [accountId, year, month, hasExistingReport])
-
-  const now = new Date()
-  const monthHasEnded = now > new Date(year, month, 0)
+  }, [accountId, prevYear, prevMonth, hasExistingReport])
 
   // Still resolving — render nothing to avoid layout shift
   if (resolvedHasReport === null) return null
 
-  const showGolden = monthHasEnded && !resolvedHasReport
+  // Previous month always has ended by definition — just check report status
+  const showGolden   = !resolvedHasReport
   const showStandard = resolvedHasReport
-
-  if (!showGolden && !showStandard) return null
 
   async function handleGoldenClick() {
     setLoading(true)
@@ -78,7 +82,7 @@ export default function MonthlyReportFlow({
       const res = await fetch('/api/ai-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accountId, year, month }),
+        body: JSON.stringify({ accountId, year: prevYear, month: prevMonth }),
       })
       const data = await res.json()
       if (!res.ok || data.error) {
@@ -116,6 +120,32 @@ export default function MonthlyReportFlow({
     }
   }
 
+  // ── Golden button classes ──────────────────────────────────────────────────
+  const goldenBase = [
+    'bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-200',
+    'dark:from-yellow-700 dark:via-amber-500 dark:to-yellow-700',
+    'bg-[length:200%_100%] animate-shimmer',
+    'text-yellow-900 dark:text-gray-900',
+    'shadow-md shadow-amber-200/60 dark:shadow-[0_0_15px_rgba(217,119,6,0.35)]',
+    'disabled:opacity-70 transition-opacity',
+  ].join(' ')
+
+  const goldenFull    = `relative overflow-hidden w-full rounded-2xl px-6 py-4 font-semibold text-base active:scale-[0.98] ${goldenBase}`
+  const goldenCompact = `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold ${goldenBase}`
+
+  // ── Standard (PDF) button classes ─────────────────────────────────────────
+  const standardFull = [
+    'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium',
+    'bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-slate-400',
+    'border border-slate-200 dark:border-white/[0.08]',
+    'hover:bg-slate-200 dark:hover:bg-white/[0.08] transition-colors',
+  ].join(' ')
+  const standardCompact = [
+    'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium',
+    'border border-indigo-200 text-indigo-600',
+    'hover:bg-indigo-50 hover:border-indigo-300 dark:hover:bg-indigo-950/30 transition-colors',
+  ].join(' ')
+
   return (
     <>
       {/* ── Trigger button ── */}
@@ -124,19 +154,7 @@ export default function MonthlyReportFlow({
           <button
             onClick={handleGoldenClick}
             disabled={loading}
-            className={
-              compact
-                ? `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold text-slate-900
-                   bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200
-                   bg-[length:200%_100%] animate-shimmer shadow-sm shadow-amber-300/40
-                   disabled:opacity-70 transition-opacity`
-                : `relative overflow-hidden w-full rounded-2xl px-6 py-4
-                   font-semibold text-base text-slate-900
-                   bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200
-                   bg-[length:200%_100%] animate-shimmer
-                   shadow-lg shadow-amber-300/40 dark:shadow-amber-400/20
-                   disabled:opacity-70 transition-opacity active:scale-[0.98]`
-            }
+            className={compact ? goldenCompact : goldenFull}
           >
             {loading ? (
               <span className="flex items-center gap-1.5">
@@ -151,25 +169,15 @@ export default function MonthlyReportFlow({
           </button>
           {error && !compact && <p className="text-xs text-rose-500 text-center">{error}</p>}
         </div>
-      ) : (
+      ) : showStandard ? (
         <button
           onClick={handleStandardClick}
-          className={
-            compact
-              ? `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium
-                 border border-indigo-200 text-indigo-600
-                 hover:bg-indigo-50 hover:border-indigo-300 dark:hover:bg-indigo-950/30
-                 transition-colors`
-              : `flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium
-                 bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-slate-400
-                 border border-slate-200 dark:border-white/[0.08]
-                 hover:bg-slate-200 dark:hover:bg-white/[0.08] transition-colors`
-          }
+          className={compact ? standardCompact : standardFull}
         >
           <FileDown className="w-3.5 h-3.5" />
           {compact ? <span className="hidden sm:inline">PDF</span> : 'הורד דוח PDF'}
         </button>
-      )}
+      ) : null}
 
       {/* ── Story dialog ── */}
       <Dialog open={open} onOpenChange={setOpen}>

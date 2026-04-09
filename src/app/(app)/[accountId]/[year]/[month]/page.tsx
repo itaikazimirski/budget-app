@@ -175,21 +175,21 @@ export default async function MonthPage(props: PageProps<'/[accountId]/[year]/[m
 
   const hasMonthOverride = (monthOverrides ?? []).length > 0
 
-  // Check if a report already exists for the viewed month
+  // Check if a report exists for the previous calendar month (relative to today, not the viewed month)
+  const reportPrevMonth = today.getMonth() === 0 ? 12 : today.getMonth() // getMonth() is 0-indexed
+  const reportPrevYear  = today.getMonth() === 0 ? today.getFullYear() - 1 : today.getFullYear()
   const { data: existingReport } = await supabase
     .from('ai_reports')
     .select('id')
     .eq('account_id', accountId)
-    .eq('year', year)
-    .eq('month', month)
+    .eq('year', reportPrevYear)
+    .eq('month', reportPrevMonth)
     .single()
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
       <MonthlyReportFlow
         accountId={accountId}
-        year={year}
-        month={month}
         hasExistingReport={!!existingReport}
       />
 

@@ -128,13 +128,8 @@ export default function AppNav({ accounts, userEmail }: AppNavProps) {
 
         {/* Left: report flow + icons */}
         <div className="flex items-center gap-1 shrink-0">
-          {isMonthPage && currentAccount && (
-            <MonthlyReportFlow
-              compact
-              accountId={currentAccount.id}
-              year={routeYear!}
-              month={routeMonth!}
-            />
+          {currentAccount && (
+            <MonthlyReportFlow compact accountId={currentAccount.id} />
           )}
 
           <button
