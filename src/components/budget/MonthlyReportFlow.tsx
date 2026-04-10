@@ -16,13 +16,6 @@ interface MonthlyReportFlowProps {
 
 const MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר']
 
-const SCORE_COLOR: Record<string, string> = {
-  A: 'text-emerald-400',
-  B: 'text-green-400',
-  C: 'text-yellow-400',
-  D: 'text-orange-400',
-  F: 'text-red-400',
-}
 
 const IMPACT_STYLE: Record<string, string> = {
   high:   'bg-red-950/60 border-red-700/60 text-red-200',
@@ -304,13 +297,7 @@ export default function MonthlyReportFlow({
                 >
                   <div className="animate-fade-slide-in flex flex-col items-center gap-6 w-full">
                     <div className="flex flex-col items-center gap-1">
-                      <span className="text-white/50 text-sm tracking-wide">ציון חודשי</span>
-                      <span
-                        className={`text-8xl font-black leading-none ${SCORE_COLOR[reportData.score] ?? 'text-white'}`}
-                        style={{ textShadow: '0 0 40px currentColor' }}
-                      >
-                        {reportData.score}
-                      </span>
+                      <span className="text-8xl leading-none">{reportData.mood}</span>
                     </div>
                     <p className="text-white/85 text-base leading-relaxed text-center max-w-xs">
                       {reportData.tldr}

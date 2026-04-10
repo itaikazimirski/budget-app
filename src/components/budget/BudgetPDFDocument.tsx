@@ -20,10 +20,6 @@ function formatILS(amount: number) {
   return '₪' + Math.round(amount).toLocaleString('he-IL')
 }
 
-const SCORE_COLOR: Record<string, string> = {
-  A: '#16a34a', B: '#22c55e', C: '#ca8a04', D: '#ea580c', F: '#dc2626',
-}
-
 const IMPACT_LABEL: Record<string, string> = {
   high: 'גבוה', medium: 'בינוני', low: 'נמוך',
 }
@@ -53,11 +49,16 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 12, fontWeight: 'bold', color: '#1e293b', marginBottom: 10, textAlign: 'right', borderBottom: '1 solid #e2e8f0', paddingBottom: 6 },
   // AI insights — outer wrapper
   aiSection: { marginBottom: 22 },
-  // Score row
-  scoreRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 12, marginBottom: 10, backgroundColor: '#f8fafc', borderRadius: 8, padding: 12 },
-  scoreBadge: { borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4, alignItems: 'center', justifyContent: 'center' },
-  scoreLetter: { fontSize: 22, fontWeight: 'bold' },
+  // Mood + TLDR row
+  moodRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 12, marginBottom: 10, backgroundColor: '#f8fafc', borderRadius: 8, padding: 12 },
   tldrText: { flex: 1, fontSize: 9.5, color: '#334155', lineHeight: 1.6, textAlign: 'right' },
+  // Summary table (categorySummary + expenseDetails)
+  summaryTableHeader: { flexDirection: 'row-reverse', backgroundColor: '#f1f5f9', borderRadius: 6, paddingVertical: 5, paddingHorizontal: 10, marginBottom: 3 },
+  summaryTableRow: { flexDirection: 'row-reverse', paddingVertical: 5, paddingHorizontal: 10, borderBottom: '0.5 solid #f1f5f9' },
+  summaryTableCell: { flex: 1, fontSize: 9, color: '#374151', textAlign: 'right' },
+  summaryTableCellName: { flex: 2, fontSize: 9, color: '#374151', textAlign: 'right' },
+  summaryTableHeaderText: { flex: 1, fontSize: 8, fontWeight: 'bold', color: '#64748b', textAlign: 'right' },
+  summaryTableHeaderName: { flex: 2, fontSize: 8, fontWeight: 'bold', color: '#64748b', textAlign: 'right' },
   // Highlights
   highlightCard: { backgroundColor: '#f0fdf4', borderRadius: 8, padding: 10, marginBottom: 6, borderLeft: '3 solid #16a34a' },
   highlightTitle: { fontSize: 9.5, fontWeight: 'bold', color: '#15803d', textAlign: 'right', marginBottom: 3 },
@@ -129,7 +130,6 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
 
   const momSign = momOverall !== null ? (momOverall > 0 ? '+' : '') : ''
   const balanceIsPositive = balance >= 0
-  const scoreColor = aiReportData ? (SCORE_COLOR[aiReportData.score] ?? '#64748b') : '#64748b'
 
   return (
     <Document>
@@ -172,13 +172,62 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
           <View style={styles.aiSection}>
             <Text style={styles.sectionTitle}>תובנות AI</Text>
 
-            {/* Score + TLDR */}
-            <View style={styles.scoreRow}>
-              <View style={[styles.scoreBadge, { backgroundColor: scoreColor + '22' }]}>
-                <Text style={[styles.scoreLetter, { color: scoreColor }]}>{aiReportData.score}</Text>
-              </View>
+            {/* Mood + TLDR */}
+            <View style={styles.moodRow}>
               <Text style={styles.tldrText}>{aiReportData.tldr}</Text>
             </View>
+
+            {/* Category Summary table */}
+            {aiReportData.categorySummary && aiReportData.categorySummary.length > 0 && (
+              <View style={{ marginBottom: 14 }}>
+                <Text style={styles.aiSubTitle}>סיכום לפי קבוצות</Text>
+                <View style={styles.summaryTableHeader}>
+                  <Text style={styles.summaryTableHeaderName}>קבוצה</Text>
+                  <Text style={styles.summaryTableHeaderText}>תוכנן</Text>
+                  <Text style={styles.summaryTableHeaderText}>בפועל</Text>
+                  <Text style={styles.summaryTableHeaderText}>נותר</Text>
+                </View>
+                {aiReportData.categorySummary.map((row, i) => {
+                  const isOver = row.remaining < 0
+                  return (
+                    <View key={i} style={styles.summaryTableRow}>
+                      <Text style={styles.summaryTableCellName}>{row.groupName}</Text>
+                      <Text style={styles.summaryTableCell}>{formatILS(row.planned)}</Text>
+                      <Text style={styles.summaryTableCell}>{formatILS(row.actual)}</Text>
+                      <Text style={[styles.summaryTableCell, { color: isOver ? '#dc2626' : '#16a34a' }]}>
+                        {isOver ? '' : '+'}{formatILS(row.remaining)}
+                      </Text>
+                    </View>
+                  )
+                })}
+              </View>
+            )}
+
+            {/* Expense Details table */}
+            {aiReportData.expenseDetails && aiReportData.expenseDetails.length > 0 && (
+              <View style={{ marginBottom: 14 }}>
+                <Text style={styles.aiSubTitle}>פירוט הוצאות</Text>
+                <View style={styles.summaryTableHeader}>
+                  <Text style={styles.summaryTableHeaderName}>קטגוריה</Text>
+                  <Text style={styles.summaryTableHeaderText}>תוכנן</Text>
+                  <Text style={styles.summaryTableHeaderText}>בפועל</Text>
+                  <Text style={styles.summaryTableHeaderText}>נותר</Text>
+                </View>
+                {aiReportData.expenseDetails.map((row, i) => {
+                  const isOver = row.remaining < 0
+                  return (
+                    <View key={i} style={styles.summaryTableRow}>
+                      <Text style={styles.summaryTableCellName}>{stripEmoji(row.itemName)}</Text>
+                      <Text style={styles.summaryTableCell}>{formatILS(row.planned)}</Text>
+                      <Text style={styles.summaryTableCell}>{formatILS(row.actual)}</Text>
+                      <Text style={[styles.summaryTableCell, { color: isOver ? '#dc2626' : '#16a34a' }]}>
+                        {isOver ? '' : '+'}{formatILS(row.remaining)}
+                      </Text>
+                    </View>
+                  )
+                })}
+              </View>
+            )}
 
             {/* Highlights */}
             {aiReportData.highlights.length > 0 && (

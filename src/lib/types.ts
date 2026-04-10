@@ -90,11 +90,13 @@ export interface MonthlyStats {
 }
 
 export interface AIReportData {
-  score: "A" | "B" | "C" | "D" | "F";
+  mood: string; // a single expressive emoji reflecting the financial mood
   tldr: string;
   highlights: { title: string; description: string; emoji: string }[];
   warnings: { category: string; issue: string; impact: "high" | "medium" | "low" }[];
   actionItem: string;
+  categorySummary: { groupName: string; planned: number; actual: number; remaining: number }[];
+  expenseDetails: { itemName: string; planned: number; actual: number; remaining: number }[];
 }
 
 export const CATEGORY_ICONS = [
