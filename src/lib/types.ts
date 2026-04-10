@@ -95,7 +95,10 @@ export interface AIReportData {
   highlights: { title: string; description: string; emoji: string }[];
   warnings: { category: string; issue: string; impact: "high" | "medium" | "low" }[];
   actionItem: string;
-  categorySummary: { groupName: string; planned: number; actual: number; remaining: number }[];
+  categorySummary: {
+    groupName: string;
+    categories: { itemName: string; planned: number; actual: number }[];
+  }[];
   expenseDetails: { itemName: string; planned: number; actual: number; remaining: number }[];
 }
 

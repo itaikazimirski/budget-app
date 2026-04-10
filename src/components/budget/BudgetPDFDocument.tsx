@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     paddingHorizontal: 40,
     paddingVertical: 36,
-    paddingBottom: 56, // leave room for fixed footer
+    paddingBottom: 56,
     fontSize: 10,
     color: '#1e293b',
   },
@@ -46,22 +46,11 @@ const styles = StyleSheet.create({
   summaryLabel: { fontSize: 9, color: '#64748b', marginBottom: 3, textAlign: 'right' },
   summaryAmount: { fontSize: 16, fontWeight: 'bold', textAlign: 'right' },
   summaryMoM: { fontSize: 7.5, marginTop: 3, textAlign: 'right' },
-  // Mood + TLDR dashboard card (Page 1, below summary boxes)
-  moodCard: { flexDirection: 'row-reverse', alignItems: 'center', gap: 10, backgroundColor: '#f8fafc', borderRadius: 10, padding: 14, marginBottom: 20, borderLeft: '3 solid #6366f1' },
+  // Mood + TLDR dashboard card
+  moodCard: { flexDirection: 'row-reverse', alignItems: 'center', gap: 10, backgroundColor: '#f8fafc', borderRadius: 10, padding: 14, marginBottom: 14, borderLeft: '3 solid #6366f1' },
   tldrText: { flex: 1, fontSize: 10, color: '#334155', lineHeight: 1.65, textAlign: 'right' },
   // Section title
-  sectionTitle: { fontSize: 11, fontWeight: 'bold', color: '#1e293b', marginBottom: 8, textAlign: 'right', borderBottom: '1 solid #e2e8f0', paddingBottom: 5, marginTop: 4 },
-  // Sub-section title
-  aiSubTitle: { fontSize: 10, fontWeight: 'bold', color: '#1e293b', textAlign: 'right', marginBottom: 5, marginTop: 12 },
-  // Table shared styles
-  tableHeaderRow: { flexDirection: 'row-reverse', backgroundColor: '#f1f5f9', borderRadius: 6, paddingVertical: 5, paddingHorizontal: 10, marginBottom: 2 },
-  tableHeaderName: { flex: 2, fontSize: 8, fontWeight: 'bold', color: '#64748b', textAlign: 'right' },
-  tableHeaderCell: { flex: 1, fontSize: 8, fontWeight: 'bold', color: '#64748b', textAlign: 'right' },
-  tableDataRow: { flexDirection: 'row-reverse', paddingVertical: 5, paddingHorizontal: 10, borderBottom: '0.5 solid #f1f5f9' },
-  tableCellName: { flex: 2, fontSize: 9, color: '#374151', textAlign: 'right' },
-  tableCellNum: { flex: 1, fontSize: 9, color: '#374151', textAlign: 'right' },
-  tableCellGreen: { flex: 1, fontSize: 9, color: '#16a34a', textAlign: 'right' },
-  tableCellRed: { flex: 1, fontSize: 9, color: '#dc2626', textAlign: 'right' },
+  sectionTitle: { fontSize: 11, fontWeight: 'bold', color: '#1e293b', marginBottom: 8, textAlign: 'right', borderBottom: '1 solid #e2e8f0', paddingBottom: 5, marginTop: 16 },
   // Insight cards
   highlightCard: { backgroundColor: '#f0fdf4', borderRadius: 8, padding: 9, marginBottom: 5, borderLeft: '3 solid #16a34a' },
   highlightTitle: { fontSize: 9.5, fontWeight: 'bold', color: '#15803d', textAlign: 'right', marginBottom: 2 },
@@ -71,9 +60,30 @@ const styles = StyleSheet.create({
   warningCategory: { fontSize: 9.5, fontWeight: 'bold', color: '#991b1b', textAlign: 'right' },
   warningImpact: { fontSize: 7.5, color: '#dc2626', backgroundColor: '#fecaca', borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2 },
   warningIssue: { fontSize: 9, color: '#374151', textAlign: 'right', lineHeight: 1.5 },
-  actionCard: { backgroundColor: '#eff6ff', borderRadius: 8, padding: 10, marginTop: 6, borderLeft: '3 solid #3b82f6' },
+  actionCard: { backgroundColor: '#eff6ff', borderRadius: 8, padding: 10, marginTop: 8, borderLeft: '3 solid #3b82f6' },
   actionLabel: { fontSize: 9, fontWeight: 'bold', color: '#1d4ed8', textAlign: 'right', marginBottom: 3 },
   actionText: { fontSize: 9.5, color: '#1e3a5f', textAlign: 'right', lineHeight: 1.6 },
+  // Grouped categories table
+  groupHeaderRow: { flexDirection: 'row-reverse', backgroundColor: '#e0e7ff', borderRadius: 5, paddingVertical: 5, paddingHorizontal: 10, marginTop: 8, marginBottom: 1 },
+  groupHeaderName: { flex: 2, fontSize: 9, fontWeight: 'bold', color: '#3730a3', textAlign: 'right' },
+  groupHeaderCell: { flex: 1, fontSize: 9, fontWeight: 'bold', color: '#3730a3', textAlign: 'right' },
+  catTableHeader: { flexDirection: 'row-reverse', backgroundColor: '#f1f5f9', paddingVertical: 4, paddingHorizontal: 10, marginBottom: 1 },
+  catHeaderName: { flex: 2, fontSize: 8, fontWeight: 'bold', color: '#64748b', textAlign: 'right' },
+  catHeaderCell: { flex: 1, fontSize: 8, fontWeight: 'bold', color: '#64748b', textAlign: 'right' },
+  catRow: { flexDirection: 'row-reverse', paddingVertical: 4, paddingHorizontal: 10, borderBottom: '0.5 solid #f1f5f9' },
+  catCellName: { flex: 2, fontSize: 9, color: '#374151', textAlign: 'right' },
+  catCellNum: { flex: 1, fontSize: 9, color: '#374151', textAlign: 'right' },
+  catCellOver: { flex: 1, fontSize: 9, color: '#dc2626', textAlign: 'right' },
+  catCellUnder: { flex: 1, fontSize: 9, color: '#16a34a', textAlign: 'right' },
+  // Expense details table (full list)
+  detailsHeaderRow: { flexDirection: 'row-reverse', backgroundColor: '#f1f5f9', borderRadius: 6, paddingVertical: 5, paddingHorizontal: 10, marginBottom: 2 },
+  detailsHeaderName: { flex: 2, fontSize: 8, fontWeight: 'bold', color: '#64748b', textAlign: 'right' },
+  detailsHeaderCell: { flex: 1, fontSize: 8, fontWeight: 'bold', color: '#64748b', textAlign: 'right' },
+  detailsRow: { flexDirection: 'row-reverse', paddingVertical: 5, paddingHorizontal: 10, borderBottom: '0.5 solid #f1f5f9' },
+  detailsCellName: { flex: 2, fontSize: 9, color: '#374151', textAlign: 'right' },
+  detailsCellNum: { flex: 1, fontSize: 9, color: '#374151', textAlign: 'right' },
+  detailsCellGreen: { flex: 1, fontSize: 9, color: '#16a34a', textAlign: 'right' },
+  detailsCellRed: { flex: 1, fontSize: 9, color: '#dc2626', textAlign: 'right' },
   // MoM
   momRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', paddingVertical: 5, borderBottom: '0.5 solid #f1f5f9' },
   momName: { fontSize: 9.5, color: '#374151', textAlign: 'right' },
@@ -133,7 +143,7 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
           </View>
         </View>
 
-        {/* ── Summary boxes ── */}
+        {/* ── Summary boxes (תזרים) ── */}
         <View style={styles.summaryRow} wrap={false}>
           <View style={[styles.summaryBox, { backgroundColor: '#f0fdf4' }]}>
             <Text style={styles.summaryLabel}>סך הכנסות</Text>
@@ -154,68 +164,16 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
           </View>
         </View>
 
-        {/* ── Mood + TLDR — Page 1 dashboard card ── */}
+        {/* ── Mood + TLDR ── */}
         {aiReportData && (
           <View style={styles.moodCard} wrap={false}>
             <Text style={styles.tldrText}>{aiReportData.tldr}</Text>
           </View>
         )}
 
-        {/* ── Category Summary table ── */}
-        {aiReportData?.categorySummary && aiReportData.categorySummary.length > 0 && (
-          <View>
-            <Text style={styles.sectionTitle}>סיכום לפי קבוצות תקציב</Text>
-            <View style={styles.tableHeaderRow} wrap={false}>
-              <Text style={styles.tableHeaderName}>קבוצה</Text>
-              <Text style={styles.tableHeaderCell}>תוכנן</Text>
-              <Text style={styles.tableHeaderCell}>בפועל</Text>
-              <Text style={styles.tableHeaderCell}>נותר</Text>
-            </View>
-            {aiReportData.categorySummary.map((row, i) => {
-              const isOver = row.remaining < 0
-              return (
-                <View key={i} style={styles.tableDataRow} wrap={false}>
-                  <Text style={styles.tableCellName}>{row.groupName}</Text>
-                  <Text style={styles.tableCellNum}>{formatILS(row.planned)}</Text>
-                  <Text style={styles.tableCellNum}>{formatILS(row.actual)}</Text>
-                  <Text style={isOver ? styles.tableCellRed : styles.tableCellGreen}>
-                    {isOver ? '' : '+'}{formatILS(row.remaining)}
-                  </Text>
-                </View>
-              )
-            })}
-          </View>
-        )}
-
-        {/* ── Expense Details table ── */}
-        {aiReportData?.expenseDetails && aiReportData.expenseDetails.length > 0 && (
-          <View style={{ marginTop: 16 }}>
-            <Text style={styles.sectionTitle}>פירוט הוצאות מלא</Text>
-            <View style={styles.tableHeaderRow} wrap={false}>
-              <Text style={styles.tableHeaderName}>קטגוריה</Text>
-              <Text style={styles.tableHeaderCell}>תוכנן</Text>
-              <Text style={styles.tableHeaderCell}>בפועל</Text>
-              <Text style={styles.tableHeaderCell}>נותר</Text>
-            </View>
-            {aiReportData.expenseDetails.map((row, i) => {
-              const isOver = row.remaining < 0
-              return (
-                <View key={i} style={styles.tableDataRow} wrap={false}>
-                  <Text style={styles.tableCellName}>{stripEmoji(row.itemName)}</Text>
-                  <Text style={styles.tableCellNum}>{formatILS(row.planned)}</Text>
-                  <Text style={styles.tableCellNum}>{formatILS(row.actual)}</Text>
-                  <Text style={isOver ? styles.tableCellRed : styles.tableCellGreen}>
-                    {isOver ? '' : '+'}{formatILS(row.remaining)}
-                  </Text>
-                </View>
-              )
-            })}
-          </View>
-        )}
-
         {/* ── Highlights ── */}
         {aiReportData?.highlights && aiReportData.highlights.length > 0 && (
-          <View style={{ marginTop: 16 }}>
+          <View>
             <Text style={styles.sectionTitle}>מה עבד טוב החודש</Text>
             {aiReportData.highlights.map((h, i) => (
               <View key={i} style={styles.highlightCard} wrap={false}>
@@ -228,7 +186,7 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
 
         {/* ── Warnings ── */}
         {aiReportData?.warnings && aiReportData.warnings.length > 0 && (
-          <View style={{ marginTop: 16 }}>
+          <View>
             <Text style={styles.sectionTitle}>נקודות לשיפור</Text>
             {aiReportData.warnings.map((w, i) => (
               <View key={i} style={styles.warningCard} wrap={false}>
@@ -247,6 +205,60 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
           <View style={styles.actionCard} wrap={false}>
             <Text style={styles.actionLabel}>הצעד הבא לחודש הבא</Text>
             <Text style={styles.actionText}>{aiReportData.actionItem}</Text>
+          </View>
+        )}
+
+        {/* ── Grouped Categories Table (Name | Planned | Actual) ── */}
+        {aiReportData?.categorySummary && aiReportData.categorySummary.length > 0 && (
+          <View>
+            <Text style={styles.sectionTitle}>הוצאות לפי קבוצה</Text>
+            {aiReportData.categorySummary.map((group, gi) => (
+              <View key={gi}>
+                {/* Group header row */}
+                <View style={styles.groupHeaderRow} wrap={false}>
+                  <Text style={styles.groupHeaderName}>{group.groupName}</Text>
+                  <Text style={styles.groupHeaderCell}>תוכנן</Text>
+                  <Text style={styles.groupHeaderCell}>בפועל</Text>
+                </View>
+                {/* Category rows */}
+                {group.categories.map((cat, ci) => {
+                  const isOver = cat.actual > cat.planned && cat.planned > 0
+                  return (
+                    <View key={ci} style={styles.catRow} wrap={false}>
+                      <Text style={styles.catCellName}>{stripEmoji(cat.itemName)}</Text>
+                      <Text style={styles.catCellNum}>{formatILS(cat.planned)}</Text>
+                      <Text style={isOver ? styles.catCellOver : styles.catCellUnder}>{formatILS(cat.actual)}</Text>
+                    </View>
+                  )
+                })}
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* ── Full Expense Details (פירוט הוצאות מפורט) ── */}
+        {aiReportData?.expenseDetails && aiReportData.expenseDetails.length > 0 && (
+          <View style={{ marginTop: 16 }}>
+            <Text style={styles.sectionTitle}>פירוט הוצאות מפורט</Text>
+            <View style={styles.detailsHeaderRow} wrap={false}>
+              <Text style={styles.detailsHeaderName}>קטגוריה</Text>
+              <Text style={styles.detailsHeaderCell}>תוכנן</Text>
+              <Text style={styles.detailsHeaderCell}>בפועל</Text>
+              <Text style={styles.detailsHeaderCell}>נותר</Text>
+            </View>
+            {aiReportData.expenseDetails.map((row, i) => {
+              const isOver = row.remaining < 0
+              return (
+                <View key={i} style={styles.detailsRow} wrap={false}>
+                  <Text style={styles.detailsCellName}>{stripEmoji(row.itemName)}</Text>
+                  <Text style={styles.detailsCellNum}>{formatILS(row.planned)}</Text>
+                  <Text style={styles.detailsCellNum}>{formatILS(row.actual)}</Text>
+                  <Text style={isOver ? styles.detailsCellRed : styles.detailsCellGreen}>
+                    {isOver ? '' : '+'}{formatILS(row.remaining)}
+                  </Text>
+                </View>
+              )
+            })}
           </View>
         )}
 
