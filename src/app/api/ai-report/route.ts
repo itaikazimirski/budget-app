@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import type { AIReportData } from '@/lib/types'
 
@@ -25,9 +26,6 @@ Rules:
 - Score reflects overall savings rate and budget adherence: A = excellent, B = good, C = acceptable, D = concerning, F = critical
 - Return ONLY the JSON object, no markdown, no explanation`
 
-const GEMINI_URL = (apiKey: string) =>
-  `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`
-
 function formatILS(amount: number) {
   return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(amount)
 }
@@ -35,49 +33,6 @@ function formatILS(amount: number) {
 function monthName(month: number) {
   const names = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר']
   return names[month - 1]
-}
-
-async function callGemini(apiKey: string, prompt: string): Promise<AIReportData> {
-  const body = JSON.stringify({
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { response_mime_type: 'application/json' },
-  })
-
-  const res = await fetch(GEMINI_URL(apiKey), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body,
-  })
-
-  if (res.status === 503) {
-    // Wait 5 s then retry once
-    await new Promise((r) => setTimeout(r, 5000))
-    const retry = await fetch(GEMINI_URL(apiKey), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body,
-    })
-    if (!retry.ok) {
-      const errJson = await retry.json().catch(() => ({}))
-      const err = new Error(`Gemini ${retry.status} (after retry): ${JSON.stringify(errJson)}`)
-      console.error('DEBUG GEMINI:', err.message, errJson)
-      throw err
-    }
-    const retryJson = await retry.json()
-    const raw = retryJson.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
-    return JSON.parse(raw) as AIReportData
-  }
-
-  if (!res.ok) {
-    const errJson = await res.json().catch(() => ({}))
-    const err = new Error(`Gemini ${res.status}: ${JSON.stringify(errJson)}`)
-    console.error('DEBUG GEMINI:', err.message, errJson)
-    throw err
-  }
-
-  const json = await res.json()
-  const raw = json.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
-  return JSON.parse(raw) as AIReportData
 }
 
 export async function POST(req: NextRequest) {
@@ -88,7 +43,7 @@ export async function POST(req: NextRequest) {
   const { accountId, year, month } = await req.json()
   if (!accountId || !year || !month) return NextResponse.json({ error: 'Missing params' }, { status: 400 })
 
-  // Check cache first
+  // Return cached report if it exists
   const { data: existing } = await supabase
     .from('ai_reports')
     .select('content')
@@ -106,7 +61,7 @@ export async function POST(req: NextRequest) {
   const prevStart = `${prevYear}-${String(prevMonth).padStart(2, '0')}-01`
   const prevEnd   = new Date(prevYear, prevMonth, 0).toISOString().split('T')[0]
 
-  // Fetch everything in parallel — slim selects to reduce payload
+  // Fetch all data in parallel with lean selects
   const [
     { data: categories },
     { data: templates },
@@ -114,7 +69,7 @@ export async function POST(req: NextRequest) {
     { data: transactions },
     { data: prevTransactions },
   ] = await Promise.all([
-    supabase.from('categories').select('id, name, type, icon, bucket').eq('account_id', accountId).eq('is_archived', false),
+    supabase.from('categories').select('id, name, type').eq('account_id', accountId).eq('is_archived', false),
     supabase.from('budget_templates').select('category_id, monthly_amount').eq('account_id', accountId),
     supabase.from('month_budgets').select('category_id, monthly_amount').eq('account_id', accountId).eq('year', year).eq('month', month),
     supabase.from('transactions').select('amount, type, category_id').eq('account_id', accountId).gte('date', startDate).lte('date', endDate),
@@ -133,13 +88,11 @@ export async function POST(req: NextRequest) {
     if (tx.category_id) prevActualMap[tx.category_id] = (prevActualMap[tx.category_id] ?? 0) + tx.amount
   }
 
-  const totalIncome    = (transactions ?? []).filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0)
-  const totalExpenses  = (transactions ?? []).filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
+  const totalIncome   = (transactions ?? []).filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0)
+  const totalExpenses = (transactions ?? []).filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
 
   const cats = categories ?? []
 
-  // Note: we send category-level aggregates to Gemini, NOT raw transactions.
-  // Cap at 50 categories by actual spend to keep the prompt lean.
   const expenseCats = cats.filter((c) => c.type === 'expense').map((c) => {
     const budget     = overrideMap[c.id] ?? templateMap[c.id] ?? 0
     const actual     = actualMap[c.id] ?? 0
@@ -172,15 +125,23 @@ ${expenseCats.map((c) => {
 }).join('\n')}
 `
 
-  const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) return NextResponse.json({ error: 'GEMINI_API_KEY not set' }, { status: 500 })
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) return NextResponse.json({ error: 'ANTHROPIC_API_KEY not set' }, { status: 500 })
 
   let reportData: AIReportData
   try {
-    reportData = await callGemini(apiKey, `${SYSTEM_PROMPT}\n\nנתוני החודש:\n${dataText}`)
+    const client = new Anthropic({ apiKey })
+    const message = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: `נתוני החודש:\n${dataText}` }],
+    })
+
+    const raw = message.content[0].type === 'text' ? message.content[0].text : ''
+    reportData = JSON.parse(raw) as AIReportData
   } catch (err) {
-    console.error('DEBUG GEMINI:', err)
-    return NextResponse.json({ error: String(err) }, { status: 503 })
+    return NextResponse.json({ error: String(err) }, { status: 500 })
   }
 
   const content = JSON.stringify(reportData)
