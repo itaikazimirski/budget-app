@@ -26,7 +26,7 @@ Rules:
 - Return ONLY the JSON object, no markdown, no explanation`
 
 const GEMINI_URL = (apiKey: string) =>
-  `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`
+  `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`
 
 function formatILS(amount: number) {
   return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(amount)
@@ -40,7 +40,7 @@ function monthName(month: number) {
 async function callGemini(apiKey: string, prompt: string): Promise<AIReportData> {
   const body = JSON.stringify({
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { responseMimeType: 'application/json' },
+    generationConfig: { response_mime_type: 'application/json' },
   })
 
   const res = await fetch(GEMINI_URL(apiKey), {
