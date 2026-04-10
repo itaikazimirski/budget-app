@@ -170,7 +170,7 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
         {/* ── AI Insights ── */}
         {aiReportData && (
           <View style={styles.aiSection}>
-            <Text style={styles.sectionTitle}>תובנות AI</Text>
+            <Text style={styles.sectionTitle}>תובנות חכמות</Text>
 
             {/* Mood + TLDR */}
             <View style={styles.moodRow}>
