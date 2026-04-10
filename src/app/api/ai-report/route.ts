@@ -139,7 +139,8 @@ ${expenseCats.map((c) => {
     })
 
     const raw = message.content[0].type === 'text' ? message.content[0].text : ''
-    reportData = JSON.parse(raw) as AIReportData
+    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
+    reportData = JSON.parse(cleaned) as AIReportData
   } catch (err) {
     console.error('AI REPORT ERROR:', JSON.stringify(err, Object.getOwnPropertyNames(err as object)))
     return NextResponse.json({ error: String(err) }, { status: 500 })
