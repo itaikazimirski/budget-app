@@ -26,7 +26,7 @@ Rules:
 - Return ONLY the JSON object, no markdown, no explanation`
 
 const GEMINI_URL = (apiKey: string) =>
-  `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`
+  `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`
 
 function formatILS(amount: number) {
   return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(amount)
@@ -50,8 +50,8 @@ async function callGemini(apiKey: string, prompt: string): Promise<AIReportData>
   })
 
   if (res.status === 503) {
-    // Wait 3 s then retry once
-    await new Promise((r) => setTimeout(r, 3000))
+    // Wait 5 s then retry once
+    await new Promise((r) => setTimeout(r, 5000))
     const retry = await fetch(GEMINI_URL(apiKey), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -59,7 +59,9 @@ async function callGemini(apiKey: string, prompt: string): Promise<AIReportData>
     })
     if (!retry.ok) {
       const errJson = await retry.json().catch(() => ({}))
-      throw new Error(`Gemini ${retry.status}: ${JSON.stringify(errJson)}`)
+      const err = new Error(`Gemini ${retry.status} (after retry): ${JSON.stringify(errJson)}`)
+      console.error('DEBUG GEMINI:', err.message, errJson)
+      throw err
     }
     const retryJson = await retry.json()
     const raw = retryJson.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
@@ -68,7 +70,9 @@ async function callGemini(apiKey: string, prompt: string): Promise<AIReportData>
 
   if (!res.ok) {
     const errJson = await res.json().catch(() => ({}))
-    throw new Error(`Gemini ${res.status}: ${JSON.stringify(errJson)}`)
+    const err = new Error(`Gemini ${res.status}: ${JSON.stringify(errJson)}`)
+    console.error('DEBUG GEMINI:', err.message, errJson)
+    throw err
   }
 
   const json = await res.json()
@@ -133,12 +137,17 @@ export async function POST(req: NextRequest) {
   const totalExpenses  = (transactions ?? []).filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
 
   const cats = categories ?? []
+
+  // Note: we send category-level aggregates to Gemini, NOT raw transactions.
+  // Cap at 50 categories by actual spend to keep the prompt lean.
   const expenseCats = cats.filter((c) => c.type === 'expense').map((c) => {
     const budget     = overrideMap[c.id] ?? templateMap[c.id] ?? 0
     const actual     = actualMap[c.id] ?? 0
     const prevActual = prevActualMap[c.id] ?? 0
     return { name: c.name, budget, actual, prevActual }
   }).filter((c) => c.actual > 0 || c.budget > 0)
+    .sort((a, b) => b.actual - a.actual)
+    .slice(0, 50)
 
   const incomeCats = cats.filter((c) => c.type === 'income').map((c) => ({
     name: c.name, actual: actualMap[c.id] ?? 0,
@@ -170,6 +179,7 @@ ${expenseCats.map((c) => {
   try {
     reportData = await callGemini(apiKey, `${SYSTEM_PROMPT}\n\nנתוני החודש:\n${dataText}`)
   } catch (err) {
+    console.error('DEBUG GEMINI:', err)
     return NextResponse.json({ error: String(err) }, { status: 503 })
   }
 
