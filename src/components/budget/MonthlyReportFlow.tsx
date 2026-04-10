@@ -302,6 +302,13 @@ export default function MonthlyReportFlow({
                     <p className="text-white/85 text-base leading-relaxed text-center max-w-xs">
                       {reportData.tldr}
                     </p>
+                    {reportData.totalInvestments != null && reportData.totalInvestments > 0 && (
+                      <div className="w-full rounded-xl px-4 py-2.5 border border-emerald-400/30 bg-emerald-500/15 text-center">
+                        <span className="text-emerald-300 text-sm font-semibold">
+                          📈 הופנו להשקעות החודש: ₪{Math.round(reportData.totalInvestments).toLocaleString('he-IL')}
+                        </span>
+                      </div>
+                    )}
                     <p className="text-white/30 text-xs mt-2">הקש להמשך</p>
                   </div>
                 </div>

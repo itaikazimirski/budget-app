@@ -28,6 +28,7 @@ export async function addCategory(formData: FormData) {
   const bucket = validateName(formData.get('bucket'), 100) ?? null
   const category_group = validateName(formData.get('category_group'), 100) ?? null
   const is_fixed = formData.get('is_fixed') === 'true'
+  const is_investment = formData.get('is_investment') === 'true'
   const monthlyAmount = validateAmount(formData.get('monthlyAmount')) ?? 0
   const group_id = validateUuid(formData.get('group_id')) ?? null
 
@@ -43,7 +44,7 @@ export async function addCategory(formData: FormData) {
 
   const { data: category, error } = await supabase
     .from('categories')
-    .insert({ account_id: accountId, name, type, icon, bucket, category_group, is_fixed, one_time_year, one_time_month, group_id })
+    .insert({ account_id: accountId, name, type, icon, bucket, category_group, is_fixed, is_investment, one_time_year, one_time_month, group_id })
     .select()
     .single()
 
@@ -94,10 +95,11 @@ export async function updateCategory(formData: FormData) {
   const bucket = validateName(formData.get('bucket'), 100) ?? null
   const category_group = validateName(formData.get('category_group'), 100) ?? null
   const is_fixed = formData.get('is_fixed') === 'true'
+  const is_investment = formData.get('is_investment') === 'true'
 
   const { error } = await supabase
     .from('categories')
-    .update({ name, icon, bucket, category_group, is_fixed })
+    .update({ name, icon, bucket, category_group, is_fixed, is_investment })
     .eq('id', categoryId)
     .eq('account_id', accountId)
 

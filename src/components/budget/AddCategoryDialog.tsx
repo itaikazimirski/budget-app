@@ -26,6 +26,7 @@ export default function AddCategoryDialog({ type, accountId, year, month, defaul
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(defaultGroupId)
   const [isFixed, setIsFixed] = useState(false)
   const [isOneTime, setIsOneTime] = useState(false)
+  const [isInvestment, setIsInvestment] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -38,6 +39,7 @@ export default function AddCategoryDialog({ type, accountId, year, month, defaul
     fd.set('icon', selectedIcon)
     if (selectedGroupId) fd.set('group_id', selectedGroupId)
     fd.set('is_fixed', String(isFixed))
+    fd.set('is_investment', String(isInvestment))
     if (isOneTime) {
       fd.set('one_time_year', String(year))
       fd.set('one_time_month', String(month))
@@ -144,6 +146,26 @@ export default function AddCategoryDialog({ type, accountId, year, month, defaul
                 <p className="font-medium text-sm text-slate-900 dark:text-white">הוראת קבע</p>
               </div>
               <span className="text-2xl">{isFixed ? '🔒' : '🔓'}</span>
+            </button>
+          )}
+
+          {type === 'expense' && (
+            <button
+              type="button"
+              onClick={() => setIsInvestment(!isInvestment)}
+              className={`w-full flex items-start justify-between px-4 py-3 rounded-xl border-2 transition-all ${
+                isInvestment
+                  ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400'
+                  : 'border-slate-200 dark:border-white/[0.1] bg-slate-50 dark:bg-white/[0.04] text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-white/[0.2]'
+              }`}
+            >
+              <div className="text-right flex flex-col gap-1">
+                <p className="font-medium text-sm text-slate-900 dark:text-white">השקעה או חיסכון</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  סימון זה יגרום ל-AI להתייחס להוצאה כבניית הון במקום בזבוז, והיא לא תגרע מהתזרים התפעולי בדוח.
+                </p>
+              </div>
+              <span className="text-2xl mr-3 shrink-0">{isInvestment ? '📈' : '📉'}</span>
             </button>
           )}
 

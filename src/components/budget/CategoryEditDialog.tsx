@@ -21,6 +21,7 @@ export default function CategoryEditDialog({ category, accountId, onClose }: Cat
   const [nameInput, setNameInput] = useState(category.name)
   const [selectedIcon, setSelectedIcon] = useState(category.icon ?? '📦')
   const [isFixed, setIsFixed] = useState(category.is_fixed ?? false)
+  const [isInvestment, setIsInvestment] = useState(category.is_investment ?? false)
   const [isPending, startTransition] = useTransition()
   const [confirmDelete, setConfirmDelete] = useState(false)
 
@@ -42,6 +43,7 @@ export default function CategoryEditDialog({ category, accountId, onClose }: Cat
       fd.set('name', nameInput)
       fd.set('icon', selectedIcon)
       fd.set('is_fixed', String(isFixed))
+      fd.set('is_investment', String(isInvestment))
       const result = await updateCategory(fd)
       if (result?.error) { toast.error('שגיאה בשמירת הקטגוריה'); return }
       toast.success('הקטגוריה עודכנה')
@@ -79,6 +81,26 @@ export default function CategoryEditDialog({ category, accountId, onClose }: Cat
                   <p className="font-medium text-sm text-slate-900 dark:text-white">הוראת קבע</p>
                 </div>
                 <span className="text-2xl">{isFixed ? '🔒' : '🔓'}</span>
+              </button>
+            )}
+
+            {category.type === 'expense' && (
+              <button
+                type="button"
+                onClick={() => setIsInvestment(!isInvestment)}
+                className={`w-full flex items-start justify-between px-4 py-3 rounded-xl border-2 transition-all ${
+                  isInvestment
+                    ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400'
+                    : 'border-slate-200 dark:border-white/[0.1] bg-slate-50 dark:bg-white/[0.04] text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-white/[0.2]'
+                }`}
+              >
+                <div className="text-right flex flex-col gap-1">
+                  <p className="font-medium text-sm text-slate-900 dark:text-white">השקעה או חיסכון</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    סימון זה יגרום ל-AI להתייחס להוצאה כבניית הון במקום בזבוז, והיא לא תגרע מהתזרים התפעולי בדוח.
+                  </p>
+                </div>
+                <span className="text-2xl mr-3 shrink-0">{isInvestment ? '📈' : '📉'}</span>
               </button>
             )}
 

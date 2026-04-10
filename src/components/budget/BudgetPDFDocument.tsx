@@ -84,6 +84,10 @@ const styles = StyleSheet.create({
   detailsCellNum: { flex: 1, fontSize: 9, color: '#374151', textAlign: 'right' },
   detailsCellGreen: { flex: 1, fontSize: 9, color: '#16a34a', textAlign: 'right' },
   detailsCellRed: { flex: 1, fontSize: 9, color: '#dc2626', textAlign: 'right' },
+  // Investment summary bar
+  investBar: { flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#f0fdf4', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 8, marginBottom: 16, borderLeft: '3 solid #16a34a' },
+  investLabel: { fontSize: 9.5, color: '#15803d', textAlign: 'right' },
+  investAmount: { fontSize: 11, fontWeight: 'bold', color: '#15803d', textAlign: 'right' },
   // MoM
   momRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', paddingVertical: 5, borderBottom: '0.5 solid #f1f5f9' },
   momName: { fontSize: 9.5, color: '#374151', textAlign: 'right' },
@@ -128,6 +132,12 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
 
   const balanceIsPositive = balance >= 0
 
+  const totalInvestments = expenseCategories
+    .filter((c) => c.is_investment)
+    .reduce((s, c) => s + c.actual_amount, 0)
+  const operationalExpenses = totalExpenses - totalInvestments
+  const operationalBalance  = totalIncome - operationalExpenses
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -159,10 +169,21 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
             )}
           </View>
           <View style={[styles.summaryBox, { backgroundColor: balanceIsPositive ? '#eff6ff' : '#fff7ed' }]}>
-            <Text style={styles.summaryLabel}>תזרים</Text>
-            <Text style={[styles.summaryAmount, { color: balanceIsPositive ? '#1d4ed8' : '#ea580c' }]}>{formatILS(balance)}</Text>
+            <Text style={styles.summaryLabel}>{totalInvestments > 0 ? 'תזרים תפעולי' : 'תזרים'}</Text>
+            <Text style={[styles.summaryAmount, { color: operationalBalance >= 0 ? '#1d4ed8' : '#ea580c' }]}>{formatILS(operationalBalance)}</Text>
+            {totalInvestments > 0 && (
+              <Text style={[styles.summaryMoM, { color: '#64748b' }]}>ללא השקעות</Text>
+            )}
           </View>
         </View>
+
+        {/* ── Investment summary bar ── */}
+        {totalInvestments > 0 && (
+          <View style={styles.investBar} wrap={false}>
+            <Text style={styles.investLabel}>הופנו להשקעות וחיסכון החודש</Text>
+            <Text style={styles.investAmount}>{formatILS(totalInvestments)} 📈</Text>
+          </View>
+        )}
 
         {/* ── Mood + TLDR ── */}
         {aiReportData && (
