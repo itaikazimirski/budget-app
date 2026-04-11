@@ -195,7 +195,7 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
         {/* ── Highlights ── */}
         {aiReportData?.highlights && aiReportData.highlights.length > 0 && (
           <View>
-            <Text style={styles.sectionTitle}>מה עבד טוב החודש</Text>
+            <Text style={styles.sectionTitle}>מה שעבד טוב החודש</Text>
             {aiReportData.highlights.map((h, i) => (
               <View key={i} style={styles.highlightCard} wrap={false}>
                 <Text style={styles.highlightTitle}>{stripEmoji(h.title)}</Text>
@@ -208,7 +208,7 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
         {/* ── Warnings ── */}
         {aiReportData?.warnings && aiReportData.warnings.length > 0 && (
           <View>
-            <Text style={styles.sectionTitle}>נקודות לשיפור</Text>
+            <Text style={styles.sectionTitle}>דברים שכדאי לשים לב אליהם</Text>
             {aiReportData.warnings.map((w, i) => (
               <View key={i} style={styles.warningCard} wrap={false}>
                 <View style={styles.warningHeader}>
@@ -224,7 +224,7 @@ export default function BudgetPDFDocument({ data }: { data: PDFData }) {
         {/* ── Action Item ── */}
         {aiReportData?.actionItem && (
           <View style={styles.actionCard} wrap={false}>
-            <Text style={styles.actionLabel}>הצעד הבא לחודש הבא</Text>
+            <Text style={styles.actionLabel}>מחשבה קטנה להמשך</Text>
             <Text style={styles.actionText}>{aiReportData.actionItem}</Text>
           </View>
         )}

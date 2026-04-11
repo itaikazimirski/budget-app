@@ -322,7 +322,7 @@ export default function MonthlyReportFlow({
                   key="slide-1"
                 >
                   <div className="animate-fade-slide-in flex flex-col gap-4 w-full">
-                    <h2 className="text-white font-bold text-lg text-right">מה עבד טוב החודש ✨</h2>
+                    <h2 className="text-white font-bold text-lg text-right">מה שעבד טוב החודש ✨</h2>
                     <div className="flex flex-col gap-3">
                       {reportData.highlights.map((h, i) => (
                         <div
@@ -353,7 +353,7 @@ export default function MonthlyReportFlow({
                   key="slide-2"
                 >
                   <div className="animate-fade-slide-in flex flex-col gap-4 w-full">
-                    <h2 className="text-white font-bold text-lg text-right">נקודות לשיפור ⚠️</h2>
+                    <h2 className="text-white font-bold text-lg text-right">דברים שכדאי לשים לב אליהם 🔍</h2>
                     <div className="flex flex-col gap-3">
                       {reportData.warnings.map((w, i) => (
                         <div
@@ -388,7 +388,7 @@ export default function MonthlyReportFlow({
                   <div className="animate-fade-slide-in flex flex-col items-center gap-6 w-full flex-1 justify-center">
                     <span className="text-4xl">🎯</span>
                     <div className="flex flex-col gap-3 text-center">
-                      <h2 className="text-white font-bold text-lg">הצעד הבא</h2>
+                      <h2 className="text-white font-bold text-lg">מחשבה קטנה להמשך</h2>
                       <p className="text-white/85 text-base leading-relaxed max-w-xs">
                         {reportData.actionItem}
                       </p>
