@@ -7,7 +7,7 @@ import { google } from 'googleapis'
 // Internal system fields (user_id, created_by, etc.) are excluded.
 const BACKUP_COLUMNS: Record<string, string> = {
   accounts:         'id, name, created_at',
-  account_members:  'account_id, display_name, created_at',
+  account_members:  'account_id, user_id, created_at',
   categories:       'id, account_id, name, type, icon, bucket, category_group, is_fixed, group_id, one_time_year, one_time_month',
   budget_templates: 'id, account_id, category_id, monthly_amount',
   month_budgets:    'id, account_id, category_id, year, month, monthly_amount',
@@ -54,7 +54,8 @@ export async function GET(request: Request) {
     let query = supabase.from(table).select(columns)
     if (table === 'transactions') query = query.gte('date', cutoffDate).order('date', { ascending: false })
     const { data, error } = await query
-    if (error || !data || data.length === 0) continue
+    if (error) { console.error(`Backup failed for table "${table}":`, error.message); continue }
+    if (!data || data.length === 0) continue
 
     const headers = Object.keys(data[0])
     const rows = data.map(row => headers.map(h => String((row as unknown as Record<string, unknown>)[h] ?? '')))
