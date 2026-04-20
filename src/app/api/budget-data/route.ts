@@ -23,20 +23,25 @@ export async function GET(req: NextRequest) {
   ] = await Promise.all([
     supabase.from('categories').select('id, name, type, icon, bucket, is_investment, one_time_year, one_time_month, group_id').eq('account_id', accountId).eq('is_archived', false),
     supabase.from('budget_templates').select('category_id, monthly_amount').eq('account_id', accountId),
-    supabase.from('month_budgets').select('category_id, monthly_amount').eq('account_id', accountId).eq('year', year).eq('month', month),
+    supabase.from('month_budgets').select('category_id, monthly_amount, is_one_time').eq('account_id', accountId).eq('year', year).eq('month', month),
     supabase.from('transactions').select('amount, type, category_id').eq('account_id', accountId).gte('date', startDate).lte('date', endDate),
   ])
 
-  const templateMap = Object.fromEntries((templates ?? []).map((t) => [t.category_id, t.monthly_amount]))
-  const overrideMap = Object.fromEntries((monthOverrides ?? []).map((o) => [o.category_id, o.monthly_amount]))
+  const templateMap  = Object.fromEntries((templates ?? []).map((t) => [t.category_id, t.monthly_amount]))
+  const overrideMap  = Object.fromEntries((monthOverrides ?? []).map((o) => [o.category_id, o.monthly_amount]))
+  // Set of category_ids that have an is_one_time entry for this specific month
+  const oneTimeSet   = new Set((monthOverrides ?? []).filter((o) => o.is_one_time).map((o) => o.category_id))
   const actualMap: Record<string, number> = {}
   for (const tx of transactions ?? []) {
     if (tx.category_id) actualMap[tx.category_id] = (actualMap[tx.category_id] ?? 0) + tx.amount
   }
 
-  const cats = (categories ?? []).filter((c) =>
-    c.one_time_year === null || (c.one_time_year === year && c.one_time_month === month)
-  )
+  const cats = (categories ?? []).filter((c) => {
+    // Recurring categories (one_time_year is null) always appear
+    if (c.one_time_year === null) return true
+    // One-time-style categories: only appear in months where they have an is_one_time entry
+    return oneTimeSet.has(c.id)
+  })
 
   const expenseCategories = cats.filter((c) => c.type === 'expense').map((c) => {
     const budget = overrideMap[c.id] ?? templateMap[c.id] ?? 0

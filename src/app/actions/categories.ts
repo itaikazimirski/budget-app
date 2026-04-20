@@ -42,33 +42,59 @@ export async function addCategory(formData: FormData) {
 
   const isOneTime = one_time_year !== null && one_time_month !== null
 
-  const { data: category, error } = await supabase
-    .from('categories')
-    .insert({ account_id: accountId, name, type, icon, bucket, category_group, is_fixed, is_investment, one_time_year, one_time_month, group_id })
-    .select()
-    .single()
-
-  if (error) return { error: error.message }
+  let categoryId: string
 
   if (isOneTime) {
+    // Reuse an existing canonical category with the same name if one exists —
+    // avoids creating duplicate rows for the same logical category.
+    const { data: existing } = await supabase
+      .from('categories')
+      .select('id')
+      .eq('account_id', accountId)
+      .eq('name', name)
+      .eq('type', type)
+      .eq('is_archived', false)
+      .maybeSingle()
+
+    if (existing) {
+      categoryId = existing.id
+    } else {
+      const { data: newCat, error } = await supabase
+        .from('categories')
+        .insert({ account_id: accountId, name, type, icon, bucket, category_group, is_fixed, is_investment, one_time_year, one_time_month, group_id })
+        .select('id')
+        .single()
+      if (error) return { error: error.message }
+      categoryId = newCat.id
+    }
+
     await supabase.from('month_budgets').insert({
       account_id: accountId,
-      category_id: category.id,
+      category_id: categoryId,
       year: one_time_year,
       month: one_time_month,
       monthly_amount: monthlyAmount,
+      is_one_time: true,
     })
   } else {
+    const { data: category, error } = await supabase
+      .from('categories')
+      .insert({ account_id: accountId, name, type, icon, bucket, category_group, is_fixed, is_investment, one_time_year: null, one_time_month: null, group_id })
+      .select('id')
+      .single()
+    if (error) return { error: error.message }
+    categoryId = category.id
+
     await supabase.from('budget_templates').insert({
       account_id: accountId,
-      category_id: category.id,
+      category_id: categoryId,
       monthly_amount: monthlyAmount,
     })
   }
 
   logAudit(supabase, {
     account_id: accountId, user_id: user.id, action: 'category.create',
-    entity_id: category.id,
+    entity_id: categoryId,
     metadata: { name, type },
   })
 
